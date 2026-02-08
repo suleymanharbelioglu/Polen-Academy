@@ -1,0 +1,10 @@
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class PrBottomNavbarIndexCubit extends Cubit<int> {
+  PrBottomNavbarIndexCubit() : super(0);
+
+  void changeIndex(int index) {
+    emit(index);
+  }
+}

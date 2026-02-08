@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "325336282488",
+    "project_id": "polen-academy",
+    "storage_bucket": "polen-academy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325336282488:android:c912f9f6b1d1f8f896c48d",
+        "android_client_info": {
+          "package_name": "com.example.polen_academy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "325336282488-1igq9i0e40vljbed7mfkasvob8pl34e7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeF7DP0pqImzLA9ZmfdIxvsgr1ZtdmRS0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "325336282488-1igq9i0e40vljbed7mfkasvob8pl34e7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "325336282488-5r7jqhul6tls098fghi64goledav0lea.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.polenAcademy"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
