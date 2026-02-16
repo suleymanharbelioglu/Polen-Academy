@@ -1,6 +1,10 @@
 import 'package:get_it/get_it.dart';
 import 'package:polen_academy/data/auth/repository/auth_repository_impl.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
+import 'package:polen_academy/data/curriculum/repository/curriculum_repository_impl.dart';
+import 'package:polen_academy/data/curriculum/source/curriculum_firebase_service.dart';
+import 'package:polen_academy/data/goals/repository/goals_repository_impl.dart';
+import 'package:polen_academy/data/goals/source/goals_firebase_service.dart';
 import 'package:polen_academy/data/session/repository/session_repository_impl.dart';
 import 'package:polen_academy/data/session/source/session_firebase_service.dart';
 import 'package:polen_academy/data/user/repository/user_repository_impl.dart';
@@ -14,6 +18,11 @@ import 'package:polen_academy/domain/auth/usecases/parent_signin.dart';
 import 'package:polen_academy/domain/auth/usecases/parent_signup.dart';
 import 'package:polen_academy/domain/auth/usecases/student_signin.dart';
 import 'package:polen_academy/domain/auth/usecases/student_signup.dart';
+import 'package:polen_academy/domain/curriculum/repository/curriculum_repository.dart';
+import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
+import 'package:polen_academy/domain/goals/repository/goals_repository.dart';
+import 'package:polen_academy/domain/goals/usecases/get_student_topic_progress.dart';
+import 'package:polen_academy/domain/goals/usecases/update_topic_progress.dart';
 import 'package:polen_academy/domain/session/repository/session_repository.dart';
 import 'package:polen_academy/domain/session/usecases/create_session.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
@@ -37,6 +46,10 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
   sl.registerSingleton<UserRepository>(UserRepositoryImpl());
   sl.registerSingleton<SessionRepository>(SessionRepositoryImpl());
+  sl.registerSingleton<CurriculumFirebaseService>(CurriculumFirebaseServiceImpl());
+  sl.registerSingleton<CurriculumRepository>(CurriculumRepositoryImpl(sl()));
+  sl.registerSingleton<GoalsFirebaseService>(GoalsFirebaseServiceImpl());
+  sl.registerSingleton<GoalsRepository>(GoalsRepositoryImpl(sl()));
 
   // Auth Usecases
   sl.registerSingleton<CoachSignupUseCase>(CoachSignupUseCase());
@@ -60,4 +73,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UpdateSessionUseCase>(UpdateSessionUseCase());
   sl.registerSingleton<DeleteSessionUseCase>(DeleteSessionUseCase());
   sl.registerSingleton<UpdateSessionStatusUseCase>(UpdateSessionStatusUseCase());
+
+  // Curriculum & Goals Usecases
+  sl.registerSingleton<GetCurriculumTreeUseCase>(GetCurriculumTreeUseCase());
+  sl.registerSingleton<GetStudentTopicProgressUseCase>(GetStudentTopicProgressUseCase());
+  sl.registerSingleton<UpdateTopicProgressUseCase>(UpdateTopicProgressUseCase());
 }
