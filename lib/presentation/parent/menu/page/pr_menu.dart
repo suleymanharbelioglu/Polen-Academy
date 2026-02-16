@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/logout_cubit.dart';
+import 'package:polen_academy/common/bloc/logout_state.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/presentation/auth/page/welcome.dart';
@@ -8,20 +11,51 @@ class PrMenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: const [
-            TargetsMenuItem(),
-            SizedBox(height: 12),
-            MeetingsMenuItem(),
-            SizedBox(height: 12),
-            RemainingTargetMenuItem(),
-            Spacer(),
-            LogoutMenuItem(),
-          ],
+    return BlocProvider(
+      create: (_) => LogoutCubit(),
+      child: const _PrMenuPageContent(),
+    );
+  }
+}
+
+class _PrMenuPageContent extends StatelessWidget {
+  const _PrMenuPageContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<LogoutCubit, LogoutState>(
+      listener: (context, state) {
+        print('🔔 Logout State değişti: ${state.runtimeType}');
+        if (state is LogoutSuccess) {
+          print('✅ Logout Success state alındı, yönlendiriliyor...');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppNavigator.pushAndRemove(context, const WelcomePage());
+          });
+        } else if (state is LogoutFailure) {
+          print('❌ Logout Failure state: ${state.errorMessage}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: const [
+              TargetsMenuItem(),
+              SizedBox(height: 12),
+              MeetingsMenuItem(),
+              SizedBox(height: 12),
+              RemainingTargetMenuItem(),
+              Spacer(),
+              LogoutMenuItem(),
+            ],
+          ),
         ),
       ),
     );
@@ -47,7 +81,7 @@ class TargetsMenuItem extends StatelessWidget {
         ),
         child: Row(
           children: const [
-            Icon(Icons.flag, color: AppColors.primary),
+            Icon(Icons.flag, color: AppColors.primaryParent),
             SizedBox(width: 16),
             Text(
               'Hedefler',
@@ -85,7 +119,7 @@ class MeetingsMenuItem extends StatelessWidget {
         ),
         child: Row(
           children: const [
-            Icon(Icons.handshake, color: AppColors.primary),
+            Icon(Icons.handshake, color: AppColors.primaryParent),
             SizedBox(width: 16),
             Text(
               'Görüşmeler',
@@ -123,7 +157,7 @@ class RemainingTargetMenuItem extends StatelessWidget {
         ),
         child: Row(
           children: const [
-            Icon(Icons.timeline, color: AppColors.primary),
+            Icon(Icons.timeline, color: AppColors.primaryParent),
             SizedBox(width: 16),
             Text(
               'Hedefe Kaç Kaldı ?',
@@ -148,34 +182,57 @@ class LogoutMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        AppNavigator.pushAndRemove(context, WelcomePage());
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
+    return BlocBuilder<LogoutCubit, LogoutState>(
+      builder: (context, state) {
+        final isLoading = state is LogoutLoading;
+
+        return InkWell(
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: const [
-            Icon(Icons.logout, color: Colors.white),
-            SizedBox(width: 16),
-            Text(
-              'Çıkış Yap',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+          onTap: isLoading
+              ? null
+              : () {
+                  print('🚪 Logout butonu tıklandı');
+                  context.read<LogoutCubit>().logout();
+                },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              color: AppColors.primaryParent,
+              borderRadius: BorderRadius.circular(16),
             ),
-            Spacer(),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
-          ],
-        ),
-      ),
+            child: Row(
+              children: [
+                if (isLoading)
+                  const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const Icon(Icons.logout, color: Colors.white),
+                const SizedBox(width: 16),
+                Text(
+                  isLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.white70,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

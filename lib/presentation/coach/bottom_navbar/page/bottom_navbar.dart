@@ -44,7 +44,7 @@ class BottomNavbarPage extends StatelessWidget {
   /// ---------------- APP BAR ----------------
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primaryCoach,
       centerTitle: true,
       elevation: 0,
       title: BlocBuilder<BottomNavbarPageTitleCubit, String>(
@@ -84,7 +84,7 @@ class BottomNavbarPage extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: AppColors.background,
       currentIndex: currentIndex,
-      selectedItemColor: AppColors.primary,
+      selectedItemColor: AppColors.primaryCoach,
       unselectedItemColor: Colors.white,
       onTap: (index) {
         context.read<BottomNavbarIndexCubit>().changeIndex(index);

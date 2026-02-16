@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/presentation/coach/my_all_students/page/my_all_students.dart';
 
 class StudentsSection extends StatelessWidget {
   const StudentsSection({super.key});
@@ -30,14 +31,21 @@ class StudentsSection extends StatelessWidget {
                 onPressed: () {},
                 child: const Text(
                   '+ Ekle',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primaryCoach),
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyAllStudentsPage(),
+                    ),
+                  );
+                },
                 child: const Text(
                   'Tümünü Gör',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primaryCoach),
                 ),
               ),
             ],

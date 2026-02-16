@@ -42,7 +42,7 @@ class PrBottomNavbarPage extends StatelessWidget {
   /// ---------------- APP BAR ----------------
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primaryParent,
       centerTitle: true,
       elevation: 0,
       title: BlocBuilder<PrBottomNavbarPageTitleCubit, String>(
@@ -82,7 +82,7 @@ class PrBottomNavbarPage extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: AppColors.background,
       currentIndex: currentIndex,
-      selectedItemColor: AppColors.primary,
+      selectedItemColor: AppColors.primaryParent,
       unselectedItemColor: Colors.white,
       onTap: (index) {
         context.read<PrBottomNavbarIndexCubit>().changeIndex(index);

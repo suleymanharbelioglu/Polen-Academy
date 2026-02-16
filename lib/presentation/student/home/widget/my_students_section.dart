@@ -30,14 +30,14 @@ class StudentsSection extends StatelessWidget {
                 onPressed: () {},
                 child: const Text(
                   '+ Ekle',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primaryStudent),
                 ),
               ),
               TextButton(
                 onPressed: () {},
                 child: const Text(
                   'Tümünü Gör',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primaryStudent),
                 ),
               ),
             ],

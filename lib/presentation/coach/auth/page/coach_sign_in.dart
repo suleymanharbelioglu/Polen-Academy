@@ -1,8 +1,11 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/presentation/coach/auth/page/coach_sign_up.dart';
+import 'package:polen_academy/data/auth/model/coach_signin_req.dart';
+import 'package:polen_academy/presentation/coach/auth/bloc/coach_signin_cubit.dart';
+import 'package:polen_academy/presentation/coach/auth/bloc/coach_signin_state.dart';
+import 'package:polen_academy/presentation/coach/auth/widget/coach_sign_in_widgets.dart';
 import 'package:polen_academy/presentation/coach/bottom_navbar/page/bottom_navbar.dart';
 
 class CoachSignInPage extends StatelessWidget {
@@ -10,205 +13,104 @@ class CoachSignInPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
+    return BlocProvider(
+      create: (_) => CoachSigninCubit(),
+      child: const _CoachSignInPageContent(),
+    );
+  }
+}
 
-            const SizedBox(height: 16),
+class _CoachSignInPageContent extends StatefulWidget {
+  const _CoachSignInPageContent();
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondBackground,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // BACK
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                          label: const Text(
-                            'Geri',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
+  @override
+  State<_CoachSignInPageContent> createState() =>
+      _CoachSignInPageContentState();
+}
+
+class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController(
+    text: 'harba.suleyman@gmail.com',
+  );
+  final _passwordController = TextEditingController(text: 'cmylmz.31');
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignIn() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final req = CoachSigninReq(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      context.read<CoachSigninCubit>().signIn(req);
+    }
+  }
+
+  void _navigateToHome() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppNavigator.pushAndRemove(context, const BottomNavbarPage());
+    });
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<CoachSigninCubit, CoachSigninState>(
+      listener: (context, state) {
+        if (state is CoachSigninSuccess) {
+          _navigateToHome();
+        } else if (state is CoachSigninFailure) {
+          _showError(state.errorMessage);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 28),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Form(
+                    key: _formKey,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondBackground,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-
-                      const SizedBox(height: 8),
-
-                      // TITLE
-                      const Text(
-                        'Koç Girişi',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      const SizedBox(height: 24),
-
-                      // GOOGLE LOGIN
-                      OutlinedButton.icon(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                          side: const BorderSide(color: Colors.grey),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CoachSignInTitleSection(),
+                          const SizedBox(height: 24),
+                          CoachSignInFormSection(
+                            emailController: _emailController,
+                            passwordController: _passwordController,
                           ),
-                        ),
-                        icon: const Icon(
-                          Icons.g_mobiledata,
-                          size: 28,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Google ile Hızlı Giriş',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // DIVIDER
-                      Row(
-                        children: const [
-                          Expanded(child: Divider(color: Colors.grey)),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(
-                              'veya e-posta ile',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                          Expanded(child: Divider(color: Colors.grey)),
+                          const SizedBox(height: 24),
+                          CoachSignInLoginButton(onPressed: _handleSignIn),
+                          const SizedBox(height: 16),
+                          const CoachSignInBottomTexts(),
                         ],
                       ),
-
-                      const SizedBox(height: 20),
-
-                      // EMAIL / PHONE
-                      _inputLabel('E-posta'),
-                      _inputField('ornek@email.com'),
-
-                      const SizedBox(height: 16),
-
-                      // PASSWORD
-                      _inputLabel('Şifre'),
-                      _inputField('Şifrenizi girin', obscure: true),
-
-                      const SizedBox(height: 24),
-
-                      // LOGIN BUTTON
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            AppNavigator.pushAndRemove(
-                              context,
-                              BottomNavbarPage(),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Giriş Yap',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // REGISTER
-                      RichText(
-                        text: TextSpan(
-                          style: const TextStyle(color: Colors.grey),
-                          children: [
-                            const TextSpan(text: 'Hesabınız yok mu? '),
-                            TextSpan(
-                              text: 'Şimdi Kaydolun',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  AppNavigator.push(context, CoachSignUpPage());
-                                },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // FORGOT PASSWORD
-                      const Text(
-                        'Şifremi unuttum',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -------- HELPERS --------
-
-  static Widget _inputLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(text, style: const TextStyle(color: Colors.white)),
-    );
-  }
-
-  static Widget _inputField(String hint, {bool obscure = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: TextField(
-        obscureText: obscure,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.grey),
-          filled: true,
-          fillColor: const Color(0xFF2A2A2A),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
+            ],
           ),
         ),
       ),

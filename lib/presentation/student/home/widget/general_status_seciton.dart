@@ -16,7 +16,7 @@ class GeneralStatusSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
-            'Genel Durum',
+            'Oğrenci girişi',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,

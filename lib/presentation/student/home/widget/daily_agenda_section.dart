@@ -30,10 +30,10 @@ class DailyAgendaSection extends StatelessWidget {
               const Spacer(),
               TextButton.icon(
                 onPressed: () {},
-                icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+                icon: const Icon(Icons.add, size: 18, color: AppColors.primaryStudent),
                 label: const Text(
                   'Seans Planla',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primaryStudent),
                 ),
               ),
             ],

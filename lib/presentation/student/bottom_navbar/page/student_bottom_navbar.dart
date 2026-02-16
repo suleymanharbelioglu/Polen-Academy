@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/presentation/coach/goals/page/goals.dart';
-import 'package:polen_academy/presentation/coach/home/page/home.dart';
-import 'package:polen_academy/presentation/coach/homeworks/page/homeworks.dart';
-import 'package:polen_academy/presentation/coach/menu/page/menu.dart';
-import 'package:polen_academy/presentation/coach/my_agenda/page/my_agenda.dart';
 import 'package:polen_academy/presentation/student/bottom_navbar/bloc/student_bottom_navbar_index_cubit.dart';
 import 'package:polen_academy/presentation/student/bottom_navbar/bloc/student_bottom_navbar_page_title_cubit.dart';
+import 'package:polen_academy/presentation/student/goals/page/student_goals.dart';
+import 'package:polen_academy/presentation/student/home/page/st_home.dart';
+import 'package:polen_academy/presentation/student/homeworks/page/st_homeworks.dart';
+import 'package:polen_academy/presentation/student/menu/page/st_menu.dart';
+import 'package:polen_academy/presentation/student/my_agenda/page/st_my_agenda.dart';
 
 class StudentBottomNavbarPage extends StatelessWidget {
   const StudentBottomNavbarPage({super.key});
@@ -34,17 +34,17 @@ class StudentBottomNavbarPage extends StatelessWidget {
 
   /// ---------------- PAGE LIST ----------------
   static final List<Widget> _pages = [
-    const HomePage(),
-    const GoalsPage(),
-    const HomeworksPage(), // Ödevler sayfası gelince değişir
-    const MyAgendaPage(),
-    const MenuPage(),
+    const StHomePage(),
+    const StudentGoalsPage(),
+    const StHomeworksPage(),
+    const StMyAgendaPage(),
+    const StMenuPage(),
   ];
 
   /// ---------------- APP BAR ----------------
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primaryStudent,
       centerTitle: true,
       elevation: 0,
       title: BlocBuilder<StudentBottomNavbarPageTitleCubit, String>(
@@ -84,7 +84,7 @@ class StudentBottomNavbarPage extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: AppColors.background,
       currentIndex: currentIndex,
-      selectedItemColor: AppColors.primary,
+      selectedItemColor: AppColors.primaryStudent,
       unselectedItemColor: Colors.white,
       onTap: (index) {
         context.read<StudentBottomNavbarIndexCubit>().changeIndex(index);
