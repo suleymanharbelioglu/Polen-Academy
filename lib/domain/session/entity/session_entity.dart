@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show Color;
+
 enum SessionStatus {
   scheduled,
   completed,
@@ -16,6 +18,8 @@ class SessionEntity {
   final List<String> noteChips;
   final String noteText;
   final SessionStatus status;
+  /// İsteğe bağlı: seans onaylandığında veya gerçekleşmedi işaretlendiğinde eklenen not.
+  final String? statusNote;
   final DateTime createdAt;
 
   const SessionEntity({
@@ -30,6 +34,7 @@ class SessionEntity {
     this.noteChips = const [],
     this.noteText = '',
     this.status = SessionStatus.scheduled,
+    this.statusNote,
     required this.createdAt,
   });
 
@@ -45,6 +50,7 @@ class SessionEntity {
     List<String>? noteChips,
     String? noteText,
     SessionStatus? status,
+    String? statusNote,
     DateTime? createdAt,
   }) {
     return SessionEntity(
@@ -59,7 +65,43 @@ class SessionEntity {
       noteChips: noteChips ?? this.noteChips,
       noteText: noteText ?? this.noteText,
       status: status ?? this.status,
+      statusNote: statusNote ?? this.statusNote,
       createdAt: createdAt ?? this.createdAt,
     );
   }
+}
+
+/// Seans renkleri: planlandı (mavi), bugün (sarı), geçti (kırmızı), yapıldı (yeşil), yapılmadı (kırmızı).
+Color sessionStatusColor(SessionEntity session) {
+  switch (session.status) {
+    case SessionStatus.completed:
+      return const Color(0xFF4CAF50); // yeşil
+    case SessionStatus.cancelled:
+      return const Color(0xFFE53935); // kırmızı
+    case SessionStatus.scheduled:
+      final d = DateTime(session.date.year, session.date.month, session.date.day);
+      final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+      final now = DateTime.now();
+      final sessionTime = session.startTime.split(':');
+      final sessionDateTime = DateTime(d.year, d.month, d.day,
+          sessionTime.length >= 2 ? int.tryParse(sessionTime[0]) ?? 0 : 0,
+          sessionTime.length >= 2 ? int.tryParse(sessionTime[1]) ?? 0 : 0);
+      if (d.isBefore(today) || sessionDateTime.isBefore(now))
+        return const Color(0xFFE53935); // geçti - kırmızı
+      if (d.year == today.year && d.month == today.month && d.day == today.day)
+        return const Color(0xFFFBC02D); // bugün - sarı
+      return const Color(0xFF42A5F5); // ileri tarih - mavi
+  }
+}
+
+/// Takvim günü için tek renk: öncelik completed (yeşil) > cancelled (kırmızı) > scheduled (tarihe göre).
+Color? daySessionsColor(List<SessionEntity> sessions, DateTime dayDate) {
+  if (sessions.isEmpty) return null;
+  final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  final d = DateTime(dayDate.year, dayDate.month, dayDate.day);
+  if (sessions.any((s) => s.status == SessionStatus.completed)) return const Color(0xFF4CAF50);
+  if (sessions.any((s) => s.status == SessionStatus.cancelled)) return const Color(0xFFE53935);
+  if (d.isBefore(today)) return const Color(0xFFE53935);
+  if (d.year == today.year && d.month == today.month && d.day == today.day) return const Color(0xFFFBC02D);
+  return const Color(0xFF42A5F5);
 }

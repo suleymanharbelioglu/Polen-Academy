@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:polen_academy/data/goals/model/student_topic_progress_model.dart';
 import 'package:polen_academy/data/goals/source/goals_firebase_service.dart';
 import 'package:polen_academy/domain/goals/entity/student_topic_progress_entity.dart';
+import 'package:polen_academy/domain/goals/entity/topic_status.dart';
 import 'package:polen_academy/domain/goals/repository/goals_repository.dart';
 
 class GoalsRepositoryImpl extends GoalsRepository {
@@ -29,8 +30,8 @@ class GoalsRepositoryImpl extends GoalsRepository {
     final model = StudentTopicProgressModel(
       studentId: progress.studentId,
       topicId: progress.topicId,
-      konuStudied: progress.konuStudied,
-      revisionDone: progress.revisionDone,
+      konuStatus: progress.konuStatus.value,
+      revisionStatus: progress.revisionStatus.value,
     );
     return _service.set(model);
   }
@@ -45,8 +46,8 @@ class GoalsRepositoryImpl extends GoalsRepository {
         final updated = StudentTopicProgressEntity(
           studentId: studentId,
           topicId: topicId,
-          konuStudied: true,
-          revisionDone: existing?.revisionDone ?? false,
+          konuStatus: TopicStatus.completed,
+          revisionStatus: existing?.revisionStatus ?? TopicStatus.none,
         );
         return updateProgress(updated);
       },

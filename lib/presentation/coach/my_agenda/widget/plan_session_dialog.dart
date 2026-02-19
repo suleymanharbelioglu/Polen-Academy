@@ -4,7 +4,6 @@ import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/domain/session/usecases/create_session.dart';
-import 'package:polen_academy/domain/session/usecases/update_session.dart';
 import 'package:polen_academy/service_locator.dart';
 
 const List<String> _timeSlots = [
@@ -31,13 +30,11 @@ class PlanSessionDialog extends StatefulWidget {
     super.key,
     required this.coachId,
     required this.initialDate,
-    this.initialSession,
     required this.students,
   });
 
   final String coachId;
   final DateTime initialDate;
-  final SessionEntity? initialSession;
   final List<StudentEntity> students;
 
   @override
@@ -57,15 +54,14 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
   @override
   void initState() {
     super.initState();
-    final s = widget.initialSession;
-    _studentId = s?.studentId;
-    _date = s?.date ?? widget.initialDate;
-    _startTime = s?.startTime ?? '09:00';
-    _hasEndTime = (s?.endTime ?? '').isNotEmpty;
-    _endTime = _hasEndTime ? (s?.endTime ?? '09:30') : null;
-    _isWeeklyRecurring = s?.isWeeklyRecurring ?? false;
-    _selectedChips = s?.noteChips ?? [];
-    _noteController = TextEditingController(text: s?.noteText ?? '');
+    _studentId = null;
+    _date = widget.initialDate;
+    _startTime = '09:00';
+    _hasEndTime = false;
+    _endTime = null;
+    _isWeeklyRecurring = false;
+    _selectedChips = [];
+    _noteController = TextEditingController();
   }
 
   @override
@@ -76,16 +72,14 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.initialSession != null;
-
     return AlertDialog(
       backgroundColor: AppColors.secondBackground,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            isEdit ? 'Seansı Düzenle' : 'Yeni Seans Planla',
-            style: const TextStyle(color: Colors.white),
+          const Text(
+            'Yeni Seans Planla',
+            style: TextStyle(color: Colors.white),
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white70),
@@ -145,7 +139,13 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                 decoration: _inputDecoration(),
                 style: const TextStyle(color: Colors.white),
                 items: _timeSlots.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white)))).toList(),
-                onChanged: (v) => setState(() => _startTime = v ?? _startTime),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(() {
+                    _startTime = v;
+                    if (_hasEndTime && (!_isEndTimeAfterStart() || _endTime == null)) _endTime = _defaultEndTime();
+                  });
+                },
               ),
               const SizedBox(height: 8),
               Row(
@@ -157,12 +157,7 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                     onChanged: (v) => setState(() {
                       _hasEndTime = v;
                       if (!v) _endTime = null;
-                      else {
-                        final i = _timeSlots.indexOf(_startTime);
-                        _endTime = (i >= 0 && i < _timeSlots.length - 1)
-                            ? _timeSlots[i + 1]
-                            : '09:30';
-                      }
+                      else _endTime = _defaultEndTime();
                     }),
                   ),
                 ],
@@ -170,11 +165,11 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
               if (_hasEndTime) ...[
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
-                  value: _endTime,
+                  value: _endTime != null && _isEndTimeAfterStart() ? _endTime : _defaultEndTime(),
                   dropdownColor: AppColors.secondBackground,
                   decoration: _inputDecoration(),
                   style: const TextStyle(color: Colors.white),
-                  items: _timeSlots.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white)))).toList(),
+                  items: _endTimeSlots().map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white)))).toList(),
                   onChanged: (v) => setState(() => _endTime = v),
                 ),
               ],
@@ -234,10 +229,29 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
         ElevatedButton(
           onPressed: _save,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          child: Text(isEdit ? 'Güncelle' : 'Seansı Planla', style: const TextStyle(color: Colors.white)),
+          child: const Text('Seansı Planla', style: TextStyle(color: Colors.white)),
         ),
       ],
     );
+  }
+
+  /// Bitiş saati başlangıçtan sonra olmalı; başlangıçtan sonraki slotlar.
+  List<String> _endTimeSlots() {
+    final i = _timeSlots.indexOf(_startTime);
+    if (i < 0 || i >= _timeSlots.length - 1) return ['09:30'];
+    return _timeSlots.sublist(i + 1);
+  }
+
+  String _defaultEndTime() {
+    final slots = _endTimeSlots();
+    return slots.isNotEmpty ? slots.first : '09:30';
+  }
+
+  bool _isEndTimeAfterStart() {
+    if (_endTime == null || _endTime!.isEmpty) return false;
+    final startIdx = _timeSlots.indexOf(_startTime);
+    final endIdx = _timeSlots.indexOf(_endTime!);
+    return startIdx >= 0 && endIdx > startIdx;
   }
 
   InputDecoration _inputDecoration() {
@@ -257,40 +271,37 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
       );
       return;
     }
+    if (_hasEndTime && _endTime != null && !_isEndTimeAfterStart()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitiş saati başlangıç saatinden sonra olmalıdır.'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
     final student = widget.students.firstWhere((e) => e.uid == _studentId);
     final studentName = '${student.studentName} ${student.studentSurname}';
 
+    final effectiveEndTime = _hasEndTime ? (_isEndTimeAfterStart() ? _endTime : _defaultEndTime()) : null;
     final entity = SessionEntity(
-      id: widget.initialSession?.id ?? '',
+      id: '',
       coachId: widget.coachId,
       studentId: _studentId!,
       studentName: studentName,
       date: _date,
       startTime: _startTime,
-      endTime: _hasEndTime ? _endTime : null,
+      endTime: effectiveEndTime,
       isWeeklyRecurring: _isWeeklyRecurring,
       noteChips: _selectedChips,
       noteText: _noteController.text.trim(),
-      status: widget.initialSession?.status ?? SessionStatus.scheduled,
-      createdAt: widget.initialSession?.createdAt ?? DateTime.now(),
+      status: SessionStatus.scheduled,
+      createdAt: DateTime.now(),
     );
 
-    if (widget.initialSession != null) {
-      final result = await LoadingOverlay.run(context, sl<UpdateSessionUseCase>().call(params: entity));
-      if (context.mounted) {
-        result.fold(
-          (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
-          (_) => Navigator.pop(context, entity),
-        );
-      }
-    } else {
-      final result = await LoadingOverlay.run(context, sl<CreateSessionUseCase>().call(params: entity));
-      if (context.mounted) {
-        result.fold(
-          (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
-          (created) => Navigator.pop(context, created),
-        );
-      }
+    final result = await LoadingOverlay.run(context, sl<CreateSessionUseCase>().call(params: entity));
+    if (context.mounted) {
+      result.fold(
+        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
+        (created) => Navigator.pop(context, created),
+      );
     }
   }
 }

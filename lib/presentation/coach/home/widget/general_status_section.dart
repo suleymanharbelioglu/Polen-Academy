@@ -2,7 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 
 class GeneralStatusSection extends StatelessWidget {
-  const GeneralStatusSection({super.key});
+  const GeneralStatusSection({
+    super.key,
+    this.activeStudentCount = 0,
+    this.overdueHomeworkCount = 0,
+    this.pendingApprovalCount = 0,
+    this.unreadMessageCount = 0,
+  });
+
+  final int activeStudentCount;
+  final int overdueHomeworkCount;
+  final int pendingApprovalCount;
+  final int unreadMessageCount;
 
   @override
   Widget build(BuildContext context) {
@@ -24,38 +35,37 @@ class GeneralStatusSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           Row(
-            children: const [
+            children: [
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Aktif\nÖğrenci',
-                  value: 0,
-                  valueColor: Colors.grey,
+                  value: activeStudentCount,
+                  valueColor: activeStudentCount > 0 ? Colors.white : Colors.grey,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Gecikmiş\nÖdev',
-                  value: 0,
-                  valueColor: Colors.grey,
+                  value: overdueHomeworkCount,
+                  valueColor: overdueHomeworkCount > 0 ? Colors.orange : Colors.grey,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Onay\nBekleyen',
-                  value: 0,
-                  valueColor: Colors.grey,
+                  value: pendingApprovalCount,
+                  valueColor: pendingApprovalCount > 0 ? Colors.amber : Colors.grey,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Okunmamış\nMesaj',
-                  value: 0,
-                  valueColor: Colors.grey,
+                  value: unreadMessageCount,
+                  valueColor: unreadMessageCount > 0 ? Colors.white : Colors.grey,
                 ),
               ),
             ],

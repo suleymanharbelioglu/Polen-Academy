@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/domain/session/entity/session_entity.dart';
+import 'package:polen_academy/domain/session/entity/session_entity.dart' show SessionEntity, sessionStatusColor;
 import 'package:polen_academy/presentation/coach/my_agenda/bloc/my_agenda_state.dart';
 
 const List<String> _weekDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -99,7 +99,7 @@ class AgendaCalendar extends StatelessWidget {
                     selectedDate!.year == date.year &&
                     selectedDate!.month == date.month &&
                     selectedDate!.day == date.day;
-                final hasSession = state.hasSessionOn(date);
+                final daySessions = state.sessionsOn(date);
                 final isToday = DateTime.now().year == date.year &&
                     DateTime.now().month == date.month &&
                     DateTime.now().day == date.day;
@@ -136,14 +136,12 @@ class AgendaCalendar extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (hasSession)
-                          Container(
-                            width: 6,
-                            height: 6,
-                            margin: const EdgeInsets.only(top: 2),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryParent,
-                              shape: BoxShape.circle,
+                        if (daySessions.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: _DayDots(
+                              sessions: daySessions,
+                              maxDots: 5,
                             ),
                           ),
                       ],
@@ -154,6 +152,62 @@ class AgendaCalendar extends StatelessWidget {
             );
           }),
         ),
+      ],
+    );
+  }
+}
+
+const int _dayDotsMaxVisible = 5;
+
+class _DayDots extends StatelessWidget {
+  const _DayDots({
+    required this.sessions,
+    this.maxDots = _dayDotsMaxVisible,
+  });
+
+  final List<SessionEntity> sessions;
+  final int maxDots;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = sessions.take(maxDots).toList();
+    final extra = sessions.length - visible.length;
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 3,
+      runSpacing: 2,
+      children: [
+        ...visible.map((session) {
+          final color = sessionStatusColor(session);
+          return Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.5),
+                  blurRadius: 2,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+          );
+        }),
+        if (extra > 0)
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text(
+              '+$extra',
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
       ],
     );
   }

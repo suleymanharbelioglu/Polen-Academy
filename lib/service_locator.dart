@@ -5,6 +5,11 @@ import 'package:polen_academy/data/curriculum/repository/curriculum_repository_i
 import 'package:polen_academy/data/curriculum/source/curriculum_firebase_service.dart';
 import 'package:polen_academy/data/goals/repository/goals_repository_impl.dart';
 import 'package:polen_academy/data/goals/source/goals_firebase_service.dart';
+import 'package:polen_academy/data/homework/repository/homework_repository_impl.dart';
+import 'package:polen_academy/data/homework/repository/homework_submission_repository_impl.dart';
+import 'package:polen_academy/data/homework/source/homework_firebase_service.dart';
+import 'package:polen_academy/data/homework/source/homework_storage_service.dart';
+import 'package:polen_academy/data/homework/source/homework_submission_firebase_service.dart';
 import 'package:polen_academy/data/session/repository/session_repository_impl.dart';
 import 'package:polen_academy/data/session/source/session_firebase_service.dart';
 import 'package:polen_academy/data/user/repository/user_repository_impl.dart';
@@ -23,6 +28,14 @@ import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dar
 import 'package:polen_academy/domain/goals/repository/goals_repository.dart';
 import 'package:polen_academy/domain/goals/usecases/get_student_topic_progress.dart';
 import 'package:polen_academy/domain/goals/usecases/update_topic_progress.dart';
+import 'package:polen_academy/domain/homework/repository/homework_repository.dart';
+import 'package:polen_academy/domain/homework/repository/homework_submission_repository.dart';
+import 'package:polen_academy/domain/homework/usecases/create_homework.dart';
+import 'package:polen_academy/domain/homework/usecases/delete_homework.dart';
+import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
+import 'package:polen_academy/domain/homework/usecases/get_homeworks_by_student_and_date_range.dart';
+import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
+import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
 import 'package:polen_academy/domain/session/repository/session_repository.dart';
 import 'package:polen_academy/domain/session/usecases/create_session.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
@@ -50,6 +63,11 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<CurriculumRepository>(CurriculumRepositoryImpl(sl()));
   sl.registerSingleton<GoalsFirebaseService>(GoalsFirebaseServiceImpl());
   sl.registerSingleton<GoalsRepository>(GoalsRepositoryImpl(sl()));
+  sl.registerSingleton<HomeworkFirebaseService>(HomeworkFirebaseServiceImpl());
+  sl.registerSingleton<HomeworkStorageService>(HomeworkStorageServiceImpl());
+  sl.registerSingleton<HomeworkRepository>(HomeworkRepositoryImpl(sl()));
+  sl.registerSingleton<HomeworkSubmissionFirebaseService>(HomeworkSubmissionFirebaseServiceImpl());
+  sl.registerSingleton<HomeworkSubmissionRepository>(HomeworkSubmissionRepositoryImpl(sl()));
 
   // Auth Usecases
   sl.registerSingleton<CoachSignupUseCase>(CoachSignupUseCase());
@@ -78,4 +96,12 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetCurriculumTreeUseCase>(GetCurriculumTreeUseCase());
   sl.registerSingleton<GetStudentTopicProgressUseCase>(GetStudentTopicProgressUseCase());
   sl.registerSingleton<UpdateTopicProgressUseCase>(UpdateTopicProgressUseCase());
+
+  // Homework Usecases
+  sl.registerSingleton<GetHomeworksByStudentAndDateRangeUseCase>(GetHomeworksByStudentAndDateRangeUseCase());
+  sl.registerSingleton<CreateHomeworkUseCase>(CreateHomeworkUseCase());
+  sl.registerSingleton<DeleteHomeworkUseCase>(DeleteHomeworkUseCase());
+  sl.registerSingleton<GetCompletedHomeworksForCoachUseCase>(GetCompletedHomeworksForCoachUseCase());
+  sl.registerSingleton<SetHomeworkSubmissionStatusUseCase>(SetHomeworkSubmissionStatusUseCase());
+  sl.registerSingleton<UploadHomeworkFileUseCase>(UploadHomeworkFileUseCase());
 }

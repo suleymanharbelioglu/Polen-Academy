@@ -14,5 +14,5 @@ abstract class SessionRepository {
   Future<Either<String, SessionEntity>> create(SessionEntity session);
   Future<Either<String, void>> update(SessionEntity session);
   Future<Either<String, void>> delete(String sessionId);
-  Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status);
+  Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status, [String? statusNote]);
 }

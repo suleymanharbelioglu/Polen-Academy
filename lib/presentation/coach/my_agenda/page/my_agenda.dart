@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
+import 'package:polen_academy/presentation/coach/bottom_navbar/bloc/bottom_navbar_index_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_agenda/bloc/my_agenda_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_agenda/bloc/my_agenda_state.dart';
+import 'package:polen_academy/domain/session/entity/session_entity.dart' show SessionEntity, sessionStatusColor;
 import 'package:polen_academy/presentation/coach/my_agenda/widget/agenda_calendar.dart';
-import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/presentation/coach/my_agenda/widget/agenda_day_sheet.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -30,10 +31,15 @@ class MyAgendaPage extends StatelessWidget {
 class _MyAgendaView extends StatelessWidget {
   const _MyAgendaView();
 
+  static const int _agendaTabIndex = 3;
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MyAgendaCubit, MyAgendaState>(
-      builder: (context, state) {
+    return BlocListener<BottomNavbarIndexCubit, int>(
+      listenWhen: (prev, curr) => curr == _agendaTabIndex && prev != _agendaTabIndex,
+      listener: (context, _) => context.read<MyAgendaCubit>().refresh(),
+      child: BlocBuilder<MyAgendaCubit, MyAgendaState>(
+        builder: (context, state) {
         if (state.loading && state.sessionsForMonth.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(color: Colors.white),
@@ -66,28 +72,50 @@ class _MyAgendaView extends StatelessWidget {
           color: AppColors.primaryCoach,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AgendaCalendar(
                   selectedMonth: state.selectedMonth,
                   sessionsForMonth: state.sessionsForMonth,
-                  selectedDate: null,
+                  selectedDate: state.selectedDate,
                   onMonthPrevious: () => context.read<MyAgendaCubit>().previousMonth(),
                   onMonthNext: () => context.read<MyAgendaCubit>().nextMonth(),
-                  onDateTap: (date) => _showDaySheet(context, date),
+                  onDateTap: (date) {
+                    context.read<MyAgendaCubit>().selectDate(date);
+                    _showDaySheet(context, date);
+                  },
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Yaklaşan Seanslar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 20),
+                Container(
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.white24,
+                        Colors.white24,
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.2, 0.8, 1.0],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Text(
+                    'Yaklaşan Seanslar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 _UpcomingList(
                   sessions: state.upcomingSessions,
                   onTap: (date) => _showDaySheet(context, date),
@@ -96,7 +124,8 @@ class _MyAgendaView extends StatelessWidget {
             ),
           ),
         );
-      },
+        },
+      ),
     );
   }
 
@@ -134,61 +163,87 @@ class _UpcomingList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Text(
-          'Yaklaşan seans yok.',
-          style: TextStyle(color: Colors.white54, fontSize: 14),
+        padding: EdgeInsets.symmetric(vertical: 28),
+        child: Center(
+          child: Text(
+            'Yaklaşan seans yok.',
+            style: TextStyle(color: Colors.white54, fontSize: 15),
+          ),
         ),
       );
     }
-    final displayed = sessions.take(10).toList();
     return Column(
-      children: displayed.map<Widget>((s) {
+      children: sessions.map<Widget>((s) {
         final date = s.date;
         final isToday = date.year == DateTime.now().year &&
             date.month == DateTime.now().month &&
             date.day == DateTime.now().day;
-        return InkWell(
-          onTap: () => onTap(date),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryParent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    s.studentName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
+        final dotColor = sessionStatusColor(s);
+        final timeText = s.endTime != null && s.endTime!.isNotEmpty
+            ? '${s.startTime}-${s.endTime}'
+            : s.startTime;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Material(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: () => onTap(date),
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: dotColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: dotColor.withOpacity(0.4),
+                            blurRadius: 4,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            s.studentName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            timeText,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      isToday ? 'Bugün' : '${date.day} ${_monthNames[date.month - 1]} ${date.year}',
+                      style: TextStyle(
+                        color: isToday ? dotColor : Colors.white70,
+                        fontSize: 13,
+                        fontWeight: isToday ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  isToday ? 'Bugün' : '${date.day} ${_monthNames[date.month - 1]}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  s.startTime,
-                  style: TextStyle(
-                    color: AppColors.primaryCoach.withOpacity(0.9),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         );

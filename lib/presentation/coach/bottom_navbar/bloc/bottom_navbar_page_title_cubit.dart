@@ -12,7 +12,7 @@ class BottomNavbarPageTitleCubit extends Cubit<String> {
         emit('Hedefler');
         break;
       case 2:
-        emit('Ödevler');
+        emit('Ödev Takvimi');
         break;
       case 3:
         emit('Ajandam');

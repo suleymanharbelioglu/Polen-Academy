@@ -12,6 +12,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await initializeDependencies();
+  // await CurriculumHelper.seedCurriculumIfNeeded();
 
   runApp(const MyApp());
 }

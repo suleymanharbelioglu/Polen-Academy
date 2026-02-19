@@ -27,6 +27,20 @@ class AgendaDaySheet extends StatelessWidget {
     return '${d.day} ${_monthNames[d.month - 1]} ${d.year}';
   }
 
+  /// Bugünden önceki günler için true (seans ekle butonu gösterilmez).
+  static bool _isPastDate(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return d.isBefore(today);
+  }
+
+  /// Sadece bugünün tarihi için true (onay/iptal butonları gösterilir).
+  static bool _isToday(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    return d == today;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MyAgendaCubit, MyAgendaState>(
@@ -87,25 +101,28 @@ class AgendaDaySheet extends StatelessWidget {
                       itemBuilder: (context, i) => SessionCard(
                         session: sessions[i],
                         onRefresh: () => context.read<MyAgendaCubit>().refresh(),
+                        canMarkStatus: _isToday(date),
                       ),
                     ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => _openAddSession(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              if (!_isPastDate(date)) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => _openAddSession(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Seans Ekle',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
-                  child: const Text(
-                    'Seans Ekle',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );

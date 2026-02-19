@@ -15,7 +15,7 @@ abstract class SessionFirebaseService {
   Future<Either<String, SessionModel>> create(SessionModel session);
   Future<Either<String, void>> update(SessionModel session);
   Future<Either<String, void>> delete(String sessionId);
-  Future<Either<String, void>> updateStatus(String sessionId, String status);
+  Future<Either<String, void>> updateStatus(String sessionId, String status, [String? statusNote]);
 }
 
 class SessionFirebaseServiceImpl extends SessionFirebaseService {
@@ -127,10 +127,12 @@ class SessionFirebaseServiceImpl extends SessionFirebaseService {
   }
 
   @override
-  Future<Either<String, void>> updateStatus(String sessionId, String status) async {
+  Future<Either<String, void>> updateStatus(String sessionId, String status, [String? statusNote]) async {
     try {
       if (sessionId.isEmpty) return const Left('Seans id gerekli');
-      await FirebaseFirestore.instance.collection(_collection).doc(sessionId).update({'status': status});
+      final data = <String, dynamic>{'status': status};
+      if (statusNote != null && statusNote.isNotEmpty) data['statusNote'] = statusNote;
+      await FirebaseFirestore.instance.collection(_collection).doc(sessionId).update(data);
       return const Right(null);
     } catch (e) {
       return Left('Durum güncellenirken hata: ${e.toString()}');

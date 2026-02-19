@@ -19,7 +19,7 @@ class GoalsCourseDropdown extends StatelessWidget {
     return DropdownButtonFormField<String?>(
       value: selectedCourseId,
       decoration: InputDecoration(
-        labelText: 'Ders',
+        labelText: 'Ders Seçin',
         labelStyle: TextStyle(color: Colors.white70),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,

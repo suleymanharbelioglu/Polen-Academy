@@ -4,9 +4,25 @@
       "collectionGroup": "Sessions",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "coachId", "order": "ASCENDING" },
-        { "fieldPath": "date", "order": "ASCENDING" },
-        { "fieldPath": "startTime", "order": "ASCENDING" }
+        {"fieldPath": "coachId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "ASCENDING"},
+        {"fieldPath": "startTime", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "Homeworks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "studentIds", "arrayConfig": "CONTAINS"},
+        {"fieldPath": "endDate", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "Homeworks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "coachId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
       ]
     }
   ],

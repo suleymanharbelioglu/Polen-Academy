@@ -51,7 +51,7 @@ class SessionRepositoryImpl extends SessionRepository {
   }
 
   @override
-  Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status) async {
-    return sl<SessionFirebaseService>().updateStatus(sessionId, status.name);
+  Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status, [String? statusNote]) async {
+    return sl<SessionFirebaseService>().updateStatus(sessionId, status.name, statusNote);
   }
 }

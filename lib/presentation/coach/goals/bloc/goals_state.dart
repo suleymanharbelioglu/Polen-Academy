@@ -9,6 +9,7 @@ class GoalsState {
   final String? selectedCourseId;
   final Map<String, StudentTopicProgressEntity> progressMap;
   final bool loading;
+  final bool saving;
   final String? errorMessage;
 
   const GoalsState({
@@ -18,6 +19,7 @@ class GoalsState {
     this.selectedCourseId,
     this.progressMap = const {},
     this.loading = false,
+    this.saving = false,
     this.errorMessage,
   });
 
@@ -35,8 +37,10 @@ class GoalsState {
     StudentEntity? selectedStudent,
     CurriculumTree? curriculumTree,
     String? selectedCourseId,
+    bool clearSelectedCourseId = false,
     Map<String, StudentTopicProgressEntity>? progressMap,
     bool? loading,
+    bool? saving,
     String? errorMessage,
     bool clearSelectedStudent = false,
     bool clearCurriculum = false,
@@ -46,9 +50,10 @@ class GoalsState {
       students: students ?? this.students,
       selectedStudent: clearSelectedStudent ? null : (selectedStudent ?? this.selectedStudent),
       curriculumTree: clearCurriculum ? null : (curriculumTree ?? this.curriculumTree),
-      selectedCourseId: selectedCourseId ?? this.selectedCourseId,
+      selectedCourseId: clearSelectedCourseId ? null : (selectedCourseId ?? this.selectedCourseId),
       progressMap: clearProgress ? {} : (progressMap ?? this.progressMap),
       loading: loading ?? this.loading,
+      saving: saving ?? this.saving,
       errorMessage: errorMessage,
     );
   }

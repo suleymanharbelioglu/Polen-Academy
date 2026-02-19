@@ -12,6 +12,7 @@ class SessionModel {
   final List<String> noteChips;
   final String noteText;
   final String status;
+  final String? statusNote;
   final DateTime createdAt;
 
   SessionModel({
@@ -26,6 +27,7 @@ class SessionModel {
     this.noteChips = const [],
     this.noteText = '',
     this.status = 'scheduled',
+    this.statusNote,
     required this.createdAt,
   });
 
@@ -46,6 +48,7 @@ class SessionModel {
           : const [],
       noteText: map['noteText'] ?? '',
       status: map['status'] as String? ?? 'scheduled',
+      statusNote: map['statusNote'] as String?,
       createdAt: _parseDateTime(createdAt),
     );
   }
@@ -70,6 +73,7 @@ class SessionModel {
       'noteChips': noteChips,
       'noteText': noteText,
       'status': status,
+      if (statusNote != null) 'statusNote': statusNote,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -89,6 +93,7 @@ extension SessionModelX on SessionModel {
       noteChips: noteChips,
       noteText: noteText,
       status: _statusFromString(status),
+      statusNote: statusNote,
       createdAt: createdAt,
     );
   }
@@ -108,6 +113,7 @@ extension SessionEntityX on SessionEntity {
       noteChips: noteChips,
       noteText: noteText,
       status: status.name,
+      statusNote: statusNote,
       createdAt: createdAt,
     );
   }

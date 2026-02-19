@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
-import 'package:polen_academy/presentation/coach/my_agenda/bloc/my_agenda_cubit.dart';
-import 'package:polen_academy/domain/user/usecases/get_my_students.dart';
-import 'package:polen_academy/presentation/coach/my_agenda/widget/plan_session_dialog.dart';
 import 'package:polen_academy/service_locator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
-import 'package:polen_academy/domain/user/entity/student_entity.dart';
 
 class SessionCard extends StatelessWidget {
   const SessionCard({
     super.key,
     required this.session,
     required this.onRefresh,
+    this.canMarkStatus = true,
   });
 
   final SessionEntity session;
   final VoidCallback onRefresh;
+  /// Sadece o gün (bugün) içinse true; geçmiş/gelecek günlerde onay/iptal gösterilmez.
+  final bool canMarkStatus;
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = session.status == SessionStatus.completed
-        ? Colors.green
-        : session.status == SessionStatus.cancelled
-        ? Colors.grey
-        : AppColors.primaryParent;
+    final statusColor = sessionStatusColor(session);
 
     return Card(
       color: AppColors.secondBackground,
@@ -103,7 +97,7 @@ class SessionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (session.status == SessionStatus.scheduled) ...[
+                if (session.status == SessionStatus.scheduled && canMarkStatus) ...[
                   IconButton(
                     icon: const Icon(
                       Icons.check_circle_outline,
@@ -111,26 +105,18 @@ class SessionCard extends StatelessWidget {
                       size: 22,
                     ),
                     onPressed: () =>
-                        _updateStatus(context, SessionStatus.completed),
+                        _updateStatusWithNote(context, SessionStatus.completed),
                   ),
                   IconButton(
                     icon: const Icon(
                       Icons.cancel_outlined,
-                      color: Colors.orange,
+                      color: Colors.red,
                       size: 22,
                     ),
                     onPressed: () =>
-                        _updateStatus(context, SessionStatus.cancelled),
+                        _updateStatusWithNote(context, SessionStatus.cancelled),
                   ),
                 ],
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    color: Colors.white70,
-                    size: 22,
-                  ),
-                  onPressed: () => _openEdit(context),
-                ),
                 IconButton(
                   icon: const Icon(
                     Icons.delete_outline,
@@ -147,49 +133,82 @@ class SessionCard extends StatelessWidget {
     );
   }
 
-  Future<void> _updateStatus(BuildContext context, SessionStatus status) async {
-    final result = await LoadingOverlay.run(
+  Future<void> _updateStatusWithNote(BuildContext context, SessionStatus status) async {
+    final isCompleted = status == SessionStatus.completed;
+    final result = await showDialog<({bool confirmed, String? note})>(
+      context: context,
+      builder: (ctx) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          backgroundColor: AppColors.secondBackground,
+          title: Text(
+            isCompleted ? 'Seansı Onayla' : 'Seans Gerçekleşmedi',
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCompleted
+                      ? 'Bu seansı gerçekleşti olarak işaretlemek istiyor musunuz? İsteğe bağlı not ekleyebilirsiniz.'
+                      : "Bu seansı 'Gerçekleşmedi' olarak işaretlemek istediğinizden emin misiniz? İsteğe bağlı not ekleyebilirsiniz.",
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 16),
+                const Text('Not (İsteğe bağlı)', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: controller,
+                  maxLines: 3,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.background,
+                    hintText: isCompleted ? 'Örn: Konu, değerlendirme...' : 'Örn: Öğrenci katılmadı, teknik sorun...',
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, (confirmed: false, note: null)),
+              child: const Text('Kapat', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final n = controller.text.trim();
+                Navigator.pop(ctx, (confirmed: true, note: n.isEmpty ? null : n));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isCompleted ? Colors.green : Colors.red,
+              ),
+              child: const Text('Onayla', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+    if (result == null || !result.confirmed || !context.mounted) return;
+    final updateResult = await LoadingOverlay.run(
       context,
       sl<UpdateSessionStatusUseCase>().call(
         params: UpdateSessionStatusParams(
           sessionId: session.id,
           status: status,
+          statusNote: result.note,
         ),
       ),
     );
     if (context.mounted) {
-      result.fold(
-        (e) => ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
+      updateResult.fold(
+        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
         (_) => onRefresh(),
       );
-    }
-  }
-
-  Future<void> _openEdit(BuildContext context) async {
-    final cubit = context.read<MyAgendaCubit>();
-    final coachId = cubit.coachId;
-    final studentsResult = await sl<GetMyStudentsUseCase>().call(
-      params: coachId,
-    );
-    if (!context.mounted) return;
-    final students = studentsResult.fold(
-      (_) => <StudentEntity>[],
-      (list) => list,
-    );
-    final updated = await showDialog<SessionEntity>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PlanSessionDialog(
-        coachId: coachId,
-        initialDate: session.date,
-        initialSession: session,
-        students: students,
-      ),
-    );
-    if (updated != null && context.mounted) {
-      onRefresh();
     }
   }
 

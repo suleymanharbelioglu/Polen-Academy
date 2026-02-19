@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 
 class StudentModel {
@@ -11,6 +12,7 @@ class StudentModel {
   final int progress;
   /// Whether the student has an assigned parent.
   final bool hasParent;
+  final DateTime? registeredAt;
 
   StudentModel({
     required this.uid,
@@ -22,10 +24,18 @@ class StudentModel {
     required this.parentId,
     required this.progress,
     this.hasParent = false,
+    this.registeredAt,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
     final parentId = map['parentId'] ?? '';
+    DateTime? registeredAt;
+    final r = map['registeredAt'] ?? map['createdAt'];
+    if (r != null) {
+      if (r is DateTime) registeredAt = r;
+      else if (r is String) registeredAt = DateTime.tryParse(r);
+      else if (r is Timestamp) registeredAt = r.toDate();
+    }
     return StudentModel(
       uid: map['uid'] ?? '',
       studentName: map['studentName'] ?? '',
@@ -36,11 +46,12 @@ class StudentModel {
       parentId: parentId,
       progress: map['progress'] ?? 0,
       hasParent: map['hasParent'] as bool? ?? parentId.toString().isNotEmpty,
+      registeredAt: registeredAt,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final m = <String, dynamic>{
       'uid': uid,
       'studentName': studentName,
       'studentSurname': studentSurname,
@@ -52,6 +63,8 @@ class StudentModel {
       'hasParent': hasParent,
       'role': 'student',
     };
+    if (registeredAt != null) m['registeredAt'] = registeredAt!.toIso8601String();
+    return m;
   }
 }
 
@@ -67,6 +80,7 @@ extension StudentModelX on StudentModel {
       parentId: parentId,
       progress: progress,
       hasParent: hasParent,
+      registeredAt: registeredAt,
     );
   }
 }
@@ -83,6 +97,7 @@ extension StudentEntityX on StudentEntity {
       parentId: parentId,
       progress: progress,
       hasParent: hasParent,
+      registeredAt: registeredAt,
     );
   }
 }

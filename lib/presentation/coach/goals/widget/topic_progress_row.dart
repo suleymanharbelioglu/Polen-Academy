@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/curriculum/entity/topic_entity.dart';
+import 'package:polen_academy/domain/goals/entity/topic_status.dart';
+import 'package:polen_academy/presentation/coach/goals/widget/goals_status_box.dart';
 
 class TopicProgressRow extends StatelessWidget {
   const TopicProgressRow({
     super.key,
     required this.topic,
-    required this.konuStudied,
-    required this.revisionDone,
-    required this.onKonuChanged,
-    required this.onRevisionChanged,
+    required this.konuStatus,
+    required this.revisionStatus,
+    required this.onKonuSelected,
+    required this.onRevisionSelected,
   });
 
   final TopicEntity topic;
-  final bool konuStudied;
-  final bool revisionDone;
-  final void Function(bool) onKonuChanged;
-  final void Function(bool) onRevisionChanged;
+  final TopicStatus konuStatus;
+  final TopicStatus revisionStatus;
+  final void Function(TopicStatus) onKonuSelected;
+  final void Function(TopicStatus) onRevisionSelected;
+
+  static const double _colKonuWidth = 40;
+  static const double _colTkrWidth = 40;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +29,6 @@ class TopicProgressRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
             child: Text(
               topic.name,
               style: const TextStyle(
@@ -34,55 +37,27 @@ class TopicProgressRow extends StatelessWidget {
               ),
             ),
           ),
-          _StatusChip(
-            label: 'Konu',
-            isDone: konuStudied,
-            onTap: () => onKonuChanged(!konuStudied),
-          ),
-          const SizedBox(width: 8),
-          _StatusChip(
-            label: 'Tekrar',
-            isDone: revisionDone,
-            onTap: () => onRevisionChanged(!revisionDone),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({
-    required this.label,
-    required this.isDone,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isDone;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isDone
-          ? AppColors.primaryCoach.withOpacity(0.3)
-          : AppColors.secondBackground,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Text(
-            isDone ? 'Tamamlandı' : 'Bekliyor',
-            style: TextStyle(
-              color: isDone ? AppColors.primaryCoach : Colors.white54,
-              fontSize: 12,
-              fontWeight: isDone ? FontWeight.w600 : FontWeight.normal,
+          SizedBox(
+            width: _colKonuWidth,
+            child: Center(
+              child: GoalsStatusBox(
+                status: konuStatus,
+                isUnit: false,
+                onSelect: onKonuSelected,
+              ),
             ),
           ),
-        ),
+          SizedBox(
+            width: _colTkrWidth,
+            child: Center(
+              child: GoalsStatusBox(
+                status: revisionStatus,
+                isUnit: false,
+                onSelect: onRevisionSelected,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

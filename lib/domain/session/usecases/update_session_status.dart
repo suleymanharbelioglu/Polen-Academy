@@ -7,10 +7,12 @@ import 'package:polen_academy/service_locator.dart';
 class UpdateSessionStatusParams {
   final String sessionId;
   final SessionStatus status;
+  final String? statusNote;
 
   const UpdateSessionStatusParams({
     required this.sessionId,
     required this.status,
+    this.statusNote,
   });
 }
 
@@ -18,6 +20,10 @@ class UpdateSessionStatusUseCase
     implements UseCase<Either<String, void>, UpdateSessionStatusParams> {
   @override
   Future<Either<String, void>> call({UpdateSessionStatusParams? params}) async {
-    return sl<SessionRepository>().updateStatus(params!.sessionId, params.status);
+    return sl<SessionRepository>().updateStatus(
+      params!.sessionId,
+      params.status,
+      params.statusNote,
+    );
   }
 }

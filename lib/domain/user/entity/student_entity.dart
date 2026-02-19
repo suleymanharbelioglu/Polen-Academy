@@ -9,6 +9,8 @@ class StudentEntity {
   final int progress;
   /// Whether the student has an assigned parent. Set at creation / when parent is added.
   final bool hasParent;
+  /// Öğrencinin kayıt tarihi; hafta numarası (1. hafta, 2. hafta) bu tarihin haftasından itibaren hesaplanır.
+  final DateTime? registeredAt;
 
   StudentEntity({
     required this.uid,
@@ -20,6 +22,7 @@ class StudentEntity {
     required this.parentId,
     required this.progress,
     this.hasParent = false,
+    this.registeredAt,
   });
 
   StudentEntity copyWith({
@@ -32,6 +35,7 @@ class StudentEntity {
     String? parentId,
     int? progress,
     bool? hasParent,
+    DateTime? registeredAt,
   }) {
     return StudentEntity(
       uid: uid ?? this.uid,
@@ -43,6 +47,7 @@ class StudentEntity {
       parentId: parentId ?? this.parentId,
       progress: progress ?? this.progress,
       hasParent: hasParent ?? this.hasParent,
+      registeredAt: registeredAt ?? this.registeredAt,
     );
   }
 }
