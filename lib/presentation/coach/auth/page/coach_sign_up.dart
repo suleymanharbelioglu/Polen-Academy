@@ -35,7 +35,7 @@ class _CoachSignUpPageContentState extends State<_CoachSignUpPageContent> {
   final _emailController = TextEditingController(
     text: 'harba.suleyman@gmail.com',
   );
-  final _passwordController = TextEditingController(text: 'cmylmz.31');
+  final _passwordController = TextEditingController(text: 'cmylmZ.31');
 
   @override
   void dispose() {

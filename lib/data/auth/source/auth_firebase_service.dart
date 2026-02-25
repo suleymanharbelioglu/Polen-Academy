@@ -22,6 +22,9 @@ abstract class AuthFirebaseService {
   bool isLoggedIn();
   String? getCurrentUserUid();
 
+  /// Sends password reset email to the given address. Returns Left(error) or Right(null).
+  Future<Either<String, void>> sendPasswordResetEmail(String email);
+
   /// Returns the current user's role from Firestore (e.g. 'coach', 'student', 'parent') or null.
   Future<String?> getCurrentUserRole();
 }
@@ -135,6 +138,30 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
   @override
   String? getCurrentUserUid() {
     return FirebaseAuth.instance.currentUser?.uid;
+  }
+
+  @override
+  Future<Either<String, void>> sendPasswordResetEmail(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email.trim());
+      return const Right(null);
+    } on FirebaseAuthException catch (e) {
+      String message = 'Şifre sıfırlama e-postası gönderilemedi';
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı';
+          break;
+        case 'invalid-email':
+          message = 'Geçersiz e-posta adresi';
+          break;
+        case 'too-many-requests':
+          message = 'Çok fazla deneme. Lütfen daha sonra tekrar deneyin';
+          break;
+      }
+      return Left(message);
+    } catch (e) {
+      return Left('Beklenmeyen hata: ${e.toString()}');
+    }
   }
 
   @override

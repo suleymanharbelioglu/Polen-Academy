@@ -5,6 +5,7 @@ import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_signin_cubit.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_signin_state.dart';
+import 'package:polen_academy/presentation/coach/auth/page/coach_forgot_password_page.dart';
 import 'package:polen_academy/presentation/coach/auth/page/coach_sign_up.dart';
 
 // Title Section
@@ -232,11 +233,20 @@ class CoachSignInBottomTexts extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Şifremi unuttum',
-          style: TextStyle(
-            color: AppColors.primaryCoach,
-            fontWeight: FontWeight.bold,
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const CoachForgotPasswordPage(),
+              ),
+            );
+          },
+          child: const Text(
+            'Şifremi unuttum',
+            style: TextStyle(
+              color: AppColors.primaryCoach,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

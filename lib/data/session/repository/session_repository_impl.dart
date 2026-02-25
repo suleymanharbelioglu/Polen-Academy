@@ -32,6 +32,31 @@ class SessionRepositoryImpl extends SessionRepository {
   }
 
   @override
+  Future<Either<String, List<SessionEntity>>> getByStudentAndDate(
+    String studentId,
+    DateTime date,
+  ) async {
+    final result = await sl<SessionFirebaseService>().getByStudentAndDate(studentId, date);
+    return result.fold(
+      (l) => Left(l),
+      (list) => Right(list.map((m) => m.toEntity()).toList()),
+    );
+  }
+
+  @override
+  Future<Either<String, List<SessionEntity>>> getByStudentAndDateRange(
+    String studentId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    final result = await sl<SessionFirebaseService>().getByStudentAndDateRange(studentId, start, end);
+    return result.fold(
+      (l) => Left(l),
+      (list) => Right(list.map((m) => m.toEntity()).toList()),
+    );
+  }
+
+  @override
   Future<Either<String, SessionEntity>> create(SessionEntity session) async {
     final result = await sl<SessionFirebaseService>().create(session.toModel());
     return result.fold(

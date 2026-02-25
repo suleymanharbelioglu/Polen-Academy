@@ -1,10 +1,12 @@
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 
+/// Ödev teslimi: öğrencinin ödeve eklediği görsel URL'leri ve yaptı bilgisi bu modelde.
 class HomeworkSubmissionModel {
   final String id;
   final String homeworkId;
   final String studentId;
   final String status;
+  /// Öğrencinin eklediği görsellerin URL listesi (Firestore: uploadedUrls).
   final List<String> uploadedUrls;
   final DateTime? completedAt;
   final DateTime updatedAt;

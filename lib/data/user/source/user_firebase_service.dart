@@ -7,6 +7,7 @@ abstract class UserFirebaseService {
   Future<Either<String, List<Map<String, dynamic>>>> getMyStudents(
     String coachId,
   );
+  Future<Either<String, Map<String, dynamic>?>> getStudentByUid(String uid);
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
 }
@@ -32,6 +33,17 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       return Right(students);
     } catch (e) {
       return Left('Öğrenciler yüklenirken hata oluştu: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, Map<String, dynamic>?>> getStudentByUid(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+      if (!doc.exists || doc.data() == null) return const Right(null);
+      return Right({...doc.data()!, 'uid': doc.id});
+    } catch (e) {
+      return Left('Öğrenci bilgisi yüklenirken hata: ${e.toString()}');
     }
   }
 

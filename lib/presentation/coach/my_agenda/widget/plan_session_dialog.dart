@@ -21,7 +21,6 @@ const List<String> _noteChipLabels = [
   'Yeni hafta ödevlendirmesi',
   'Haftanın değerlendirilmesi',
   'Motivasyon görüşmesi',
-  'Deneme analizi',
   'Sınav kaygısı üzerine rehberlik',
 ];
 
@@ -47,7 +46,6 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
   late String _startTime;
   late String? _endTime;
   late bool _hasEndTime;
-  late bool _isWeeklyRecurring;
   late List<String> _selectedChips;
   late TextEditingController _noteController;
 
@@ -59,7 +57,6 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
     _startTime = '09:00';
     _hasEndTime = false;
     _endTime = null;
-    _isWeeklyRecurring = false;
     _selectedChips = [];
     _noteController = TextEditingController();
   }
@@ -162,7 +159,7 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                   ),
                 ],
               ),
-              if (_hasEndTime) ...[
+                  if (_hasEndTime) ...[
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   value: _endTime != null && _isEndTimeAfterStart() ? _endTime : _defaultEndTime(),
@@ -173,17 +170,6 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                   onChanged: (v) => setState(() => _endTime = v),
                 ),
               ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Checkbox(
-                    value: _isWeeklyRecurring,
-                    onChanged: (v) => setState(() => _isWeeklyRecurring = v ?? false),
-                    fillColor: WidgetStateProperty.all(AppColors.primaryCoach),
-                  ),
-                  const Text('Haftalık Tekrarla', style: TextStyle(color: Colors.white70)),
-                ],
-              ),
               const SizedBox(height: 16),
               const Text('Seans Notları', style: TextStyle(color: Colors.white70, fontSize: 14)),
               const SizedBox(height: 8),
@@ -289,7 +275,7 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
       date: _date,
       startTime: _startTime,
       endTime: effectiveEndTime,
-      isWeeklyRecurring: _isWeeklyRecurring,
+      isWeeklyRecurring: false,
       noteChips: _selectedChips,
       noteText: _noteController.text.trim(),
       status: SessionStatus.scheduled,

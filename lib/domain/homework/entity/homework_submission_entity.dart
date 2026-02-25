@@ -11,6 +11,7 @@ class HomeworkSubmissionEntity {
   final String homeworkId;
   final String studentId;
   final HomeworkSubmissionStatus status;
+  /// Öğrencinin eklediği görsellerin (yüklenen dosyaların) URL listesi.
   final List<String> uploadedUrls;
   final DateTime? completedAt;
   final DateTime updatedAt;
@@ -28,4 +29,7 @@ class HomeworkSubmissionEntity {
   bool get isCompleted =>
       status == HomeworkSubmissionStatus.completedByStudent ||
       status == HomeworkSubmissionStatus.approved;
+
+  /// Öğrenci ödevi yaptı olarak işaretlemiş (onay bekliyor veya onaylandı).
+  bool get studentDidIt => isCompleted;
 }

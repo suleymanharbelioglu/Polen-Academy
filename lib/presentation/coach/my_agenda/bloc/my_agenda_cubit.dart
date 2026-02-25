@@ -6,7 +6,7 @@ import 'package:polen_academy/service_locator.dart';
 
 class MyAgendaCubit extends Cubit<MyAgendaState> {
   MyAgendaCubit({required this.coachId})
-      : super(MyAgendaState(selectedMonth: DateTime.now()));
+    : super(MyAgendaState(selectedMonth: DateTime.now()));
 
   final String coachId;
 
@@ -16,8 +16,16 @@ class MyAgendaCubit extends Cubit<MyAgendaState> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekEnd = today.add(const Duration(days: 7));
-    final monthStart = DateTime(state.selectedMonth.year, state.selectedMonth.month, 1);
-    final lastDayOfMonth = DateTime(state.selectedMonth.year, state.selectedMonth.month + 1, 0);
+    final monthStart = DateTime(
+      state.selectedMonth.year,
+      state.selectedMonth.month,
+      1,
+    );
+    final lastDayOfMonth = DateTime(
+      state.selectedMonth.year,
+      state.selectedMonth.month + 1,
+      0,
+    );
     final monthEndPlus = lastDayOfMonth.add(const Duration(days: 7));
     final start = monthStart.isBefore(today) ? monthStart : today;
     final end = weekEnd.isAfter(monthEndPlus) ? weekEnd : monthEndPlus;
@@ -29,14 +37,9 @@ class MyAgendaCubit extends Cubit<MyAgendaState> {
       ),
     );
     result.fold(
-      (error) => emit(state.copyWith(
-        loading: false,
-        errorMessage: error,
-      )),
-      (sessions) => emit(state.copyWith(
-        loading: false,
-        sessionsForMonth: sessions,
-      )),
+      (error) => emit(state.copyWith(loading: false, errorMessage: error)),
+      (sessions) =>
+          emit(state.copyWith(loading: false, sessionsForMonth: sessions)),
     );
   }
 
@@ -73,7 +76,9 @@ extension _MyAgendaStateCopy on MyAgendaState {
   }) {
     return MyAgendaState(
       selectedMonth: selectedMonth ?? this.selectedMonth,
-      selectedDate: clearSelectedDate ? null : (selectedDate ?? this.selectedDate),
+      selectedDate: clearSelectedDate
+          ? null
+          : (selectedDate ?? this.selectedDate),
       sessionsForMonth: sessionsForMonth ?? this.sessionsForMonth,
       loading: loading ?? this.loading,
       errorMessage: errorMessage,

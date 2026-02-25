@@ -3,14 +3,16 @@ import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 class HomeworkModel {
   final String id;
   final String coachId;
-  final List<String> studentIds;
+  final String studentId;
   final String type;
   final DateTime? startDate;
   final DateTime endDate;
   final DateTime? assignedDate;
   final String? optionalTime;
   final String? courseId;
+  final String? courseName;
   final List<String> topicIds;
+  final List<String> topicNames;
   final String description;
   final List<String> links;
   final List<String> youtubeUrls;
@@ -24,14 +26,16 @@ class HomeworkModel {
   HomeworkModel({
     required this.id,
     required this.coachId,
-    required this.studentIds,
+    required this.studentId,
     required this.type,
     this.startDate,
     required this.endDate,
     this.assignedDate,
     this.optionalTime,
     this.courseId,
+    this.courseName,
     this.topicIds = const [],
+    this.topicNames = const [],
     this.description = '',
     this.links = const [],
     this.youtubeUrls = const [],
@@ -66,17 +70,22 @@ class HomeworkModel {
     return HomeworkModel(
       id: map['id'] ?? '',
       coachId: map['coachId'] ?? '',
-      studentIds: map['studentIds'] != null
-          ? List<String>.from(map['studentIds'] as List)
-          : (map['studentId'] != null ? [map['studentId'] as String] : []),
+      studentId: map['studentId'] as String? ??
+          (map['studentIds'] != null && (map['studentIds'] as List).isNotEmpty
+              ? (map['studentIds'] as List).first as String
+              : ''),
       type: map['type'] as String? ?? 'topic_based',
       startDate: start != null ? _parse(start) : null,
       endDate: _parse(end),
       assignedDate: map['assignedDate'] != null ? _parse(map['assignedDate']) : null,
       optionalTime: map['optionalTime'] as String?,
       courseId: map['courseId'] as String?,
+      courseName: map['courseName'] as String?,
       topicIds: map['topicIds'] != null
           ? List<String>.from(map['topicIds'] as List)
+          : [],
+      topicNames: map['topicNames'] != null
+          ? List<String>.from(map['topicNames'] as List)
           : [],
       description: map['description'] as String? ?? '',
       links: _parseLinks(map),
@@ -97,7 +106,7 @@ class HomeworkModel {
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
       'coachId': coachId,
-      'studentIds': studentIds,
+      'studentId': studentId,
       'type': type,
       'endDate': endDate.toIso8601String(),
       'description': description,
@@ -114,7 +123,9 @@ class HomeworkModel {
     if (optionalTime != null && optionalTime!.isNotEmpty)
       map['optionalTime'] = optionalTime;
     if (courseId != null && courseId!.isNotEmpty) map['courseId'] = courseId;
+    if (courseName != null && courseName!.isNotEmpty) map['courseName'] = courseName;
     if (topicIds.isNotEmpty) map['topicIds'] = topicIds;
+    if (topicNames.isNotEmpty) map['topicNames'] = topicNames;
     if (routineInterval != null) map['routineInterval'] = routineInterval;
     return map;
   }
@@ -125,14 +136,16 @@ extension HomeworkModelX on HomeworkModel {
     return HomeworkEntity(
       id: id,
       coachId: coachId,
-      studentIds: studentIds,
+      studentId: studentId,
       type: _typeFromString(type),
       startDate: startDate,
       endDate: endDate,
       assignedDate: assignedDate,
       optionalTime: optionalTime,
       courseId: courseId,
+      courseName: courseName,
       topicIds: topicIds,
+      topicNames: topicNames,
       description: description,
       links: links,
       youtubeUrls: youtubeUrls,
@@ -169,14 +182,16 @@ extension HomeworkEntityX on HomeworkEntity {
     return HomeworkModel(
       id: id,
       coachId: coachId,
-      studentIds: studentIds,
+      studentId: studentId,
       type: _typeToString(type),
       startDate: startDate,
       endDate: endDate,
       assignedDate: assignedDate,
       optionalTime: optionalTime,
       courseId: courseId,
+      courseName: courseName,
       topicIds: topicIds,
+      topicNames: topicNames,
       description: description,
       links: links,
       youtubeUrls: youtubeUrls,

@@ -44,24 +44,17 @@ class HomeworksState {
     return '$s - $e';
   }
 
-  /// 1. hafta = öğrencinin kayıt olduğu hafta; 2, 3, ... sonraki haftalar. 0 veya negatif gösterilmez.
-  int weekNumberFor(StudentEntity? student) {
+  /// Kayıt haftası = 1. hafta; sonrası 2, 3, ... Önceki haftalarda null (tarihin yanında hiçbir şey yazılmaz).
+  int? displayWeekNumberFor(StudentEntity? student) {
     final reg = student?.registeredAt;
-    if (reg == null) {
-      final start = DateTime(weekStart.year, 1, 1);
-      final n = 1 + (weekStart.difference(start).inDays / 7).floor();
-      return n < 1 ? 1 : n;
-    }
+    if (reg == null) return null;
     final regWeekday = reg.weekday;
     final diff = regWeekday - DateTime.monday;
     final registrationWeekStart = DateTime(reg.year, reg.month, reg.day - (diff >= 0 ? diff : diff + 7));
     final weeksSince = (weekStart.difference(registrationWeekStart).inDays / 7).floor();
-    // Kayıt haftası = 1. hafta; önceki haftalarda da 1 göster (0, -1 yok).
-    return weeksSince < 0 ? 1 : (1 + weeksSince);
+    if (weeksSince < 0) return null;
+    return 1 + weeksSince;
   }
-
-  /// Eski getter: seçili öğrenci yoksa yıl haftası kullanılır (geri uyumluluk).
-  int get weekNumber => weekNumberFor(selectedStudent);
 
   List<DateTime> get weekDays {
     return List.generate(7, (i) => weekStart.add(Duration(days: i)));

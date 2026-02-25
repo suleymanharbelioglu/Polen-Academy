@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart'
     show SessionEntity, SessionStatus, sessionStatusColor;
@@ -19,8 +20,8 @@ class DailyAgendaSection extends StatelessWidget {
   final List<SessionEntity> sessions;
   final String coachId;
   final List<StudentEntity> students;
-  final void Function(String sessionId, [String? note]) onApprove;
-  final void Function(String sessionId, [String? note]) onCancel;
+  final Future<void> Function(String sessionId, [String? note]) onApprove;
+  final Future<void> Function(String sessionId, [String? note]) onCancel;
   final VoidCallback? onSessionPlanned;
 
   @override
@@ -134,7 +135,7 @@ class DailyAgendaSection extends StatelessWidget {
 Future<void> _showApproveDialog(
   BuildContext context,
   String sessionId,
-  void Function(String sessionId, [String? note]) onApprove,
+  Future<void> Function(String sessionId, [String? note]) onApprove,
 ) async {
   final result = await showDialog<({bool confirmed, String? note})>(
     context: context,
@@ -195,13 +196,15 @@ Future<void> _showApproveDialog(
       );
     },
   );
-  if (result != null && result.confirmed) onApprove(sessionId, result.note);
+  if (result != null && result.confirmed) {
+    await LoadingOverlay.run(context, onApprove(sessionId, result.note));
+  }
 }
 
 Future<void> _showCancelDialog(
   BuildContext context,
   String sessionId,
-  void Function(String sessionId, [String? note]) onCancel,
+  Future<void> Function(String sessionId, [String? note]) onCancel,
 ) async {
   final result = await showDialog<({bool confirmed, String? note})>(
     context: context,
@@ -262,7 +265,9 @@ Future<void> _showCancelDialog(
       );
     },
   );
-  if (result != null && result.confirmed) onCancel(sessionId, result.note);
+  if (result != null && result.confirmed) {
+    await LoadingOverlay.run(context, onCancel(sessionId, result.note));
+  }
 }
 
 class _SessionRow extends StatelessWidget {

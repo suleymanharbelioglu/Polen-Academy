@@ -9,15 +9,15 @@ class TopicProgressRow extends StatelessWidget {
     required this.topic,
     required this.konuStatus,
     required this.revisionStatus,
-    required this.onKonuSelected,
-    required this.onRevisionSelected,
+    this.onKonuSelected,
+    this.onRevisionSelected,
   });
 
   final TopicEntity topic;
   final TopicStatus konuStatus;
   final TopicStatus revisionStatus;
-  final void Function(TopicStatus) onKonuSelected;
-  final void Function(TopicStatus) onRevisionSelected;
+  final void Function(TopicStatus)? onKonuSelected;
+  final void Function(TopicStatus)? onRevisionSelected;
 
   static const double _colKonuWidth = 40;
   static const double _colTkrWidth = 40;

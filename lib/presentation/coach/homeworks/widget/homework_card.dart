@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 
-/// Ödev kartı: durum rengine göre sol kenar, başlık/açıklama, tıklanabilir.
+/// Ödev kartı: tüm kart durum rengi, üstte ders, konu, altta hocanın notu; tüm yazılar beyaz.
 class HomeworkCard extends StatelessWidget {
   const HomeworkCard({
     super.key,
@@ -21,9 +20,9 @@ class HomeworkCard extends StatelessWidget {
       case HomeworkSubmissionStatus.approved:
         return Colors.green;
       case HomeworkSubmissionStatus.completedByStudent:
-        return Colors.amber; // Onay Bekliyor - sarı
+        return Colors.orange; // Onay Bekliyor - öğrenci ekleme yapmış, turuncu
       case HomeworkSubmissionStatus.missing:
-        return Colors.orange;
+        return Colors.amber; // Eksik - sarı
       case HomeworkSubmissionStatus.notDone:
         return Colors.red;
       case HomeworkSubmissionStatus.pending:
@@ -34,37 +33,53 @@ class HomeworkCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = colorForStatus(displayStatus);
-    final courseLabel = homework.courseId != null && homework.courseId!.isNotEmpty
-        ? homework.courseId!
-        : 'Ödev';
-    final desc = homework.description.isEmpty ? 'Ödev' : homework.description;
+    final courseLabel = homework.courseName != null && homework.courseName!.isNotEmpty
+        ? homework.courseName!
+        : (homework.courseId != null && homework.courseId!.isNotEmpty
+            ? homework.courseId!
+            : 'Ödev');
+    final topicText = homework.topicNames.isNotEmpty
+        ? homework.topicNames.join(' • ')
+        : null;
+    final teacherNote = homework.description.isEmpty ? 'Ödev' : homework.description;
     return Material(
-      color: AppColors.secondBackground,
+      color: color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border(left: BorderSide(color: color, width: 4)),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 courseLabel.toUpperCase(),
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
+              if (topicText != null && topicText.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  '• $topicText',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 8),
               Text(
-                desc,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                teacherNote,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

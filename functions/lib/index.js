@@ -36,7 +36,7 @@ exports.createStudent = functions.region("us-central1").https.onCall(async (data
         throw new functions.https.HttpsError("unauthenticated", "Coach must be logged in.");
     }
     const coachUid = context.auth.uid;
-    const { studentName, studentSurname, studentClass, coachId = "", parentId = "", progress = 0, } = data;
+    const { studentName, studentSurname, studentClass, coachId = "", parentId = "", progress = 0, focusCourseIds = [], } = data;
     if (!studentName || !studentSurname || !studentClass) {
         throw new functions.https.HttpsError("invalid-argument", "studentName, studentSurname and studentClass are required.");
     }
@@ -67,6 +67,9 @@ exports.createStudent = functions.region("us-central1").https.onCall(async (data
     const uid = userRecord.uid;
     const finalCoachId = coachId || coachUid;
     const finalParentId = parentId || "";
+    const focusIds = Array.isArray(focusCourseIds)
+        ? focusCourseIds.map((id) => String(id)).filter(Boolean)
+        : [];
     await db.collection("Users").doc(uid).set({
         uid,
         studentName: studentName.trim(),
@@ -78,6 +81,7 @@ exports.createStudent = functions.region("us-central1").https.onCall(async (data
         role: "student",
         progress: typeof progress === "number" ? progress : 0,
         hasParent: !!finalParentId,
+        focusCourseIds: focusIds,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     return { email, password, uid };

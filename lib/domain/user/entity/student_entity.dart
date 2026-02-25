@@ -11,6 +11,8 @@ class StudentEntity {
   final bool hasParent;
   /// Öğrencinin kayıt tarihi; hafta numarası (1. hafta, 2. hafta) bu tarihin haftasından itibaren hesaplanır.
   final DateTime? registeredAt;
+  /// Koçun seçtiği odak dersleri (courseId listesi). Hedefler ve ödevde sadece bu dersler gösterilir.
+  final List<String> focusCourseIds;
 
   StudentEntity({
     required this.uid,
@@ -23,6 +25,7 @@ class StudentEntity {
     required this.progress,
     this.hasParent = false,
     this.registeredAt,
+    this.focusCourseIds = const [],
   });
 
   StudentEntity copyWith({
@@ -36,6 +39,7 @@ class StudentEntity {
     int? progress,
     bool? hasParent,
     DateTime? registeredAt,
+    List<String>? focusCourseIds,
   }) {
     return StudentEntity(
       uid: uid ?? this.uid,
@@ -48,6 +52,7 @@ class StudentEntity {
       progress: progress ?? this.progress,
       hasParent: hasParent ?? this.hasParent,
       registeredAt: registeredAt ?? this.registeredAt,
+      focusCourseIds: focusCourseIds ?? this.focusCourseIds,
     );
   }
 }

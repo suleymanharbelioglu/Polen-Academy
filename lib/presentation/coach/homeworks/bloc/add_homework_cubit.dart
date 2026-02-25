@@ -1,8 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
+import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/create_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
-import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/add_homework_state.dart';
 import 'package:polen_academy/service_locator.dart';
@@ -25,7 +26,15 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
     sl<GetCurriculumTreeUseCase>().call(params: classLevel).then((result) {
       result.fold(
         (_) => null,
-        (tree) => emit(state.copyWith(curriculumTree: tree)),
+        (tree) {
+          final focusIds = student.focusCourseIds;
+          final filteredTree = focusIds.isNotEmpty
+              ? CurriculumTree(
+                  courses: tree.courses.where((c) => focusIds.contains(c.course.id)).toList(),
+                )
+              : tree;
+          emit(state.copyWith(curriculumTree: filteredTree));
+        },
       );
     });
   }
@@ -34,6 +43,8 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
     emit(state.copyWith(
       type: type,
       routineInterval: type == HomeworkType.routine ? RoutineInterval.daily : null,
+      courseId: type == HomeworkType.freeText ? null : state.courseId,
+      topicIds: type == HomeworkType.freeText ? [] : state.topicIds,
     ));
   }
 
@@ -69,7 +80,7 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
   Future<String?> uploadAndAddFile(String filePath) async {
     final result = await sl<UploadHomeworkFileUseCase>().call(
       filePath: filePath,
-      coachId: coachId,
+      studentId: student.uid,
     );
     return result.fold(
       (error) {
@@ -90,7 +101,7 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
     for (final path in paths) {
       final result = await sl<UploadHomeworkFileUseCase>().call(
         filePath: path,
-        coachId: coachId,
+        studentId: student.uid,
       );
       result.fold(
         (error) => emit(state.copyWith(errorMessage: error)),
@@ -111,28 +122,44 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
       emit(state.copyWith(errorMessage: 'Açıklama giriniz.'));
       return false;
     }
-    // Konu seçimli veya serbest metin fark etmeksizin ders zorunlu
+    // Sadece konu seçimli ödevde ders zorunlu
     final noCourse = state.courseId == null || state.courseId!.trim().isEmpty;
     if (state.type == HomeworkType.topicBased && noCourse) {
       emit(state.copyWith(errorMessage: 'Konu seçimli ödev için ders seçiniz.'));
       return false;
     }
-    if (noCourse) {
-      emit(state.copyWith(errorMessage: 'Ders seçiniz.'));
-      return false;
+    final tree = state.curriculumTree;
+    String? courseName;
+    List<String> topicNames = [];
+    if (state.type == HomeworkType.topicBased && tree != null && state.courseId != null) {
+      for (final c in tree.courses) {
+        if (c.course.id == state.courseId) {
+          courseName = c.course.name;
+          for (final u in c.units) {
+            for (final t in u.topics) {
+              if (state.topicIds.contains(t.id)) {
+                topicNames.add(t.name);
+              }
+            }
+          }
+          break;
+        }
+      }
     }
     final start = state.startDate ?? state.endDate;
     final entity = HomeworkEntity(
       id: '',
       coachId: coachId,
-      studentIds: [student.uid],
+      studentId: student.uid,
       type: state.type,
       startDate: start,
       endDate: state.endDate,
       assignedDate: state.assignedDate,
       optionalTime: state.optionalTime,
       courseId: state.courseId,
+      courseName: courseName,
       topicIds: state.topicIds,
+      topicNames: topicNames,
       description: state.description,
       links: state.links,
       youtubeUrls: state.youtubeUrls,

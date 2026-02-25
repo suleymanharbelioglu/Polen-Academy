@@ -13,6 +13,7 @@ class StudentModel {
   /// Whether the student has an assigned parent.
   final bool hasParent;
   final DateTime? registeredAt;
+  final List<String> focusCourseIds;
 
   StudentModel({
     required this.uid,
@@ -25,6 +26,7 @@ class StudentModel {
     required this.progress,
     this.hasParent = false,
     this.registeredAt,
+    this.focusCourseIds = const [],
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
@@ -47,6 +49,7 @@ class StudentModel {
       progress: map['progress'] ?? 0,
       hasParent: map['hasParent'] as bool? ?? parentId.toString().isNotEmpty,
       registeredAt: registeredAt,
+      focusCourseIds: (map['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
     );
   }
 
@@ -64,6 +67,7 @@ class StudentModel {
       'role': 'student',
     };
     if (registeredAt != null) m['registeredAt'] = registeredAt!.toIso8601String();
+    if (focusCourseIds.isNotEmpty) m['focusCourseIds'] = focusCourseIds;
     return m;
   }
 }
@@ -81,6 +85,7 @@ extension StudentModelX on StudentModel {
       progress: progress,
       hasParent: hasParent,
       registeredAt: registeredAt,
+      focusCourseIds: focusCourseIds,
     );
   }
 }
@@ -98,6 +103,7 @@ extension StudentEntityX on StudentEntity {
       progress: progress,
       hasParent: hasParent,
       registeredAt: registeredAt,
+      focusCourseIds: focusCourseIds,
     );
   }
 }

@@ -8,14 +8,10 @@ class PrBottomNavbarPageTitleCubit extends Cubit<String> {
       case 0:
         emit('Anasayfa');
         break;
-
       case 1:
         emit('Ödevler');
         break;
       case 2:
-        emit('Denemeler');
-        break;
-      case 3:
         emit('Menü');
         break;
     }

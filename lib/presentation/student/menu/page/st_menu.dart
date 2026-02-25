@@ -5,6 +5,7 @@ import 'package:polen_academy/common/bloc/logout_state.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/presentation/auth/page/welcome.dart';
+import 'package:polen_academy/presentation/student/profile/page/st_profile_page.dart';
 
 class StMenuPage extends StatelessWidget {
   const StMenuPage({super.key});
@@ -25,14 +26,11 @@ class _StMenuPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<LogoutCubit, LogoutState>(
       listener: (context, state) {
-        print('🔔 Logout State değişti: ${state.runtimeType}');
         if (state is LogoutSuccess) {
-          print('✅ Logout Success state alındı, yönlendiriliyor...');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             AppNavigator.pushAndRemove(context, const WelcomePage());
           });
         } else if (state is LogoutFailure) {
-          print('❌ Logout Failure state: ${state.errorMessage}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),
@@ -48,9 +46,8 @@ class _StMenuPageContent extends StatelessWidget {
           child: Column(
             children: const [
               SizedBox(height: 12),
-              ExamsMenuItem(),
+              ProfileMenuItem(),
               SizedBox(height: 12),
-              QuestionTrackingMenuItem(),
               Spacer(),
               LogoutMenuItem(),
             ],
@@ -61,15 +58,21 @@ class _StMenuPageContent extends StatelessWidget {
   }
 }
 
-/// ---------------- DENEMELER ----------------
-class ExamsMenuItem extends StatelessWidget {
-  const ExamsMenuItem({super.key});
+/// ---------------- PROFİLİM ----------------
+class ProfileMenuItem extends StatelessWidget {
+  const ProfileMenuItem({super.key});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const StProfilePage(),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
@@ -78,46 +81,10 @@ class ExamsMenuItem extends StatelessWidget {
         ),
         child: Row(
           children: const [
-            Icon(Icons.bar_chart, color: AppColors.primaryStudent),
+            Icon(Icons.person_outline, color: AppColors.primaryStudent),
             SizedBox(width: 16),
             Text(
-              'Denemeler',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            Spacer(),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// ---------------- SORU TAKİBİ ----------------
-class QuestionTrackingMenuItem extends StatelessWidget {
-  const QuestionTrackingMenuItem({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {},
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: AppColors.secondBackground,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: const [
-            Icon(Icons.track_changes, color: AppColors.primaryStudent),
-            SizedBox(width: 16),
-            Text(
-              'Soru Takibi',
+              'Profilim',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -145,12 +112,7 @@ class LogoutMenuItem extends StatelessWidget {
 
         return InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: isLoading
-              ? null
-              : () {
-                  print('🚪 Logout butonu tıklandı');
-                  context.read<LogoutCubit>().logout();
-                },
+          onTap: isLoading ? null : () => context.read<LogoutCubit>().logout(),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             decoration: BoxDecoration(

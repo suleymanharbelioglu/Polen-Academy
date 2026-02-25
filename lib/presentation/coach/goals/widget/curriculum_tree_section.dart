@@ -15,6 +15,7 @@ class CurriculumTreeSection extends StatelessWidget {
     required this.getUnitRevisionStatus,
     required this.onUpdateTopicProgress,
     required this.onUpdateUnitProgress,
+    this.readOnly = false,
   });
 
   final List<CourseWithUnits> courses;
@@ -24,6 +25,8 @@ class CurriculumTreeSection extends StatelessWidget {
   final TopicStatus Function(UnitWithTopics unit) getUnitRevisionStatus;
   final void Function(String topicId, {TopicStatus? konuStatus, TopicStatus? revisionStatus}) onUpdateTopicProgress;
   final void Function(UnitWithTopics unit, {TopicStatus? konuStatus, TopicStatus? revisionStatus}) onUpdateUnitProgress;
+  /// true ise kutuya tıklanmaz (öğrenci hedefler sayfası).
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +83,7 @@ class CurriculumTreeSection extends StatelessWidget {
                       getUnitRevisionStatus: getUnitRevisionStatus,
                       onUpdateTopicProgress: onUpdateTopicProgress,
                       onUpdateUnitProgress: onUpdateUnitProgress,
+                      readOnly: readOnly,
                     );
                   }),
                 ],
@@ -145,6 +149,7 @@ class _UnitExpansion extends StatelessWidget {
     required this.getUnitRevisionStatus,
     required this.onUpdateTopicProgress,
     required this.onUpdateUnitProgress,
+    this.readOnly = false,
   });
 
   final UnitWithTopics unitWithTopics;
@@ -154,6 +159,7 @@ class _UnitExpansion extends StatelessWidget {
   final TopicStatus Function(UnitWithTopics unit) getUnitRevisionStatus;
   final void Function(String topicId, {TopicStatus? konuStatus, TopicStatus? revisionStatus}) onUpdateTopicProgress;
   final void Function(UnitWithTopics unit, {TopicStatus? konuStatus, TopicStatus? revisionStatus}) onUpdateUnitProgress;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +200,7 @@ class _UnitExpansion extends StatelessWidget {
                 child: GoalsStatusBox(
                   status: unitKonu,
                   isUnit: true,
-                  onSelect: (s) => onUpdateUnitProgress(unitWithTopics, konuStatus: s),
+                  onSelect: readOnly ? null : (s) => onUpdateUnitProgress(unitWithTopics, konuStatus: s),
                 ),
               ),
             ),
@@ -204,7 +210,7 @@ class _UnitExpansion extends StatelessWidget {
                 child: GoalsStatusBox(
                   status: unitRevision,
                   isUnit: true,
-                  onSelect: (s) => onUpdateUnitProgress(unitWithTopics, revisionStatus: s),
+                  onSelect: readOnly ? null : (s) => onUpdateUnitProgress(unitWithTopics, revisionStatus: s),
                 ),
               ),
             ),
@@ -215,8 +221,8 @@ class _UnitExpansion extends StatelessWidget {
             topic: topic,
             konuStatus: getKonuStatus(topic.id),
             revisionStatus: getRevisionStatus(topic.id),
-            onKonuSelected: (s) => onUpdateTopicProgress(topic.id, konuStatus: s),
-            onRevisionSelected: (s) => onUpdateTopicProgress(topic.id, revisionStatus: s),
+            onKonuSelected: readOnly ? null : (s) => onUpdateTopicProgress(topic.id, konuStatus: s),
+            onRevisionSelected: readOnly ? null : (s) => onUpdateTopicProgress(topic.id, revisionStatus: s),
           );
         }).toList(),
       ),

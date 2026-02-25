@@ -12,6 +12,15 @@ abstract class SessionFirebaseService {
     String coachId,
     DateTime date,
   );
+  Future<Either<String, List<SessionModel>>> getByStudentAndDate(
+    String studentId,
+    DateTime date,
+  );
+  Future<Either<String, List<SessionModel>>> getByStudentAndDateRange(
+    String studentId,
+    DateTime start,
+    DateTime end,
+  );
   Future<Either<String, SessionModel>> create(SessionModel session);
   Future<Either<String, void>> update(SessionModel session);
   Future<Either<String, void>> delete(String sessionId);
@@ -74,6 +83,43 @@ class SessionFirebaseServiceImpl extends SessionFirebaseService {
     final start = DateTime(date.year, date.month, date.day);
     final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
     return getByCoachAndDateRange(coachId, start, end);
+  }
+
+  @override
+  Future<Either<String, List<SessionModel>>> getByStudentAndDate(
+    String studentId,
+    DateTime date,
+  ) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    return getByStudentAndDateRange(studentId, start, end);
+  }
+
+  @override
+  Future<Either<String, List<SessionModel>>> getByStudentAndDateRange(
+    String studentId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    try {
+      final startAt = DateTime(start.year, start.month, start.day);
+      final endAt = DateTime(end.year, end.month, end.day, 23, 59, 59);
+      final snapshot = await FirebaseFirestore.instance
+          .collection(_collection)
+          .where('studentId', isEqualTo: studentId)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startAt))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endAt))
+          .orderBy('date')
+          .orderBy('startTime')
+          .get();
+
+      final list = snapshot.docs
+          .map((doc) => SessionModel.fromMap(_docToMap(doc)))
+          .toList();
+      return Right(list);
+    } catch (e) {
+      return Left('Seanslar yüklenirken hata: ${e.toString()}');
+    }
   }
 
   @override

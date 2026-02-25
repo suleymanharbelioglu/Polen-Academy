@@ -6,11 +6,10 @@ import 'package:polen_academy/presentation/coach/home/bloc/home_cubit.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_state.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
 import 'package:polen_academy/presentation/coach/home/widget/completed_homeworks_section.dart';
-import 'package:polen_academy/presentation/coach/home/widget/homework_detail_sheet.dart';
+import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
 import 'package:polen_academy/presentation/coach/home/widget/daily_agenda_section.dart';
 import 'package:polen_academy/presentation/coach/home/widget/general_status_section.dart';
 import 'package:polen_academy/presentation/coach/home/widget/my_students_section.dart';
-import 'package:polen_academy/presentation/coach/home/widget/pending_approval_section.dart';
 import 'package:polen_academy/service_locator.dart';
 
 class HomePage extends StatelessWidget {
@@ -54,8 +53,6 @@ class HomePage extends StatelessWidget {
                         onTap: (item) => _showHomeworkDetail(context, item),
                         onRefresh: () => context.read<HomeCubit>().load(),
                       ),
-                      const SizedBox(height: 16),
-                      const PendingApprovalSection(),
                     ],
                   ),
                 ),

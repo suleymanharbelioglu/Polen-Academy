@@ -5,7 +5,7 @@ enum RoutineInterval { daily, weekly }
 class HomeworkEntity {
   final String id;
   final String coachId;
-  final List<String> studentIds;
+  final String studentId;
   final HomeworkType type;
   final DateTime? startDate;
   final DateTime endDate;
@@ -13,7 +13,11 @@ class HomeworkEntity {
   final DateTime? assignedDate;
   final String? optionalTime;
   final String? courseId;
+  /// Gösterim için ders adı (konu seçimli ödevde).
+  final String? courseName;
   final List<String> topicIds;
+  /// Gösterim için konu adları (konu seçimli ödevde).
+  final List<String> topicNames;
   final String description;
   /// Linkler (ödev detayında tıklanabilir listelenir).
   final List<String> links;
@@ -28,14 +32,16 @@ class HomeworkEntity {
   const HomeworkEntity({
     required this.id,
     required this.coachId,
-    required this.studentIds,
+    required this.studentId,
     required this.type,
     this.startDate,
     required this.endDate,
     this.assignedDate,
     this.optionalTime,
     this.courseId,
+    this.courseName,
     this.topicIds = const [],
+    this.topicNames = const [],
     this.description = '',
     this.links = const [],
     this.youtubeUrls = const [],
@@ -47,7 +53,7 @@ class HomeworkEntity {
     required this.createdAt,
   });
 
-  bool get isForStudent => studentIds.isNotEmpty;
+  bool get isForStudent => studentId.isNotEmpty;
 
   bool isOnDate(DateTime date) {
     final d = DateTime(date.year, date.month, date.day);

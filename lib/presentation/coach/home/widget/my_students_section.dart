@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/widget/add_student_dialog.dart';
+import 'package:polen_academy/common/widget/student_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/domain/auth/entity/student_credentials_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
+import 'package:polen_academy/presentation/coach/home/bloc/home_cubit.dart';
+import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
+import 'package:polen_academy/presentation/coach/my_all_students/bloc/student_creation_req_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/page/my_all_students.dart';
+import 'package:polen_academy/presentation/coach/student_detail/page/student_detail.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
 
 class StudentsSection extends StatelessWidget {
   const StudentsSection({
@@ -34,7 +43,7 @@ class StudentsSection extends StatelessWidget {
               ),
               const Spacer(),
               TextButton(
-                onPressed: () {},
+                onPressed: () => _showAddStudentDialog(context),
                 child: const Text(
                   '+ Ekle',
                   style: TextStyle(color: AppColors.primaryCoach),
@@ -90,6 +99,21 @@ class StudentsSection extends StatelessWidget {
       ),
     );
   }
+
+  static Future<void> _showAddStudentDialog(BuildContext context) async {
+    final credentials = await showDialog<StudentCredentialsEntity>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => BlocProvider(
+        create: (_) => StudentCreationReqCubit(),
+        child: const AddStudentDialog(),
+      ),
+    );
+    if (credentials != null && context.mounted) {
+      context.read<HomeCubit>().load();
+      await StudentCredentialsDialog.show(context, credentials: credentials);
+    }
+  }
 }
 
 class _StudentCard extends StatelessWidget {
@@ -102,46 +126,56 @@ class _StudentCard extends StatelessWidget {
     final initial = (student.studentName.isNotEmpty ? student.studentName[0] : '')
         + (student.studentSurname.isNotEmpty ? student.studentSurname[0] : '');
     final name = '${student.studentName} ${student.studentSurname}'.trim();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: () => _openStudentDetail(context),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.primaryCoach.withValues(alpha: 0.3),
+              child: Text(
+                initial.toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                name.isEmpty ? 'Öğrenci' : name,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+            ),
+            GeneralProgressCircle(
+              percent: student.progress,
+              diameter: 44,
+              strokeWidth: 4,
+              showPercent: false,
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColors.primaryCoach.withValues(alpha: 0.3),
-            child: Text(
-              initial.toUpperCase(),
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name.isEmpty ? 'Öğrenci' : name,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Text('Haftalık Ödev ', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    Text('0/', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text('0', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    const SizedBox(width: 12),
-                    Text('İlerleme: %${student.progress}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+    );
+  }
+
+  void _openStudentDetail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider(
+          create: (_) {
+            final cubit = CurrentStudentCubit();
+            cubit.setStudent(student);
+            return cubit;
+          },
+          child: const StudentDetailPage(),
+        ),
       ),
     );
   }

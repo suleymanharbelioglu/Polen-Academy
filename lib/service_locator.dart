@@ -34,6 +34,7 @@ import 'package:polen_academy/domain/homework/usecases/create_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/delete_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
 import 'package:polen_academy/domain/homework/usecases/get_homeworks_by_student_and_date_range.dart';
+import 'package:polen_academy/domain/homework/usecases/add_uploaded_url_to_submission.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
 import 'package:polen_academy/domain/session/repository/session_repository.dart';
@@ -41,11 +42,14 @@ import 'package:polen_academy/domain/session/usecases/create_session.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date_range.dart';
+import 'package:polen_academy/domain/session/usecases/get_sessions_by_student_and_date.dart';
+import 'package:polen_academy/domain/session/usecases/get_sessions_by_student_and_date_range.dart';
 import 'package:polen_academy/domain/session/usecases/update_session.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
 import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/domain/user/usecases/delete_student.dart';
 import 'package:polen_academy/domain/user/usecases/get_my_students.dart';
+import 'package:polen_academy/domain/user/usecases/get_student_by_uid.dart';
 import 'package:polen_academy/domain/user/usecases/update_user_password.dart';
 
 final sl = GetIt.instance;
@@ -81,12 +85,15 @@ Future<void> initializeDependencies() async {
 
   // User Usecases
   sl.registerSingleton<GetMyStudentsUseCase>(GetMyStudentsUseCase());
+  sl.registerSingleton<GetStudentByUidUseCase>(GetStudentByUidUseCase());
   sl.registerSingleton<DeleteStudentUseCase>(DeleteStudentUseCase());
   sl.registerSingleton<UpdateUserPasswordUseCase>(UpdateUserPasswordUseCase());
 
   // Session Usecases
   sl.registerSingleton<GetSessionsByDateRangeUseCase>(GetSessionsByDateRangeUseCase());
   sl.registerSingleton<GetSessionsByDateUseCase>(GetSessionsByDateUseCase());
+  sl.registerSingleton<GetSessionsByStudentAndDateRangeUseCase>(GetSessionsByStudentAndDateRangeUseCase());
+  sl.registerSingleton<GetSessionsByStudentAndDateUseCase>(GetSessionsByStudentAndDateUseCase());
   sl.registerSingleton<CreateSessionUseCase>(CreateSessionUseCase());
   sl.registerSingleton<UpdateSessionUseCase>(UpdateSessionUseCase());
   sl.registerSingleton<DeleteSessionUseCase>(DeleteSessionUseCase());
@@ -102,6 +109,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<CreateHomeworkUseCase>(CreateHomeworkUseCase());
   sl.registerSingleton<DeleteHomeworkUseCase>(DeleteHomeworkUseCase());
   sl.registerSingleton<GetCompletedHomeworksForCoachUseCase>(GetCompletedHomeworksForCoachUseCase());
+  sl.registerSingleton<AddUploadedUrlToSubmissionUseCase>(AddUploadedUrlToSubmissionUseCase());
   sl.registerSingleton<SetHomeworkSubmissionStatusUseCase>(SetHomeworkSubmissionStatusUseCase());
   sl.registerSingleton<UploadHomeworkFileUseCase>(UploadHomeworkFileUseCase());
 }

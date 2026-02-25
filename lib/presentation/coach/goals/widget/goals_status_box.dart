@@ -7,12 +7,13 @@ class GoalsStatusBox extends StatelessWidget {
   const GoalsStatusBox({
     super.key,
     required this.status,
-    required this.onSelect,
+    this.onSelect,
     this.isUnit = false,
   });
 
   final TopicStatus status;
-  final void Function(TopicStatus) onSelect;
+  /// null ise sadece görüntüleme (öğrenci hedefler sayfası).
+  final void Function(TopicStatus)? onSelect;
   final bool isUnit;
 
   static Color colorFor(TopicStatus s) {
@@ -34,7 +35,7 @@ class GoalsStatusBox extends StatelessWidget {
       color: colorFor(status),
       borderRadius: BorderRadius.circular(6),
       child: InkWell(
-        onTap: () => _showMenu(context),
+        onTap: onSelect != null ? () => _showMenu(context) : null,
         borderRadius: BorderRadius.circular(6),
         child: SizedBox(
           width: 28,
@@ -53,6 +54,7 @@ class GoalsStatusBox extends StatelessWidget {
   }
 
   void _showUnitMenu(BuildContext context) {
+    final onSelect = this.onSelect!;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -98,6 +100,7 @@ class GoalsStatusBox extends StatelessWidget {
   }
 
   void _showTopicMenu(BuildContext context) {
+    final onSelect = this.onSelect!;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,

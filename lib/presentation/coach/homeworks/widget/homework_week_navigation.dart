@@ -4,7 +4,7 @@ class HomeworkWeekNavigation extends StatelessWidget {
   const HomeworkWeekNavigation({
     super.key,
     required this.weekRangeLabel,
-    required this.weekNumber,
+    this.weekNumber,
     required this.onPrevious,
     required this.onNext,
     this.onPrint,
@@ -13,7 +13,8 @@ class HomeworkWeekNavigation extends StatelessWidget {
   });
 
   final String weekRangeLabel;
-  final int weekNumber;
+  /// null ise tarihin yanında hafta numarası gösterilmez (kayıt öncesi haftalar).
+  final int? weekNumber;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final VoidCallback? onPrint;
@@ -30,7 +31,7 @@ class HomeworkWeekNavigation extends StatelessWidget {
         ),
         Expanded(
           child: Text(
-            '$weekRangeLabel ($weekNumber. Hafta)',
+            weekNumber != null ? '$weekRangeLabel ($weekNumber. Hafta)' : weekRangeLabel,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,

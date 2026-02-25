@@ -11,6 +11,15 @@ abstract class SessionRepository {
     String coachId,
     DateTime date,
   );
+  Future<Either<String, List<SessionEntity>>> getByStudentAndDate(
+    String studentId,
+    DateTime date,
+  );
+  Future<Either<String, List<SessionEntity>>> getByStudentAndDateRange(
+    String studentId,
+    DateTime start,
+    DateTime end,
+  );
   Future<Either<String, SessionEntity>> create(SessionEntity session);
   Future<Either<String, void>> update(SessionEntity session);
   Future<Either<String, void>> delete(String sessionId);

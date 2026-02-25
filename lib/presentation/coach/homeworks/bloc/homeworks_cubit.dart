@@ -24,11 +24,13 @@ class HomeworksCubit extends Cubit<HomeworksState> {
   }
 
   void selectStudent(StudentEntity? student) {
-    emit(state.copyWith(
-      clearStudent: student == null,
-      selectedStudent: student,
-      clearHomeworks: true,
-    ));
+    emit(
+      state.copyWith(
+        clearStudent: student == null,
+        selectedStudent: student,
+        clearHomeworks: true,
+      ),
+    );
     if (student != null) {
       _loadHomeworks(student.uid);
     }
@@ -67,7 +69,13 @@ class HomeworksCubit extends Cubit<HomeworksState> {
     }, (r) => r);
     if (list.isEmpty) {
       if (result.isRight()) {
-        emit(state.copyWith(loading: false, homeworks: [], submissionByHomeworkId: {}));
+        emit(
+          state.copyWith(
+            loading: false,
+            homeworks: [],
+            submissionByHomeworkId: {},
+          ),
+        );
       }
       return;
     }
@@ -79,24 +87,22 @@ class HomeworksCubit extends Cubit<HomeworksState> {
       HomeworkSubmissionStatus.missing,
       HomeworkSubmissionStatus.notDone,
     ];
-    final subResult = await sl<HomeworkSubmissionRepository>().getByHomeworkIdsAndStatus(
-      homeworkIds,
-      allStatuses,
-    );
+    final subResult = await sl<HomeworkSubmissionRepository>()
+        .getByHomeworkIdsAndStatus(homeworkIds, allStatuses);
     final submissionByHomeworkId = <String, HomeworkSubmissionEntity>{};
-    subResult.fold(
-      (_) {},
-      (subs) {
-        for (final sub in subs) {
-          if (sub.studentId == studentId) submissionByHomeworkId[sub.homeworkId] = sub;
-        }
-      },
+    subResult.fold((_) {}, (subs) {
+      for (final sub in subs) {
+        if (sub.studentId == studentId)
+          submissionByHomeworkId[sub.homeworkId] = sub;
+      }
+    });
+    emit(
+      state.copyWith(
+        loading: false,
+        homeworks: list,
+        submissionByHomeworkId: submissionByHomeworkId,
+      ),
     );
-    emit(state.copyWith(
-      loading: false,
-      homeworks: list,
-      submissionByHomeworkId: submissionByHomeworkId,
-    ));
   }
 
   Future<void> refresh() async {

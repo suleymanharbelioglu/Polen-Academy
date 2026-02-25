@@ -14,6 +14,7 @@ class StudentCreationReqCubit extends Cubit<StudentCreationReqState> {
       emit(StudentCreationReqFailure(errorMessage: 'Koç bilgisi alınamadı. Lütfen tekrar giriş yapın.'));
       return;
     }
+    final focusIds = (data['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? <String>[];
     final student = StudentModel(
       uid: '',
       studentName: data['firstName'] ?? '',
@@ -24,6 +25,7 @@ class StudentCreationReqCubit extends Cubit<StudentCreationReqState> {
       parentId: '',
       progress: 0,
       hasParent: false,
+      focusCourseIds: focusIds,
     );
     createStudent(student);
   }

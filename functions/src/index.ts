@@ -44,6 +44,7 @@ export const createStudent = functions.region("us-central1").https.onCall(async 
     coachId = "",
     parentId = "",
     progress = 0,
+    focusCourseIds = [],
   } = data;
 
   if (!studentName || !studentSurname || !studentClass) {
@@ -87,6 +88,10 @@ export const createStudent = functions.region("us-central1").https.onCall(async 
   const finalCoachId = coachId || coachUid;
   const finalParentId = parentId || "";
 
+  const focusIds = Array.isArray(focusCourseIds)
+    ? (focusCourseIds as unknown[]).map((id) => String(id)).filter(Boolean)
+    : [];
+
   await db.collection("Users").doc(uid).set({
     uid,
     studentName: (studentName as string).trim(),
@@ -98,6 +103,7 @@ export const createStudent = functions.region("us-central1").https.onCall(async 
     role: "student",
     progress: typeof progress === "number" ? progress : 0,
     hasParent: !!finalParentId,
+    focusCourseIds: focusIds,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 

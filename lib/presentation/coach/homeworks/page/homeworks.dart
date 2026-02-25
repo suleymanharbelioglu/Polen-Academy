@@ -8,7 +8,7 @@ import 'package:polen_academy/domain/homework/entity/homework_submission_entity.
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
-import 'package:polen_academy/presentation/coach/home/widget/homework_detail_sheet.dart';
+import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/homeworks_cubit.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/homeworks_state.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_daily_card.dart';
@@ -71,8 +71,12 @@ class _HomeworksViewState extends State<_HomeworksView> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.read<HomeworksCubit>().loadStudents(),
-                    child: const Text('Tekrar dene', style: TextStyle(color: AppColors.primaryCoach)),
+                    onPressed: () =>
+                        context.read<HomeworksCubit>().loadStudents(),
+                    child: const Text(
+                      'Tekrar dene',
+                      style: TextStyle(color: AppColors.primaryCoach),
+                    ),
                   ),
                 ],
               ),
@@ -92,7 +96,8 @@ class _HomeworksViewState extends State<_HomeworksView> {
                     HomeworksStudentDropdown(
                       students: state.students,
                       selectedStudent: state.selectedStudent,
-                      onChanged: (s) => context.read<HomeworksCubit>().selectStudent(s),
+                      onChanged: (s) =>
+                          context.read<HomeworksCubit>().selectStudent(s),
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -125,13 +130,17 @@ class _HomeworksViewState extends State<_HomeworksView> {
                   HomeworksStudentDropdown(
                     students: state.students,
                     selectedStudent: state.selectedStudent,
-                    onChanged: (s) => context.read<HomeworksCubit>().selectStudent(s),
+                    onChanged: (s) =>
+                        context.read<HomeworksCubit>().selectStudent(s),
                   ),
                   const SizedBox(height: 20),
                   HomeworkWeekNavigation(
                     weekRangeLabel: state.weekRangeLabel,
-                    weekNumber: state.weekNumber,
-                    onPrevious: () => context.read<HomeworksCubit>().previousWeek(),
+                    weekNumber: state.displayWeekNumberFor(
+                      state.selectedStudent,
+                    ),
+                    onPrevious: () =>
+                        context.read<HomeworksCubit>().previousWeek(),
                     onNext: () => context.read<HomeworksCubit>().nextWeek(),
                     showAddWeekly: false,
                   ),
@@ -148,7 +157,11 @@ class _HomeworksViewState extends State<_HomeworksView> {
 
   static bool _isPast(DateTime date) {
     final d = DateTime(date.year, date.month, date.day);
-    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
     return d.isBefore(today);
   }
 
@@ -162,18 +175,24 @@ class _HomeworksViewState extends State<_HomeworksView> {
           homeworks: list,
           state: state,
           canAddHomework: canAdd,
-          onAdd: () => _openAddHomework(context, state.selectedStudent!, date: date),
+          onAdd: () =>
+              _openAddHomework(context, state.selectedStudent!, date: date),
           onHomeworkTap: (h) => _openHomeworkDetail(context, state, h),
         );
       }).toList(),
     );
   }
 
-  void _openHomeworkDetail(BuildContext context, HomeworksState state, HomeworkEntity homework) {
+  void _openHomeworkDetail(
+    BuildContext context,
+    HomeworksState state,
+    HomeworkEntity homework,
+  ) {
     final student = state.selectedStudent!;
     final studentName = '${student.studentName} ${student.studentSurname}';
     final sub = state.submissionByHomeworkId[homework.id];
-    final submission = sub ??
+    final submission =
+        sub ??
         HomeworkSubmissionEntity(
           id: '',
           homeworkId: homework.id,
@@ -192,10 +211,11 @@ class _HomeworksViewState extends State<_HomeworksView> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => HomeworkDetailSheet(
+      builder: (_) => HomeworkDetailSheet(
         item: item,
-        onStatusChanged: (homeworkId, studentId, status) =>
-            _setStatusFromHomeworks(ctx, homeworkId, studentId, status),
+        onStatusChanged: (homeworkId, studentId, status) async {
+          await _setStatusFromHomeworks(context, homeworkId, studentId, status);
+        },
       ),
     );
   }
@@ -215,30 +235,42 @@ class _HomeworksViewState extends State<_HomeworksView> {
     );
     if (context.mounted) {
       result.fold(
-        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e))),
+        (e) => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e))),
+
         (_) => context.read<HomeworksCubit>().refresh(),
       );
     }
   }
 
-  void _openAddHomework(BuildContext context, StudentEntity student, {DateTime? date}) {
+  void _openAddHomework(
+    BuildContext context,
+    StudentEntity student, {
+    DateTime? date,
+  }) {
     if (date != null && _isPast(date)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Geçmiş günlere ödev eklenemez.'), backgroundColor: Colors.orange),
+        const SnackBar(
+          content: Text('Geçmiş günlere ödev eklenemez.'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
     final cubit = context.read<HomeworksCubit>();
     final weekStart = cubit.state.weekStart;
     final coachId = cubit.coachId;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AddHomeworkPage(
-          student: student,
-          initialDate: date ?? weekStart,
-          coachId: coachId,
-        ),
-      ),
-    ).then((_) => cubit.refresh());
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute<void>(
+            builder: (_) => AddHomeworkPage(
+              student: student,
+              initialDate: date ?? weekStart,
+              coachId: coachId,
+            ),
+          ),
+        )
+        .then((_) => cubit.refresh());
   }
 }

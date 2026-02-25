@@ -53,7 +53,7 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
       final endAt = DateTime(end.year, end.month, end.day, 23, 59, 59);
       final snapshot = await FirebaseFirestore.instance
           .collection(_collection)
-          .where('studentIds', arrayContains: studentId)
+          .where('studentId', isEqualTo: studentId)
           .where('endDate', isGreaterThanOrEqualTo: Timestamp.fromDate(startAt))
           .orderBy('endDate')
           .get();
@@ -113,14 +113,16 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
       final created = HomeworkModel(
         id: ref.id,
         coachId: homework.coachId,
-        studentIds: homework.studentIds,
+        studentId: homework.studentId,
         type: homework.type,
         startDate: homework.startDate,
         endDate: homework.endDate,
         assignedDate: homework.assignedDate,
         optionalTime: homework.optionalTime,
         courseId: homework.courseId,
+        courseName: homework.courseName,
         topicIds: homework.topicIds,
+        topicNames: homework.topicNames,
         description: homework.description,
         links: homework.links,
         youtubeUrls: homework.youtubeUrls,

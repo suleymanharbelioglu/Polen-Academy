@@ -11,13 +11,15 @@ import 'package:polen_academy/presentation/coach/goals/widget/goals_student_drop
 import 'package:polen_academy/service_locator.dart';
 
 class GoalsPage extends StatelessWidget {
-  const GoalsPage({super.key});
+  const GoalsPage({super.key, this.initialStudentId});
+
+  final String? initialStudentId;
 
   @override
   Widget build(BuildContext context) {
     final coachId = sl<AuthFirebaseService>().getCurrentUserUid() ?? '';
     return BlocProvider(
-      create: (_) => GoalsCubit(coachId: coachId)..loadStudents(),
+      create: (_) => GoalsCubit(coachId: coachId, initialStudentId: initialStudentId)..loadStudents(),
       child: const _GoalsView(),
     );
   }

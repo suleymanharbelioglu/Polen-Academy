@@ -91,10 +91,13 @@ class HomeworkDailyCard extends StatelessWidget {
               final displayStatus = state.displayStatus(h, sub);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: HomeworkCard(
-                  homework: h,
-                  displayStatus: displayStatus,
-                  onTap: () => onHomeworkTap(h),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: HomeworkCard(
+                    homework: h,
+                    displayStatus: displayStatus,
+                    onTap: () => onHomeworkTap(h),
+                  ),
                 ),
               );
             }),

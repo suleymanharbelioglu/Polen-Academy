@@ -6,7 +6,6 @@ import 'package:polen_academy/presentation/parent/bottom_navbar/bloc/bottom_navb
 import 'package:polen_academy/presentation/parent/home/page/pr_home.dart';
 import 'package:polen_academy/presentation/parent/homeworks/page/homeworks.dart';
 import 'package:polen_academy/presentation/parent/menu/page/pr_menu.dart';
-import 'package:polen_academy/presentation/parent/practice_test/page/pr_practice_test.dart';
 
 class PrBottomNavbarPage extends StatelessWidget {
   const PrBottomNavbarPage({super.key});
@@ -34,8 +33,7 @@ class PrBottomNavbarPage extends StatelessWidget {
   /// ---------------- PAGE LIST ----------------
   static final List<Widget> _pages = [
     const PrHomePage(),
-    const PrHomeworksPage(), // Ödevler sayfası gelince değişir
-    const PrPracticeTestPage(),
+    const PrHomeworksPage(),
     const PrMenuPage(),
   ];
 
@@ -91,10 +89,6 @@ class PrBottomNavbarPage extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
         BottomNavigationBarItem(icon: Icon(Icons.checklist), label: 'Ödevler'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.assignment),
-          label: 'Denemeler', // Practice Tests / Mock Exams
-        ),
         BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menü'),
       ],
     );

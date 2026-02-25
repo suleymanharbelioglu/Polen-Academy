@@ -92,10 +92,12 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
                   const SizedBox(height: 16),
                   _buildDescription(context, state),
                   const SizedBox(height: 16),
-                  _buildCourseDropdown(context, state),
-                  if (state.type == HomeworkType.topicBased && state.courseId != null) ...[
-                    const SizedBox(height: 12),
-                    _buildTopicList(context, state),
+                  if (state.type == HomeworkType.topicBased) ...[
+                    _buildCourseDropdown(context, state),
+                    if (state.courseId != null) ...[
+                      const SizedBox(height: 12),
+                      _buildCurriculumTopicTree(context, state),
+                    ],
                     const SizedBox(height: 16),
                     _buildGoalSection(context, state),
                   ],
@@ -249,7 +251,8 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
     );
   }
 
-  Widget _buildTopicList(BuildContext context, AddHomeworkState state) {
+  /// Hedeflerdeki gibi: ders seçildikten sonra üniteler (açılır) ve konular (checkbox).
+  Widget _buildCurriculumTopicTree(BuildContext context, AddHomeworkState state) {
     final tree = state.curriculumTree;
     if (tree == null) return const SizedBox.shrink();
     CourseWithUnits? course;
@@ -260,34 +263,71 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
       }
     }
     if (course == null) return const SizedBox.shrink();
-    final topics = <String, String>{};
-    for (final u in course.units) {
-      for (final t in u.topics) {
-        topics[t.id] = '${u.unit.name} / ${t.name}';
-      }
-    }
+    final selectedCourse = course;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Konu(lar)',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+          'Konu(lar) seçin',
+          style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
-        ...topics.entries.map((e) {
-          final selected = state.topicIds.contains(e.key);
-          return CheckboxListTile(
-            value: selected,
-            onChanged: (_) =>
-                context.read<AddHomeworkCubit>().toggleTopic(e.key),
-            title: Text(
-              e.value,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-            ),
-            activeColor: AppColors.primaryCoach,
-            controlAffinity: ListTileControlAffinity.leading,
-          );
-        }),
+        const SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.secondBackground,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: selectedCourse.units.length,
+            itemBuilder: (context, unitIndex) {
+              final unitWithTopics = selectedCourse.units[unitIndex];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.secondBackground.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ExpansionTile(
+                  controlAffinity: ListTileControlAffinity.leading,
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  childrenPadding: const EdgeInsets.only(left: 20, right: 12, bottom: 8, top: 4),
+                  collapsedBackgroundColor: Colors.transparent,
+                  backgroundColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  iconColor: Colors.white70,
+                  collapsedIconColor: Colors.white70,
+                  title: Text(
+                    unitWithTopics.unit.name.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  children: unitWithTopics.topics.map((topic) {
+                    final selected = state.topicIds.contains(topic.id);
+                    return CheckboxListTile(
+                      value: selected,
+                      onChanged: (_) =>
+                          context.read<AddHomeworkCubit>().toggleTopic(topic.id),
+                      title: Text(
+                        topic.name,
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                      activeColor: AppColors.primaryCoach,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -327,17 +367,6 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
               context.read<AddHomeworkCubit>().setGoalRevisionDone(v ?? true),
           title: const Text(
             'Tekrar',
-            style: TextStyle(color: Colors.white, fontSize: 13),
-          ),
-          activeColor: AppColors.primaryCoach,
-          controlAffinity: ListTileControlAffinity.leading,
-        ),
-        CheckboxListTile(
-          value: state.goalResourceSolve,
-          onChanged: (v) =>
-              context.read<AddHomeworkCubit>().setGoalResourceSolve(v ?? true),
-          title: const Text(
-            'Kaynak Çöz',
             style: TextStyle(color: Colors.white, fontSize: 13),
           ),
           activeColor: AppColors.primaryCoach,

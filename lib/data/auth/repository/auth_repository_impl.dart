@@ -78,6 +78,10 @@ class AuthRepositoryImpl extends AuthRepository {
   bool isLoggedIn() => sl<AuthFirebaseService>().isLoggedIn();
 
   @override
+  Future<Either<String, void>> sendPasswordResetEmail(String email) =>
+      sl<AuthFirebaseService>().sendPasswordResetEmail(email);
+
+  @override
   Future<String?> getCurrentUserRole() =>
       sl<AuthFirebaseService>().getCurrentUserRole();
 }

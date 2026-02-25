@@ -11,6 +11,8 @@ class StudentModel {
   final int progress;
   /// Whether the student has an assigned parent.
   final bool hasParent;
+  /// Koçun seçtiği odak dersleri (courseId listesi).
+  final List<String> focusCourseIds;
 
   StudentModel({
     required this.uid,
@@ -22,6 +24,7 @@ class StudentModel {
     required this.parentId,
     required this.progress,
     this.hasParent = false,
+    this.focusCourseIds = const [],
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
@@ -36,11 +39,12 @@ class StudentModel {
       parentId: parentId,
       progress: map['progress'] ?? 0,
       hasParent: map['hasParent'] as bool? ?? parentId.toString().isNotEmpty,
+      focusCourseIds: (map['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final m = <String, dynamic>{
       'uid': uid,
       'studentName': studentName,
       'studentSurname': studentSurname,
@@ -52,6 +56,8 @@ class StudentModel {
       'hasParent': hasParent,
       'role': 'student',
     };
+    if (focusCourseIds.isNotEmpty) m['focusCourseIds'] = focusCourseIds;
+    return m;
   }
 }
 
@@ -67,6 +73,7 @@ extension StudentModelX on StudentModel {
       parentId: parentId,
       progress: progress,
       hasParent: hasParent,
+      focusCourseIds: focusCourseIds,
     );
   }
 }
@@ -83,6 +90,7 @@ extension StudentEntityX on StudentEntity {
       parentId: parentId,
       progress: progress,
       hasParent: hasParent,
+      focusCourseIds: focusCourseIds,
     );
   }
 }

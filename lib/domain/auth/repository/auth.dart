@@ -21,5 +21,6 @@ abstract class AuthRepository {
   Future<Either> parentSignin(ParentSigninReq req);
   Future<Either> signOut();
   bool isLoggedIn();
+  Future<Either<String, void>> sendPasswordResetEmail(String email);
   Future<String?> getCurrentUserRole();
 }
