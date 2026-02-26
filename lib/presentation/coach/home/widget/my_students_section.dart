@@ -128,36 +128,38 @@ class _StudentCard extends StatelessWidget {
     final name = '${student.studentName} ${student.studentSurname}'.trim();
     return InkWell(
       onTap: () => _openStudentDetail(context),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.primaryCoach.withValues(alpha: 0.25),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 22,
-              backgroundColor: AppColors.primaryCoach.withValues(alpha: 0.3),
+              radius: 28,
+              backgroundColor: AppColors.primaryCoach.withValues(alpha: 0.5),
               child: Text(
                 initial.toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 name.isEmpty ? 'Öğrenci' : name,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
               ),
             ),
             GeneralProgressCircle(
               percent: student.progress,
-              diameter: 44,
-              strokeWidth: 4,
-              showPercent: false,
+              diameter: 58,
+              strokeWidth: 5,
+              showPercent: true,
+              accentColor: AppColors.primaryCoach,
+              backgroundColor: Colors.white,
             ),
           ],
         ),

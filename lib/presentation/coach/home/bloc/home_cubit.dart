@@ -1,9 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
+import 'package:polen_academy/domain/homework/usecases/get_overdue_homeworks_for_coach.dart';
+import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_homework.dart';
+import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
+import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date.dart';
-import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
 import 'package:polen_academy/domain/user/usecases/get_my_students.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_state.dart';
@@ -24,23 +27,29 @@ class HomeCubit extends Cubit<HomeState> {
       params: GetSessionsByDateParams(coachId: coachId, date: now),
     );
     final studentsResult = await sl<GetMyStudentsUseCase>().call(params: coachId);
+    final overdueResult = await sl<GetOverdueHomeworksForCoachUseCase>().call(params: coachId);
     final completedResult = await sl<GetCompletedHomeworksForCoachUseCase>().call(params: coachId);
     if (isClosed) return;
 
     final todaySessions = sessionResult.fold((_) => <SessionEntity>[], (list) => list);
     final students = studentsResult.fold((_) => state.students, (list) => list);
+    final overdue = overdueResult.fold((_) => state.overdueHomeworks, (list) => list);
     final completed = completedResult.fold((_) => state.completedHomeworks, (list) => list);
     final errorMessage = sessionResult.fold(
       (e) => e,
       (_) => studentsResult.fold(
         (e) => e,
-        (_) => completedResult.fold((e) => e, (_) => null),
+        (_) => overdueResult.fold(
+          (e) => e,
+          (_) => completedResult.fold((e) => e, (_) => null),
+        ),
       ),
     );
     emit(state.copyWith(
       loading: false,
       todaySessions: todaySessions,
       students: students,
+      overdueHomeworks: overdue,
       completedHomeworks: completed,
       errorMessage: errorMessage,
     ));
@@ -72,7 +81,25 @@ class HomeCubit extends Cubit<HomeState> {
     );
     result.fold(
       (e) => emit(state.copyWith(errorMessage: e)),
-      (_) => load(),
+      (_) async {
+        if (status == HomeworkSubmissionStatus.pending) {
+          await sl<RevertTopicProgressForHomeworkUseCase>().call(
+            params: RevertTopicProgressForHomeworkParams(
+              homeworkId: homeworkId,
+              studentId: studentId,
+            ),
+          );
+        } else {
+          await sl<SyncTopicProgressFromHomeworkUseCase>().call(
+            params: SyncTopicProgressFromHomeworkParams(
+              homeworkId: homeworkId,
+              studentId: studentId,
+              status: status,
+            ),
+          );
+        }
+        load();
+      },
     );
   }
 }

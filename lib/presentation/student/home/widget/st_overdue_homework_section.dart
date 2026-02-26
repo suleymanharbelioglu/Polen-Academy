@@ -51,9 +51,12 @@ class StOverdueHomeworkSection extends StatelessWidget {
           else
             ...items.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: StHomeworkCard(
-                    item: item,
-                    onTap: onTap != null ? () => onTap!(item) : null,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: StHomeworkCard(
+                      item: item,
+                      onTap: onTap != null ? () => onTap!(item) : null,
+                    ),
                   ),
                 )),
         ],

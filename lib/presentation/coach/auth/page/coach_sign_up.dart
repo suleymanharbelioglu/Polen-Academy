@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/model/coach.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_creation_req_state.dart';
@@ -47,9 +48,7 @@ class _CoachSignUpPageContentState extends State<_CoachSignUpPageContent> {
   }
 
   void _handleSignUp() {
-    print('📝 Form gönderildi');
     if (_formKey.currentState?.validate() ?? false) {
-      print('✅ Validasyon başarılı');
       final coach = CoachModel(
         uid: '',
         firstName: _firstNameController.text.trim(),
@@ -57,11 +56,8 @@ class _CoachSignUpPageContentState extends State<_CoachSignUpPageContent> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      print('🚀 Kayıt işlemi başlatılıyor...');
+      LoadingOverlay.show(context);
       context.read<CoachCretationReqCubit>().createCoach(coach);
-    } else {
-      print('❌ Validasyon başarısız');
     }
   }
 
@@ -69,14 +65,13 @@ class _CoachSignUpPageContentState extends State<_CoachSignUpPageContent> {
   Widget build(BuildContext context) {
     return BlocListener<CoachCretationReqCubit, CoachCreationReqState>(
       listener: (context, state) {
-        print('🔔 State değişti: ${state.runtimeType}');
         if (state is CoachCreationReqSuccess) {
-          print('✅ Success state alındı, yönlendiriliyor...');
+          LoadingOverlay.hide(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             AppNavigator.pushAndRemove(context, const BottomNavbarPage());
           });
         } else if (state is CoachCreationReqFailure) {
-          print('❌ Failure state: ${state.errorMessage}');
+          LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),

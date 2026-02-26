@@ -6,6 +6,7 @@ import 'package:polen_academy/presentation/coach/home/bloc/home_cubit.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_state.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
 import 'package:polen_academy/presentation/coach/home/widget/completed_homeworks_section.dart';
+import 'package:polen_academy/presentation/coach/home/widget/overdue_homeworks_section.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
 import 'package:polen_academy/presentation/coach/home/widget/daily_agenda_section.dart';
 import 'package:polen_academy/presentation/coach/home/widget/general_status_section.dart';
@@ -35,6 +36,8 @@ class HomePage extends StatelessWidget {
                     children: [
                       GeneralStatusSection(
                         activeStudentCount: state.students.length,
+                        overdueHomeworkCount: state.overdueHomeworks.length,
+                        pendingApprovalCount: state.completedHomeworks.length,
                       ),
                       const SizedBox(height: 16),
                       DailyAgendaSection(
@@ -47,6 +50,12 @@ class HomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       StudentsSection(students: state.students),
+                      const SizedBox(height: 16),
+                      OverdueHomeworkSection(
+                        items: state.overdueHomeworks,
+                        onTap: (item) => _showHomeworkDetail(context, item),
+                        onRefresh: () => context.read<HomeCubit>().load(),
+                      ),
                       const SizedBox(height: 16),
                       CompletedHomeworkSection(
                         items: state.completedHomeworks,

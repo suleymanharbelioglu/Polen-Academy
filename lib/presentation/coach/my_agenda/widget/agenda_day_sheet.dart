@@ -34,11 +34,11 @@ class AgendaDaySheet extends StatelessWidget {
     return d.isBefore(today);
   }
 
-  /// Sadece bugünün tarihi için true (onay/iptal butonları gösterilir).
-  static bool _isToday(DateTime date) {
+  /// Bugün veya geçmiş günler için true → seans yapıldı/yapılmadı işaretlenebilir. Gelecek günlerde gösterilmez.
+  static bool _canMarkSessionStatus(DateTime date) {
     final d = DateTime(date.year, date.month, date.day);
     final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    return d == today;
+    return !d.isAfter(today);
   }
 
   @override
@@ -101,7 +101,7 @@ class AgendaDaySheet extends StatelessWidget {
                       itemBuilder: (context, i) => SessionCard(
                         session: sessions[i],
                         onRefresh: () => context.read<MyAgendaCubit>().refresh(),
-                        canMarkStatus: _isToday(date),
+                        canMarkStatus: _canMarkSessionStatus(date),
                       ),
                     ),
               if (!_isPastDate(date)) ...[

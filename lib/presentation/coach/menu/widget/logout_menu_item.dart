@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/bloc/logout_cubit.dart';
 import 'package:polen_academy/common/bloc/logout_state.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 
 class LogoutMenuItem extends StatelessWidget {
@@ -18,6 +19,7 @@ class LogoutMenuItem extends StatelessWidget {
           onTap: isLoading
               ? null
               : () {
+                  LoadingOverlay.show(context);
                   context.read<LogoutCubit>().logout();
                 },
           child: Container(
@@ -28,20 +30,10 @@ class LogoutMenuItem extends StatelessWidget {
             ),
             child: Row(
               children: [
-                if (isLoading)
-                  const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                else
-                  const Icon(Icons.logout, color: Colors.white),
+                const Icon(Icons.logout, color: Colors.white),
                 const SizedBox(width: 16),
                 Text(
-                  isLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap',
+                  'Çıkış Yap',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

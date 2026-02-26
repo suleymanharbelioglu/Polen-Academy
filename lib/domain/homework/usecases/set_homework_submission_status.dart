@@ -24,14 +24,21 @@ class SetHomeworkSubmissionStatusUseCase
     final repo = sl<HomeworkSubmissionRepository>();
     final existing = await repo.getByHomeworkAndStudent(p.homeworkId, p.studentId);
     final now = DateTime.now();
+    final bool isResetToPending = p.status == HomeworkSubmissionStatus.pending;
+    final HomeworkSubmissionEntity? existingSub = existing.fold((_) => null, (e) => e);
+    final List<String> urls = isResetToPending ? [] : (existingSub?.uploadedUrls ?? []);
+    final DateTime? completedAt = p.status == HomeworkSubmissionStatus.approved
+        ? now
+        : (isResetToPending ? null : existingSub?.completedAt);
+
     final HomeworkSubmissionEntity entity = existing.fold(
       (_) => HomeworkSubmissionEntity(
         id: '${p.homeworkId}_${p.studentId}',
         homeworkId: p.homeworkId,
         studentId: p.studentId,
         status: p.status,
-        uploadedUrls: [],
-        completedAt: p.status == HomeworkSubmissionStatus.approved ? now : null,
+        uploadedUrls: urls,
+        completedAt: completedAt,
         updatedAt: now,
       ),
       (e) => HomeworkSubmissionEntity(
@@ -39,8 +46,8 @@ class SetHomeworkSubmissionStatusUseCase
         homeworkId: p.homeworkId,
         studentId: p.studentId,
         status: p.status,
-        uploadedUrls: e?.uploadedUrls ?? [],
-        completedAt: p.status == HomeworkSubmissionStatus.approved ? now : e?.completedAt,
+        uploadedUrls: urls,
+        completedAt: completedAt,
         updatedAt: now,
       ),
     );

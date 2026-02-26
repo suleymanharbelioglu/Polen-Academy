@@ -5,6 +5,7 @@ import 'package:polen_academy/domain/user/entity/student_entity.dart';
 class HomeState {
   final List<SessionEntity> todaySessions;
   final List<StudentEntity> students;
+  final List<CompletedHomeworkItem> overdueHomeworks;
   final List<CompletedHomeworkItem> completedHomeworks;
   final bool loading;
   final String? errorMessage;
@@ -12,6 +13,7 @@ class HomeState {
   const HomeState({
     this.todaySessions = const [],
     this.students = const [],
+    this.overdueHomeworks = const [],
     this.completedHomeworks = const [],
     this.loading = false,
     this.errorMessage,
@@ -20,6 +22,7 @@ class HomeState {
   HomeState copyWith({
     List<SessionEntity>? todaySessions,
     List<StudentEntity>? students,
+    List<CompletedHomeworkItem>? overdueHomeworks,
     List<CompletedHomeworkItem>? completedHomeworks,
     bool? loading,
     String? errorMessage,
@@ -27,6 +30,7 @@ class HomeState {
     return HomeState(
       todaySessions: todaySessions ?? this.todaySessions,
       students: students ?? this.students,
+      overdueHomeworks: overdueHomeworks ?? this.overdueHomeworks,
       completedHomeworks: completedHomeworks ?? this.completedHomeworks,
       loading: loading ?? this.loading,
       errorMessage: errorMessage,

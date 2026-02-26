@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
@@ -22,6 +23,13 @@ abstract class HomeworkStorageService {
 
 class HomeworkStorageServiceImpl extends HomeworkStorageService {
   static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5MB
+  static final Random _random = Random();
+
+  /// Çakışma olmaması için: timestamp + rastgele sonek + dosya adı.
+  static String _uniqueStorageFileName(String sanitizedFileName) {
+    final suffix = _random.nextInt(0x7FFFFFFF).toRadixString(16);
+    return '${DateTime.now().millisecondsSinceEpoch}_${suffix}_$sanitizedFileName';
+  }
 
   @override
   Future<Either<String, String>> uploadFile({
@@ -40,7 +48,7 @@ class HomeworkStorageServiceImpl extends HomeworkStorageService {
       final name = filePath.split(RegExp(r'[/\\]')).last;
       final sanitized = name.replaceAll(RegExp(r'[^\w\s\-\.]'), '_');
       final storagePath =
-          '${AppUrl.homeworkFilesStoragePath}/$studentId/${DateTime.now().millisecondsSinceEpoch}_$sanitized';
+          '${AppUrl.homeworkFilesStoragePath}/$studentId/${_uniqueStorageFileName(sanitized)}';
       final ref = FirebaseStorage.instance.ref().child(storagePath);
       await ref.putFile(file);
       final downloadUrl = await ref.getDownloadURL();
@@ -55,18 +63,21 @@ class HomeworkStorageServiceImpl extends HomeworkStorageService {
   @override
   Future<Either<String, String>> uploadFileFromBytes({
     required String studentId,
-    required List<int> bytes,
+    required Uint8List bytes,
     required String fileName,
   }) async {
     try {
-      if (bytes.length > _maxFileSizeBytes) {
+      if (bytes.lengthInBytes > _maxFileSizeBytes) {
         return const Left('Dosya en fazla 5MB olabilir.');
       }
       final sanitized = fileName.replaceAll(RegExp(r'[^\w\s\-\.]'), '_');
       final storagePath =
-          '${AppUrl.homeworkFilesStoragePath}/$studentId/${DateTime.now().millisecondsSinceEpoch}_$sanitized';
+          '${AppUrl.homeworkFilesStoragePath}/$studentId/${_uniqueStorageFileName(sanitized)}';
       final ref = FirebaseStorage.instance.ref().child(storagePath);
-      await ref.putData(bytes as dynamic);
+      await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
       final downloadUrl = await ref.getDownloadURL();
       return Right(downloadUrl);
     } on FirebaseException catch (e) {

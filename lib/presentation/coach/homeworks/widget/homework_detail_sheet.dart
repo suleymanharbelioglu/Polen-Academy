@@ -18,9 +18,9 @@ String _statusLabel(HomeworkSubmissionStatus s) {
     case HomeworkSubmissionStatus.pending:
       return 'Bekliyor';
     case HomeworkSubmissionStatus.completedByStudent:
-      return 'Onay Bekliyor'; // öğrenci ekleme yapmış
+      return 'Yapıldı'; // öğrenci yaptı, koç onayı bekliyor
     case HomeworkSubmissionStatus.approved:
-      return 'Tamamlandı';
+      return 'Tamamlandı ve onaylandı';
     case HomeworkSubmissionStatus.missing:
       return 'Eksik';
     case HomeworkSubmissionStatus.notDone:
@@ -33,9 +33,9 @@ Color _statusColor(HomeworkSubmissionStatus s) {
     case HomeworkSubmissionStatus.approved:
       return Colors.green;
     case HomeworkSubmissionStatus.completedByStudent:
-      return Colors.orange; // öğrenci ekleme yapmış - turuncu
+      return Colors.blue; // öğrenci yaptı - mavi
     case HomeworkSubmissionStatus.missing:
-      return Colors.amber; // Eksik - sarı
+      return Colors.orange; // Eksik - turuncu
     case HomeworkSubmissionStatus.notDone:
       return Colors.red;
     case HomeworkSubmissionStatus.pending:
@@ -181,7 +181,7 @@ class HomeworkDetailSheet extends StatelessWidget {
                       const SizedBox(width: 6),
                       Expanded(child: _StatusButton(
                         label: 'Eksik',
-                        color: Colors.amber,
+                        color: Colors.orange,
                         isSelected: s.status == HomeworkSubmissionStatus.missing,
                         onTap: () => _setStatus(context, HomeworkSubmissionStatus.missing),
                       )),

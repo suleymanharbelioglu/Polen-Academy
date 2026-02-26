@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/bloc/logout_cubit.dart';
 import 'package:polen_academy/common/bloc/logout_state.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/presentation/auth/page/welcome.dart';
 import 'package:polen_academy/presentation/student/profile/page/st_profile_page.dart';
@@ -27,10 +28,12 @@ class _StMenuPageContent extends StatelessWidget {
     return BlocListener<LogoutCubit, LogoutState>(
       listener: (context, state) {
         if (state is LogoutSuccess) {
+          LoadingOverlay.hide(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             AppNavigator.pushAndRemove(context, const WelcomePage());
           });
         } else if (state is LogoutFailure) {
+          LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),
@@ -112,7 +115,12 @@ class LogoutMenuItem extends StatelessWidget {
 
         return InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: isLoading ? null : () => context.read<LogoutCubit>().logout(),
+          onTap: isLoading
+              ? null
+              : () {
+                  LoadingOverlay.show(context);
+                  context.read<LogoutCubit>().logout();
+                },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             decoration: BoxDecoration(
@@ -121,21 +129,11 @@ class LogoutMenuItem extends StatelessWidget {
             ),
             child: Row(
               children: [
-                if (isLoading)
-                  const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                else
-                  const Icon(Icons.logout, color: Colors.white),
+                const Icon(Icons.logout, color: Colors.white),
                 const SizedBox(width: 16),
-                Text(
-                  isLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap',
-                  style: const TextStyle(
+                const Text(
+                  'Çıkış Yap',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

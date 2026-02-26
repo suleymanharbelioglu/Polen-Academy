@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/service_locator.dart';
 import 'package:polen_academy/domain/auth/repository/auth.dart';
+import 'package:polen_academy/service_locator.dart';
 
 /// Koç şifre sıfırlama: e-posta girilir, Firebase şifre sıfırlama linki gönderir.
 class CoachForgotPasswordPage extends StatefulWidget {
@@ -14,7 +15,6 @@ class CoachForgotPasswordPage extends StatefulWidget {
 class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController(text: 'harba.suleyman@gmail.com');
-  bool _loading = false;
 
   @override
   void dispose() {
@@ -24,12 +24,11 @@ class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
 
   Future<void> _sendResetEmail() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() => _loading = true);
-    final result = await sl<AuthRepository>().sendPasswordResetEmail(
-      _emailController.text.trim(),
+    final result = await LoadingOverlay.run(
+      context,
+      sl<AuthRepository>().sendPasswordResetEmail(_emailController.text.trim()),
     );
     if (!mounted) return;
-    setState(() => _loading = false);
     result.fold(
       (error) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error), backgroundColor: Colors.red),
@@ -113,30 +112,21 @@ class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _loading ? null : _sendResetEmail,
+                      onPressed: _sendResetEmail,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryCoach,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: _loading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Sıfırlama Bağlantısı Gönder',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                      child: const Text(
+                        'Sıfırlama Bağlantısı Gönder',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ],

@@ -16,7 +16,7 @@ class SessionCard extends StatelessWidget {
 
   final SessionEntity session;
   final VoidCallback onRefresh;
-  /// Sadece o gün (bugün) içinse true; geçmiş/gelecek günlerde onay/iptal gösterilmez.
+  /// Bugün veya geçmiş gün için true ise yapıldı/yapılmadı butonları gösterilir; gelecek günde gösterilmez.
   final bool canMarkStatus;
 
   @override

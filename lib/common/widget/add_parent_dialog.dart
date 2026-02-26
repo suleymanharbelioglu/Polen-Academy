@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_state.dart';
@@ -32,6 +33,7 @@ class _AddParentDialogState extends State<AddParentDialog> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
+      LoadingOverlay.show(context);
       context.read<ParentSignupCubit>().createParentFromFormData(
             parentName: _firstNameController.text.trim(),
             parentSurname: _lastNameController.text.trim(),
@@ -46,8 +48,10 @@ class _AddParentDialogState extends State<AddParentDialog> {
     return BlocConsumer<ParentSignupCubit, ParentSignupState>(
       listener: (context, state) {
         if (state is ParentSignupSuccess) {
+          LoadingOverlay.hide(context);
           Navigator.pop(context, state.credentials);
         } else if (state is ParentSignupFailure) {
+          LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),
@@ -106,17 +110,7 @@ class _AddParentDialogState extends State<AddParentDialog> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryCoach,
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('Ekle', style: TextStyle(color: Colors.white)),
+              child: const Text('Ekle', style: TextStyle(color: Colors.white)),
             ),
           ],
         );

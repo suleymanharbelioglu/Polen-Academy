@@ -27,12 +27,15 @@ import 'package:polen_academy/domain/curriculum/repository/curriculum_repository
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/goals/repository/goals_repository.dart';
 import 'package:polen_academy/domain/goals/usecases/get_student_topic_progress.dart';
+import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_homework.dart';
+import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
 import 'package:polen_academy/domain/goals/usecases/update_topic_progress.dart';
 import 'package:polen_academy/domain/homework/repository/homework_repository.dart';
 import 'package:polen_academy/domain/homework/repository/homework_submission_repository.dart';
 import 'package:polen_academy/domain/homework/usecases/create_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/delete_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
+import 'package:polen_academy/domain/homework/usecases/get_overdue_homeworks_for_coach.dart';
 import 'package:polen_academy/domain/homework/usecases/get_homeworks_by_student_and_date_range.dart';
 import 'package:polen_academy/domain/homework/usecases/add_uploaded_url_to_submission.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
@@ -103,12 +106,15 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetCurriculumTreeUseCase>(GetCurriculumTreeUseCase());
   sl.registerSingleton<GetStudentTopicProgressUseCase>(GetStudentTopicProgressUseCase());
   sl.registerSingleton<UpdateTopicProgressUseCase>(UpdateTopicProgressUseCase());
+  sl.registerSingleton<SyncTopicProgressFromHomeworkUseCase>(SyncTopicProgressFromHomeworkUseCase());
+  sl.registerSingleton<RevertTopicProgressForHomeworkUseCase>(RevertTopicProgressForHomeworkUseCase());
 
   // Homework Usecases
   sl.registerSingleton<GetHomeworksByStudentAndDateRangeUseCase>(GetHomeworksByStudentAndDateRangeUseCase());
   sl.registerSingleton<CreateHomeworkUseCase>(CreateHomeworkUseCase());
   sl.registerSingleton<DeleteHomeworkUseCase>(DeleteHomeworkUseCase());
   sl.registerSingleton<GetCompletedHomeworksForCoachUseCase>(GetCompletedHomeworksForCoachUseCase());
+  sl.registerSingleton<GetOverdueHomeworksForCoachUseCase>(GetOverdueHomeworksForCoachUseCase());
   sl.registerSingleton<AddUploadedUrlToSubmissionUseCase>(AddUploadedUrlToSubmissionUseCase());
   sl.registerSingleton<SetHomeworkSubmissionStatusUseCase>(SetHomeworkSubmissionStatusUseCase());
   sl.registerSingleton<UploadHomeworkFileUseCase>(UploadHomeworkFileUseCase());

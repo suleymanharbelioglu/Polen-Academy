@@ -1,5 +1,8 @@
-import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
@@ -9,8 +12,29 @@ import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart
 import 'package:polen_academy/service_locator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const List<String> _weekdays = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
-const List<String> _months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const List<String> _weekdays = [
+  'Pazartesi',
+  'Salı',
+  'Çarşamba',
+  'Perşembe',
+  'Cuma',
+  'Cumartesi',
+  'Pazar',
+];
+const List<String> _months = [
+  'Ocak',
+  'Şubat',
+  'Mart',
+  'Nisan',
+  'Mayıs',
+  'Haziran',
+  'Temmuz',
+  'Ağustos',
+  'Eylül',
+  'Ekim',
+  'Kasım',
+  'Aralık',
+];
 
 String _formatDate(DateTime d) {
   return '${d.day} ${_months[d.month - 1]} ${_weekdays[d.weekday - 1]}';
@@ -31,14 +55,15 @@ String _statusLabel(HomeworkSubmissionStatus s) {
   }
 }
 
+/// Öğrenci yaptı / onay bekliyor = mavi; tamamlandı = yeşil.
 Color _statusColor(HomeworkSubmissionStatus s) {
   switch (s) {
     case HomeworkSubmissionStatus.approved:
       return Colors.green;
     case HomeworkSubmissionStatus.completedByStudent:
-      return Colors.orange;
+      return Colors.blue;
     case HomeworkSubmissionStatus.missing:
-      return Colors.amber;
+      return Colors.orange;
     case HomeworkSubmissionStatus.notDone:
       return Colors.red;
     case HomeworkSubmissionStatus.pending:
@@ -46,7 +71,7 @@ Color _statusColor(HomeworkSubmissionStatus s) {
   }
 }
 
-/// Öğrenci için ödev detayı: koçla aynı içerik; altta "Resim ekle" ve "Yaptım olarak işaretle" butonları.
+/// Öğrenci için ödev detayı: koçla aynı içerik; altta "Yaptım olarak işaretle" (tıklanınca dialog ile isteğe bağlı görsel ekleme).
 class StHomeworkDetailSheet extends StatefulWidget {
   const StHomeworkDetailSheet({
     super.key,
@@ -67,8 +92,6 @@ class StHomeworkDetailSheet extends StatefulWidget {
 
 class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
   HomeworkSubmissionEntity? _submission;
-  bool _addingImage = false;
-  bool _markingDone = false;
 
   @override
   void initState() {
@@ -79,7 +102,8 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
   @override
   void didUpdateWidget(StHomeworkDetailSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.submission != oldWidget.submission) _submission = widget.submission;
+    if (widget.submission != oldWidget.submission)
+      _submission = widget.submission;
   }
 
   HomeworkSubmissionEntity get _s {
@@ -95,63 +119,54 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
         );
   }
 
-  Future<void> _pickAndUploadImage() async {
-    final picked = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-    );
-    if (picked == null || picked.files.isEmpty) return;
-    final path = picked.files.single.path;
-    if (path == null || path.isEmpty) return;
-    setState(() => _addingImage = true);
-    final uploadResult = await sl<UploadHomeworkFileUseCase>().call(
-      filePath: path,
-      studentId: widget.studentId,
-    );
-    if (!mounted) return;
-    uploadResult.fold(
-      (err) {
-        setState(() => _addingImage = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
-      },
-      (url) async {
-        final addResult = await sl<AddUploadedUrlToSubmissionUseCase>().call(
-          params: AddUploadedUrlToSubmissionParams(
-            homeworkId: widget.homework.id,
-            studentId: widget.studentId,
-            uploadedUrl: url,
-          ),
-        );
-        if (!mounted) return;
-        setState(() => _addingImage = false);
-        addResult.fold(
-          (err) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err))),
-          (_) {
-            widget.onUpdated();
-            Navigator.pop(context);
-          },
-        );
-      },
+  void _openMarkAsDoneDialog() {
+    final sheetContext = context;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => _HomeworkCompletedConfirmDialog(
+        homeworkId: widget.homework.id,
+        studentId: widget.studentId,
+        existingUrls: _s.uploadedUrls,
+        onNoThanks: () async {
+          final result = await sl<SetHomeworkSubmissionStatusUseCase>().call(
+            params: SetHomeworkSubmissionStatusParams(
+              homeworkId: widget.homework.id,
+              studentId: widget.studentId,
+              status: HomeworkSubmissionStatus.completedByStudent,
+            ),
+          );
+          if (!ctx.mounted) return;
+          Navigator.pop(ctx);
+          result.fold(
+            (err) => ScaffoldMessenger.of(
+              sheetContext,
+            ).showSnackBar(SnackBar(content: Text(err))),
+            (_) {
+              widget.onUpdated();
+              Navigator.pop(sheetContext);
+            },
+          );
+        },
+        onYesUpload: () {
+          Navigator.pop(ctx);
+          _openPhotosDialog(sheetContext);
+        },
+      ),
     );
   }
 
-  Future<void> _markAsDone() async {
-    setState(() => _markingDone = true);
-    final result = await sl<SetHomeworkSubmissionStatusUseCase>().call(
-      params: SetHomeworkSubmissionStatusParams(
+  void _openPhotosDialog(BuildContext sheetContext) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => _HomeworkPhotosDialog(
         homeworkId: widget.homework.id,
         studentId: widget.studentId,
-        status: HomeworkSubmissionStatus.completedByStudent,
+        existingUrls: _s.uploadedUrls,
+        onSuccess: () {
+          widget.onUpdated();
+          Navigator.pop(sheetContext);
+        },
       ),
-    );
-    if (!mounted) return;
-    setState(() => _markingDone = false);
-    result.fold(
-      (err) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err))),
-      (_) {
-        widget.onUpdated();
-        Navigator.pop(context);
-      },
     );
   }
 
@@ -164,7 +179,9 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
         ? h.courseName!
         : (h.courseId?.isNotEmpty == true ? h.courseId! : 'Ödev');
     return Container(
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.secondBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -201,13 +218,20 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
                 children: [
                   Text(
                     courseLabel,
-                    style: const TextStyle(color: AppColors.primaryStudent, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: AppColors.primaryStudent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (h.topicNames.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       h.topicNames.join(' • '),
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 6),
@@ -217,82 +241,91 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
                   ),
                   if (h.links.isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    ...h.links.map((url) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: _ClickableLink(url: url),
-                        )),
+                    ...h.links.map(
+                      (url) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: _ClickableLink(url: url),
+                      ),
+                    ),
                   ],
                   if (h.fileUrls.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     const Text(
                       'Eklenen kaynaklar (görsel / PDF)',
-                      style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: h.fileUrls.map((url) => _TeacherResourceTile(url: url)).toList(),
+                      children: h.fileUrls
+                          .map((url) => _TeacherResourceTile(url: url))
+                          .toList(),
                     ),
                   ],
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: _statusColor(s.status),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       'Durum: ${_statusLabel(s.status)}',
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'Öğrenci Yüklemeleri',
-                    style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   if (s.uploadedUrls.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text('Yüklenen görsel yok.', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                      child: Text(
+                        'Yüklenen görsel yok.',
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                      ),
                     )
                   else
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: s.uploadedUrls
-                          .map((url) => _Thumbnail(
-                                url: url,
-                                onTap: () => _showFullScreenImage(context, url),
-                              ))
+                          .map(
+                            (url) => _Thumbnail(
+                              url: url,
+                              onTap: () => _showFullScreenImage(context, url),
+                            ),
+                          )
                           .toList(),
                     ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActionButton(
-                          label: 'Resim ekle',
-                          icon: Icons.add_photo_alternate,
-                          color: AppColors.primaryStudent,
-                          loading: _addingImage,
-                          onTap: _pickAndUploadImage,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _ActionButton(
-                          label: 'Yaptım olarak işaretle',
-                          icon: Icons.check_circle_outline,
-                          color: Colors.green,
-                          loading: _markingDone,
-                          onTap: _markAsDone,
-                        ),
-                      ),
-                    ],
-                  ),
+                  if (s.status == HomeworkSubmissionStatus.pending)
+                    _ActionButton(
+                      label: 'Yaptım olarak işaretle',
+                      icon: Icons.check_circle_outline,
+                      color: Colors.green,
+                      loading: false,
+                      onTap: _openMarkAsDoneDialog,
+                    ),
                 ],
               ),
             ),
@@ -318,7 +351,11 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
                 child: Image.network(
                   url,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white, size: 48),
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 48,
+                  ),
                 ),
               ),
             ),
@@ -333,6 +370,308 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+const int _maxImages = 5;
+
+/// İlk adım: "Ödev Tamamlandı! Fotoğraf eklemek ister misin?" → Evet / Hayır.
+class _HomeworkCompletedConfirmDialog extends StatelessWidget {
+  const _HomeworkCompletedConfirmDialog({
+    required this.homeworkId,
+    required this.studentId,
+    required this.existingUrls,
+    required this.onNoThanks,
+    required this.onYesUpload,
+  });
+
+  final String homeworkId;
+  final String studentId;
+  final List<String> existingUrls;
+  final VoidCallback onNoThanks;
+  final VoidCallback onYesUpload;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.secondBackground,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircleAvatar(
+            radius: 32,
+            backgroundColor: Colors.green,
+            child: Icon(Icons.check, color: Colors.white, size: 36),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Ödev Tamamlandı!',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Yaptığın ödevin fotoğrafını kanıt olarak eklemek ister misin?',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: onYesUpload,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primaryStudent,
+              ),
+              child: const Text('Evet, Fotoğraf Yükle'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: onNoThanks,
+              child: const Text(
+                'Hayır, Teşekkürler',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fotoğraf yükleme: "Ödev Fotoğrafları", Max 5, Seç kutusu, Tamamla / Kapat. Başarıda "Başarılı!" dialog.
+class _HomeworkPhotosDialog extends StatefulWidget {
+  const _HomeworkPhotosDialog({
+    required this.homeworkId,
+    required this.studentId,
+    required this.existingUrls,
+    required this.onSuccess,
+  });
+
+  final String homeworkId;
+  final String studentId;
+  final List<String> existingUrls;
+  final VoidCallback onSuccess;
+
+  @override
+  State<_HomeworkPhotosDialog> createState() => _HomeworkPhotosDialogState();
+}
+
+class _HomeworkPhotosDialogState extends State<_HomeworkPhotosDialog> {
+  final List<XFile> _images = [];
+
+  Future<void> _pickImage() async {
+    if (_images.length >= _maxImages) return;
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (xFile != null && mounted) setState(() => _images.add(xFile));
+  }
+
+  void _removeImage(int index) {
+    setState(() => _images.removeAt(index));
+  }
+
+  /// Returns null on success, error message on failure.
+  Future<String?> _uploadAndSetStatus() async {
+    for (final xFile in _images) {
+      final bytes = await xFile.readAsBytes();
+      if (bytes.isEmpty || !mounted) return 'Görsel yüklenirken hata oluştu.';
+      final name = xFile.name.isNotEmpty
+          ? xFile.name
+          : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final uploadResult = await sl<UploadHomeworkFileUseCase>().fromBytes(
+        studentId: widget.studentId,
+        bytes: bytes,
+        fileName: name,
+      );
+      if (!mounted) return null;
+      final url = uploadResult.fold((_) => null, (u) => u);
+      if (url == null) return 'Görsel yüklenirken hata oluştu.';
+      final addResult = await sl<AddUploadedUrlToSubmissionUseCase>().call(
+        params: AddUploadedUrlToSubmissionParams(
+          homeworkId: widget.homeworkId,
+          studentId: widget.studentId,
+          uploadedUrl: url,
+        ),
+      );
+      if (!mounted) return null;
+      final addErr = addResult.fold((e) => e, (_) => null);
+      if (addErr != null) return addErr;
+    }
+    final statusResult = await sl<SetHomeworkSubmissionStatusUseCase>().call(
+      params: SetHomeworkSubmissionStatusParams(
+        homeworkId: widget.homeworkId,
+        studentId: widget.studentId,
+        status: HomeworkSubmissionStatus.completedByStudent,
+      ),
+    );
+    if (!mounted) return null;
+    return statusResult.fold((e) => e, (_) => null);
+  }
+
+  Future<void> _completeAndClose() async {
+    final error = await LoadingOverlay.run(context, _uploadAndSetStatus());
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.pop(context);
+      widget.onSuccess();
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.secondBackground,
+      title: const Text(
+        'Ödev Fotoğrafları',
+        style: TextStyle(color: Colors.white),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Mevcut fotoğrafları görebilir veya yeni kanıt fotoğrafları yükleyebilirsin.',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            if (widget.existingUrls.isNotEmpty) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: widget.existingUrls
+                    .map(
+                      (url) => _Thumbnail(
+                        url: url,
+                        onTap: () =>
+                            _StHomeworkDetailSheetState._showFullScreenImage(
+                              context,
+                              url,
+                            ),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
+            ],
+            const Text(
+              '+ Yeni Fotoğraf Ekle (Max 5)',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: _pickImage,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white38,
+                    width: 2,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.camera_alt, color: Colors.white54, size: 36),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Seç',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_images.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(_images.length, (i) {
+                  final x = _images[i];
+                  final path = x.path;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: path.isNotEmpty
+                              ? Image.file(
+                                  File(path),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.image,
+                                    color: Colors.white54,
+                                    size: 32,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.image,
+                                  color: Colors.white54,
+                                  size: 32,
+                                ),
+                        ),
+                      ),
+                      Positioned(
+                        top: -6,
+                        right: -6,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(i),
+                          child: const CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.red,
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Kapat', style: TextStyle(color: Colors.white70)),
+        ),
+        FilledButton(
+          onPressed: _completeAndClose,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primaryStudent,
+          ),
+          child: const Text('Tamamla'),
+        ),
+      ],
     );
   }
 }
@@ -362,30 +701,26 @@ class _ActionButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: loading
-              ? const Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -431,8 +766,11 @@ class _TeacherResourceTile extends StatelessWidget {
 
   static bool _isImageUrl(String url) {
     final lower = url.toLowerCase();
-    return lower.contains('.jpg') || lower.contains('.jpeg') ||
-        lower.contains('.png') || lower.contains('.gif') || lower.contains('.webp');
+    return lower.contains('.jpg') ||
+        lower.contains('.jpeg') ||
+        lower.contains('.png') ||
+        lower.contains('.gif') ||
+        lower.contains('.webp');
   }
 
   static bool _isPdfUrl(String url) => url.toLowerCase().contains('.pdf');
@@ -442,9 +780,9 @@ class _TeacherResourceTile extends StatelessWidget {
     if (uri != null && await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dosya açılamadı.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Dosya açılamadı.')));
     }
   }
 
@@ -453,7 +791,8 @@ class _TeacherResourceTile extends StatelessWidget {
     if (_isImageUrl(url)) {
       return _Thumbnail(
         url: url,
-        onTap: () => _StHomeworkDetailSheetState._showFullScreenImage(context, url),
+        onTap: () =>
+            _StHomeworkDetailSheetState._showFullScreenImage(context, url),
       );
     }
     return Material(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/model/parent_signin_req.dart';
 import 'package:polen_academy/presentation/parent/auth/bloc/parent_signin_cubit.dart';
@@ -17,8 +18,10 @@ class ParentSignInPage extends StatelessWidget {
       child: BlocListener<ParentSigninCubit, ParentSigninState>(
         listener: (context, state) {
           if (state is ParentSigninSuccess) {
+            LoadingOverlay.hide(context);
             AppNavigator.pushAndRemove(context, const PrBottomNavbarPage());
           } else if (state is ParentSigninFailure) {
+            LoadingOverlay.hide(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage),
@@ -43,7 +46,7 @@ class _ParentSignInContent extends StatefulWidget {
 class _ParentSignInContentState extends State<_ParentSignInContent> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController(text: 'sadettinsumak@polenacademy.com');
-  final _passwordController = TextEditingController(text: 'pxbDtVD8nDjV');
+  final _passwordController = TextEditingController(text: 'kxIwQMC3FOzF');
 
   @override
   void dispose() {
@@ -54,6 +57,7 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
 
   void _handleSignIn() {
     if (_formKey.currentState?.validate() ?? false) {
+      LoadingOverlay.show(context);
       context.read<ParentSigninCubit>().signIn(
             ParentSigninReq(
               email: _emailController.text.trim(),
@@ -151,23 +155,13 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: isLoading
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<
-                                              Color>(Colors.white),
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Giriş Yap',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                child: const Text(
+                                  'Giriş Yap',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ],

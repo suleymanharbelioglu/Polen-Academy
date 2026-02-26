@@ -47,11 +47,9 @@ class DailyAgendaSection extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 6),
-              const Icon(Icons.info_outline, size: 18, color: Colors.grey),
               const Spacer(),
               Material(
-                color: Colors.green,
+                color: AppColors.primaryCoach,
                 borderRadius: BorderRadius.circular(8),
                 child: InkWell(
                   onTap: () => _openPlanSession(context),

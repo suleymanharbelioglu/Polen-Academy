@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
+import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/model/coach_signin_req.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_signin_cubit.dart';
@@ -48,6 +49,7 @@ class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      LoadingOverlay.show(context);
       context.read<CoachSigninCubit>().signIn(req);
     }
   }
@@ -69,8 +71,10 @@ class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
     return BlocListener<CoachSigninCubit, CoachSigninState>(
       listener: (context, state) {
         if (state is CoachSigninSuccess) {
+          LoadingOverlay.hide(context);
           _navigateToHome();
         } else if (state is CoachSigninFailure) {
+          LoadingOverlay.hide(context);
           _showError(state.errorMessage);
         }
       },

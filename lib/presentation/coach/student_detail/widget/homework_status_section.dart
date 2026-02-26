@@ -69,11 +69,13 @@ class StatusCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    this.subtitle = 'ödev',
   });
 
   final String label;
   final int value;
   final Color color;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +97,7 @@ class StatusCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'ödev',
+            subtitle,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: 12,

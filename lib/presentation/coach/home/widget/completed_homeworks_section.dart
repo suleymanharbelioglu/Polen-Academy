@@ -1,24 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
+import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/presentation/coach/homeworks/widget/homework_card.dart';
 
 class CompletedHomeworkSection extends StatelessWidget {
   const CompletedHomeworkSection({
     super.key,
     this.items = const [],
+    this.title = 'Onay Bekleyen Ödevler',
+    this.subtitle = '',
+    this.emptyMessage = 'Onay bekleyen ödev yok.',
     required this.onTap,
     required this.onRefresh,
   });
 
   final List<CompletedHomeworkItem> items;
+  final String title;
+  final String subtitle;
+  final String emptyMessage;
   final void Function(CompletedHomeworkItem item) onTap;
   final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    final byStudent = <String, List<CompletedHomeworkItem>>{};
+    // Öğrenci -> Ders etiketi -> Ödev listesi
+    final byStudent = <String, Map<String, List<CompletedHomeworkItem>>>{};
     for (final item in items) {
-      byStudent.putIfAbsent(item.studentName, () => []).add(item);
+      final courseLabel = item.homework.courseName != null && item.homework.courseName!.isNotEmpty
+          ? item.homework.courseName!
+          : (item.homework.courseId != null && item.homework.courseId!.isNotEmpty
+              ? item.homework.courseId!
+              : 'Ödev');
+      byStudent
+          .putIfAbsent(item.studentName, () => {})
+          .putIfAbsent(courseLabel, () => [])
+          .add(item);
     }
     final entries = byStudent.entries.toList();
 
@@ -32,10 +48,10 @@ class CompletedHomeworkSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               Text(
-                'Tamamlanan Ödevler',
-                style: TextStyle(
+                title,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -43,21 +59,28 @@ class CompletedHomeworkSection extends StatelessWidget {
               ),
             ],
           ),
+          if (subtitle.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
+            ),
+          ],
           const SizedBox(height: 16),
           if (entries.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Text(
-                  'Tamamlanan ödev yok.',
-                  style: TextStyle(color: Colors.white54, fontSize: 14),
+                  emptyMessage,
+                  style: const TextStyle(color: Colors.white54, fontSize: 14),
                 ),
               ),
             )
           else
             ...entries.map((e) => _StudentHomeworkGroup(
                   studentName: e.key,
-                  itemList: e.value,
+                  courseToItems: e.value,
                   onTap: onTap,
                 )),
         ],
@@ -69,12 +92,12 @@ class CompletedHomeworkSection extends StatelessWidget {
 class _StudentHomeworkGroup extends StatefulWidget {
   const _StudentHomeworkGroup({
     required this.studentName,
-    required this.itemList,
+    required this.courseToItems,
     required this.onTap,
   });
 
   final String studentName;
-  final List<CompletedHomeworkItem> itemList;
+  final Map<String, List<CompletedHomeworkItem>> courseToItems;
   final void Function(CompletedHomeworkItem item) onTap;
 
   @override
@@ -86,14 +109,15 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
 
   @override
   Widget build(BuildContext context) {
-    final count = widget.itemList.length;
+    final totalCount = widget.courseToItems.values.fold<int>(0, (sum, list) => sum + list.length);
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
@@ -113,7 +137,7 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
                     ),
                   ),
                   Text(
-                    '$count adet',
+                    '$totalCount adet',
                     style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(width: 6),
@@ -127,60 +151,41 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
             ),
           ),
           if (_expanded)
-            ...widget.itemList.map((item) => _HomeworkTile(
-                  item: item,
-                  onTap: () => widget.onTap(item),
-                )),
-        ],
-      ),
-    );
-  }
-}
-
-class _HomeworkTile extends StatelessWidget {
-  const _HomeworkTile({required this.item, required this.onTap});
-
-  final CompletedHomeworkItem item;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final h = item.homework;
-    final title = h.description.isNotEmpty ? h.description : 'Ödev';
-    final short = title.length > 50 ? '${title.substring(0, 50)}...' : title;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D0D0D),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    short,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  if (h.courseId != null && h.courseId!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        h.courseId!,
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                children: widget.courseToItems.entries.map((courseEntry) {
+                  final courseLabel = courseEntry.key;
+                  final itemList = courseEntry.value;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+                        child: Text(
+                          courseLabel.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                ],
+                      ...itemList.map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: HomeworkCard(
+                              homework: item.homework,
+                              displayStatus: item.submission.status,
+                              onTap: () => widget.onTap(item),
+                            ),
+                          )),
+                    ],
+                  );
+                }).toList(),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.white54, size: 22),
-          ],
-        ),
+        ],
       ),
     );
   }

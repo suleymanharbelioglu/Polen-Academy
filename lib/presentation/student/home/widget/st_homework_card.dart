@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/presentation/student/home/bloc/st_home_state.dart';
 
-/// Öğrenci ödev kartı: koç tarafındaki renk mantığı (onaylı=yeşil, onay bekliyor=turuncu, eksik=amber, yapılmadı=kırmızı, bekleyen=gri).
+/// Öğrenci ödev kartı: onaylı=yeşil, onay bekliyor=mavi, eksik=turuncu, yapılmadı=kırmızı, bekleyen=gri.
 class StHomeworkCard extends StatelessWidget {
   const StHomeworkCard({
     super.key,
@@ -18,9 +18,9 @@ class StHomeworkCard extends StatelessWidget {
       case HomeworkSubmissionStatus.approved:
         return Colors.green;
       case HomeworkSubmissionStatus.completedByStudent:
-        return Colors.orange;
+        return Colors.blue;
       case HomeworkSubmissionStatus.missing:
-        return Colors.amber;
+        return Colors.orange;
       case HomeworkSubmissionStatus.notDone:
         return Colors.red;
       case HomeworkSubmissionStatus.pending:
@@ -45,6 +45,7 @@ class StHomeworkCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

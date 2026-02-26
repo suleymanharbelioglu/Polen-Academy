@@ -6,6 +6,8 @@ import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
+import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_homework.dart';
+import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
@@ -233,15 +235,31 @@ class _HomeworksViewState extends State<_HomeworksView> {
         status: status,
       ),
     );
-    if (context.mounted) {
-      result.fold(
-        (e) => ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e))),
-
-        (_) => context.read<HomeworksCubit>().refresh(),
-      );
-    }
+    if (!context.mounted) return;
+    await result.fold(
+      (e) async {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e)));
+      },
+      (_) async {
+        if (status == HomeworkSubmissionStatus.pending) {
+          await sl<RevertTopicProgressForHomeworkUseCase>().call(
+            params: RevertTopicProgressForHomeworkParams(
+              homeworkId: homeworkId,
+              studentId: studentId,
+            ),
+          );
+        } else {
+          await sl<SyncTopicProgressFromHomeworkUseCase>().call(
+            params: SyncTopicProgressFromHomeworkParams(
+              homeworkId: homeworkId,
+              studentId: studentId,
+              status: status,
+            ),
+          );
+        }
+        if (context.mounted) context.read<HomeworksCubit>().refresh();
+      },
+    );
   }
 
   void _openAddHomework(

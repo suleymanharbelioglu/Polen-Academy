@@ -17,6 +17,7 @@ import 'package:polen_academy/presentation/coach/student_detail/widget/class_pro
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/homework_status_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/profile_section.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/session_status_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/set_password_dialog.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/settings_section.dart';
 import 'package:polen_academy/service_locator.dart';
@@ -101,6 +102,8 @@ class StudentDetailView extends StatelessWidget {
                   ProfileSection(student: student),
                   const SizedBox(height: 20),
                   HomeworkStatusSection(state: state),
+                  const SizedBox(height: 20),
+                  SessionStatusSection(state: state),
                   const SizedBox(height: 20),
                   GeneralProgressSection(state: state),
                   const SizedBox(height: 20),

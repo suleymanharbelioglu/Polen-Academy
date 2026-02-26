@@ -20,9 +20,9 @@ class HomeworkCard extends StatelessWidget {
       case HomeworkSubmissionStatus.approved:
         return Colors.green;
       case HomeworkSubmissionStatus.completedByStudent:
-        return Colors.orange; // Onay Bekliyor - öğrenci ekleme yapmış, turuncu
+        return Colors.blue; // Yapıldı - mavi
       case HomeworkSubmissionStatus.missing:
-        return Colors.amber; // Eksik - sarı
+        return Colors.orange; // Eksik - turuncu
       case HomeworkSubmissionStatus.notDone:
         return Colors.red;
       case HomeworkSubmissionStatus.pending:

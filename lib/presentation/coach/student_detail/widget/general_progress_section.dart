@@ -27,7 +27,7 @@ class GeneralProgressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percent = (state.student?.progress ?? 0).clamp(0, 100);
+    final percent = state.overallProgressPercent.clamp(0, 100);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -75,6 +75,7 @@ class GeneralProgressCircle extends StatelessWidget {
     this.strokeWidth = 12,
     this.showPercent = true,
     this.accentColor,
+    this.backgroundColor,
   });
 
   final int percent;
@@ -88,10 +89,14 @@ class GeneralProgressCircle extends StatelessWidget {
 
   final Color? accentColor;
 
+  /// Daire arka plan (boş kısım) rengi. Null ise Colors.white24.
+  final Color? backgroundColor;
+
   @override
   Widget build(BuildContext context) {
     final size = diameter ?? 220.0;
     final color = accentColor ?? AppColors.primaryCoach;
+    final bgColor = backgroundColor ?? Colors.white24;
     return SizedBox(
       width: size,
       height: size,
@@ -104,7 +109,7 @@ class GeneralProgressCircle extends StatelessWidget {
             child: CircularProgressIndicator(
               value: (percent.clamp(0, 100)) / 100,
               strokeWidth: strokeWidth,
-              backgroundColor: Colors.white24,
+              backgroundColor: bgColor,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),

@@ -7,13 +7,11 @@ class GeneralStatusSection extends StatelessWidget {
     this.activeStudentCount = 0,
     this.overdueHomeworkCount = 0,
     this.pendingApprovalCount = 0,
-    this.unreadMessageCount = 0,
   });
 
   final int activeStudentCount;
   final int overdueHomeworkCount;
   final int pendingApprovalCount;
-  final int unreadMessageCount;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +39,7 @@ class GeneralStatusSection extends StatelessWidget {
                 child: GeneralStatusItem(
                   title: 'Aktif\nÖğrenci',
                   value: activeStudentCount,
-                  valueColor: activeStudentCount > 0 ? Colors.white : Colors.grey,
+                  valueColor: activeStudentCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
@@ -49,23 +47,15 @@ class GeneralStatusSection extends StatelessWidget {
                 child: GeneralStatusItem(
                   title: 'Gecikmiş\nÖdev',
                   value: overdueHomeworkCount,
-                  valueColor: overdueHomeworkCount > 0 ? Colors.orange : Colors.grey,
+                  valueColor: overdueHomeworkCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: GeneralStatusItem(
-                  title: 'Onay\nBekleyen',
+                  title: 'Onay Bekleyen\nÖdev',
                   value: pendingApprovalCount,
-                  valueColor: pendingApprovalCount > 0 ? Colors.amber : Colors.grey,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GeneralStatusItem(
-                  title: 'Okunmamış\nMesaj',
-                  value: unreadMessageCount,
-                  valueColor: unreadMessageCount > 0 ? Colors.white : Colors.grey,
+                  valueColor: pendingApprovalCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
             ],
@@ -93,7 +83,7 @@ class GeneralStatusItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: AppColors.primaryCoach.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

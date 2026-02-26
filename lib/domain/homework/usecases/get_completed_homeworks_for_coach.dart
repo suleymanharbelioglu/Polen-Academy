@@ -42,9 +42,10 @@ class GetCompletedHomeworksForCoachUseCase
     }
     if (homeworks.isEmpty) return const Right([]);
     final homeworkIds = homeworks.map((h) => h.id).toList();
+    // Sadece öğrencinin yapıldı dediği, koçun henüz tamamlandı/tamamlanmadı/eksik işaretlemediği ödevler
     final submissionResult = await sl<HomeworkSubmissionRepository>().getByHomeworkIdsAndStatus(
       homeworkIds,
-      [HomeworkSubmissionStatus.completedByStudent, HomeworkSubmissionStatus.approved],
+      [HomeworkSubmissionStatus.completedByStudent],
     );
     return submissionResult.map((submissions) {
       final byHomework = <String, HomeworkEntity>{};
