@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/widget/notification_bell_button.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/presentation/student/bottom_navbar/bloc/student_bottom_navbar_index_cubit.dart';
 import 'package:polen_academy/presentation/student/bottom_navbar/bloc/student_bottom_navbar_page_title_cubit.dart';
 import 'package:polen_academy/presentation/student/goals/page/student_goals.dart';
 import 'package:polen_academy/presentation/student/home/page/st_home.dart';
 import 'package:polen_academy/presentation/student/homeworks/page/st_homeworks.dart';
 import 'package:polen_academy/presentation/student/menu/page/st_menu.dart';
+import 'package:polen_academy/presentation/student/bottom_navbar/widget/student_profile_drawer.dart';
 import 'package:polen_academy/presentation/student/my_agenda/page/st_my_agenda.dart';
+import 'package:polen_academy/service_locator.dart';
 
-class StudentBottomNavbarPage extends StatelessWidget {
+class StudentBottomNavbarPage extends StatefulWidget {
   const StudentBottomNavbarPage({super.key});
+
+  @override
+  State<StudentBottomNavbarPage> createState() => _StudentBottomNavbarPageState();
+}
+
+class _StudentBottomNavbarPageState extends State<StudentBottomNavbarPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +33,10 @@ class StudentBottomNavbarPage extends StatelessWidget {
       child: BlocBuilder<StudentBottomNavbarIndexCubit, int>(
         builder: (context, index) {
           return Scaffold(
+            key: _scaffoldKey,
             backgroundColor: AppColors.background,
             appBar: _buildAppBar(),
+            drawer: const StudentProfileDrawer(),
             body: _pages[index],
             bottomNavigationBar: _buildBottomNavBar(context, index),
           );
@@ -60,16 +73,34 @@ class StudentBottomNavbarPage extends StatelessWidget {
       ),
       leading: Padding(
         padding: const EdgeInsets.all(8),
-        child: CircleAvatar(
-          backgroundColor: Colors.white.withOpacity(0.2),
-          child: const Icon(Icons.person, color: Colors.white),
+        child: GestureDetector(
+          onTap: () => _scaffoldKey.currentState?.openDrawer(),
+          child: FutureBuilder<Map<String, String>?>(
+            future: sl<AuthFirebaseService>().getCurrentUserDisplayInfo(),
+            builder: (context, snapshot) {
+              final name = snapshot.data?['firstName']?.trim();
+              final initial = name != null && name.isNotEmpty
+                  ? name.substring(0, 1).toUpperCase()
+                  : null;
+              return CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.2),
+                child: initial != null
+                    ? Text(
+                        initial,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : const Icon(Icons.person, color: Colors.white),
+              );
+            },
+          ),
         ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () {},
-        ),
+        const NotificationBellButton(iconColor: Colors.white),
         IconButton(
           icon: const Icon(Icons.help_outline, color: Colors.white),
           onPressed: () {},

@@ -11,35 +11,47 @@ import 'package:polen_academy/presentation/student/goals/bloc/student_goals_cubi
 import 'package:polen_academy/service_locator.dart';
 
 class StudentGoalsPage extends StatelessWidget {
-  const StudentGoalsPage({super.key});
+  const StudentGoalsPage({
+    super.key,
+    this.overrideStudentId,
+    this.primaryColor,
+  });
+
+  /// Veli sayfasından kullanıldığında bağlı öğrenci uid.
+  final String? overrideStudentId;
+  /// Veli için AppColors.primaryParent vb.
+  final Color? primaryColor;
 
   @override
   Widget build(BuildContext context) {
-    final studentId = sl<AuthFirebaseService>().getCurrentUserUid() ?? '';
+    final studentId =
+        overrideStudentId ?? sl<AuthFirebaseService>().getCurrentUserUid() ?? '';
     return BlocProvider(
       create: (_) => StudentGoalsCubit(studentId: studentId),
-      child: const _StudentGoalsView(),
+      child: _StudentGoalsView(primaryColor: primaryColor ?? AppColors.primaryStudent),
     );
   }
 }
 
 class _StudentGoalsView extends StatelessWidget {
-  const _StudentGoalsView();
+  const _StudentGoalsView({required this.primaryColor});
+
+  final Color primaryColor;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<StudentGoalsCubit, GoalsState>(
       builder: (context, state) {
         if (state.loading && state.selectedStudent == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryStudent),
+          return Center(
+            child: CircularProgressIndicator(color: primaryColor),
           );
         }
         if (state.loading &&
             state.selectedStudent != null &&
             state.curriculumTree == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryStudent),
+          return Center(
+            child: CircularProgressIndicator(color: primaryColor),
           );
         }
         if (state.errorMessage != null && !state.loading) {
@@ -57,9 +69,9 @@ class _StudentGoalsView extends StatelessWidget {
                   const SizedBox(height: 20),
                   TextButton(
                     onPressed: () => context.read<StudentGoalsCubit>().load(),
-                    child: const Text(
+                    child: Text(
                       'Tekrar dene',
-                      style: TextStyle(color: AppColors.primaryStudent),
+                      style: TextStyle(color: primaryColor),
                     ),
                   ),
                 ],
@@ -70,7 +82,7 @@ class _StudentGoalsView extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: () => context.read<StudentGoalsCubit>().refresh(),
-          color: AppColors.primaryStudent,
+          color: primaryColor,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),

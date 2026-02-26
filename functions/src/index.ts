@@ -113,3 +113,4 @@ export const createStudent = functions.region("us-central1").https.onCall(async 
 export { createParent } from "./createParent";
 export { deleteStudent } from "./deleteStudent";
 export { updateUserPassword } from "./updateUserPassword";
+export { sendNotificationOnCreate } from "./sendNotificationOnCreate";

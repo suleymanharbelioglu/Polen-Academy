@@ -27,6 +27,19 @@ abstract class AuthFirebaseService {
 
   /// Returns the current user's role from Firestore (e.g. 'coach', 'student', 'parent') or null.
   Future<String?> getCurrentUserRole();
+
+  /// Returns the current coach's first name from Firestore, or null if not coach or not found.
+  Future<String?> getCurrentCoachFirstName();
+
+  /// Returns current user's display info (firstName, lastName, role) from Firestore. One read.
+  /// Keys: firstName, lastName, role. Returns null if not found.
+  Future<Map<String, String>?> getCurrentUserDisplayInfo();
+
+  /// Deletes current user: Firestore Users doc then Firebase Auth user. Returns Left(error) or Right(null).
+  Future<Either<String, void>> deleteCurrentUserAccount();
+
+  /// Veli dokümanından ad soyad (öğrenci drawer'da "Velisi: ..." için).
+  Future<String> getParentDisplayName(String parentId);
 }
 
 class AuthFirebaseServiceImpl extends AuthFirebaseService {
@@ -176,6 +189,84 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
       return doc.data()?['role'] as String?;
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<String?> getCurrentCoachFirstName() async {
+    final info = await getCurrentUserDisplayInfo();
+    return info?['firstName'];
+  }
+
+  @override
+  Future<Map<String, String>?> getCurrentUserDisplayInfo() async {
+    final uid = getCurrentUserUid();
+    if (uid == null) return null;
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(uid)
+          .get();
+      final data = doc.data();
+      if (data == null) return null;
+      final role = (data['role'] as String? ?? '').toString();
+      String firstName;
+      String lastName;
+      if (role == 'student') {
+        firstName = (data['studentName'] as String? ?? '').toString();
+        lastName = (data['studentSurname'] as String? ?? '').toString();
+      } else if (role == 'parent') {
+        firstName = (data['parentName'] as String? ?? '').toString();
+        lastName = (data['parentSurname'] as String? ?? '').toString();
+      } else {
+        firstName = (data['firstName'] as String? ?? '').toString();
+        lastName = (data['lastName'] as String? ?? '').toString();
+      }
+      return {
+        'firstName': firstName,
+        'lastName': lastName,
+        'role': role,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Returns parent display name for a given parent uid (e.g. "Ad Soyad").
+  Future<String> getParentDisplayName(String parentId) async {
+    if (parentId.isEmpty) return '';
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(parentId)
+          .get();
+      final data = doc.data();
+      if (data == null) return '';
+      final name = (data['parentName'] as String? ?? '').toString().trim();
+      final surname = (data['parentSurname'] as String? ?? '').toString().trim();
+      return [name, surname].where((s) => s.isNotEmpty).join(' ').trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @override
+  Future<Either<String, void>> deleteCurrentUserAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Left('Oturum bulunamadı');
+    final uid = user.uid;
+    try {
+      await FirebaseFirestore.instance.collection('Users').doc(uid).delete();
+      await user.delete();
+      return const Right(null);
+    } on FirebaseAuthException catch (e) {
+      String message = 'Hesap silinirken bir hata oluştu';
+      if (e.code == 'requires-recent-login') {
+        message = 'Güvenlik için lütfen çıkış yapıp tekrar giriş yapın, ardından hesabınızı silmeyi deneyin.';
+      }
+      return Left(message);
+    } catch (e) {
+      return Left('Hesap silinirken hata: ${e.toString()}');
     }
   }
 

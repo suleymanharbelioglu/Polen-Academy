@@ -3,6 +3,7 @@ import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/create_homework.dart';
+import 'package:polen_academy/domain/notification/usecases/notify_homework_assigned.dart';
 import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/add_homework_state.dart';
@@ -177,7 +178,8 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
         emit(state.copyWith(loading: false, errorMessage: error));
         return false;
       },
-      (_) {
+      (created) async {
+        await sl<NotifyHomeworkAssignedUseCase>().call(params: created);
         emit(state.copyWith(loading: false));
         return true;
       },

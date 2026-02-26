@@ -8,16 +8,14 @@ import 'package:polen_academy/domain/auth/entity/parent_credentials_entity.dart'
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/user/usecases/delete_student.dart';
 import 'package:polen_academy/domain/user/usecases/update_user_password.dart';
-import 'package:polen_academy/presentation/coach/goals/page/goals.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/class_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
-import 'package:polen_academy/presentation/coach/student_detail/widget/homework_status_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/profile_section.dart';
-import 'package:polen_academy/presentation/coach/student_detail/widget/session_status_section.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/status_sections_with_range.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/set_password_dialog.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/settings_section.dart';
 import 'package:polen_academy/service_locator.dart';
@@ -101,9 +99,7 @@ class StudentDetailView extends StatelessWidget {
                 children: [
                   ProfileSection(student: student),
                   const SizedBox(height: 20),
-                  HomeworkStatusSection(state: state),
-                  const SizedBox(height: 20),
-                  SessionStatusSection(state: state),
+                  StatusSectionsWithRange(state: state, student: student),
                   const SizedBox(height: 20),
                   GeneralProgressSection(state: state),
                   const SizedBox(height: 20),
@@ -111,7 +107,6 @@ class StudentDetailView extends StatelessWidget {
                   const SizedBox(height: 20),
                   SettingsSection(
                     student: student,
-                    onOpenGoals: () => _openGoals(context),
                     onSetPassword: (userId, label) =>
                         _openSetPassword(context, userId, label),
                     onAddParent: () => _openAddParentDialog(context),
@@ -131,14 +126,6 @@ class StudentDetailView extends StatelessWidget {
         state.overdueCount == 0 &&
         state.completedHomeworkCount == 0 &&
         state.courseProgressPercent.isEmpty;
-  }
-
-  void _openGoals(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => GoalsPage(initialStudentId: student.uid),
-      ),
-    );
   }
 
   Future<void> _openSetPassword(

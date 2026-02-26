@@ -1,11 +1,18 @@
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 
+/// Ödev ve seans durumları için süre aralığı.
+enum StudentDetailRangeFilter {
+  lastWeek,
+  lastMonth,
+  all,
+}
+
 /// Öğrenci detay sayfası: ödev durumları, seans durumları, genel ilerleme, sınıf ilerleme %.
 class StudentDetailState {
   final StudentEntity? student;
-  /// 7, 14 veya 30 gün
-  final int periodDays;
+  /// Ödev/seans listeleri için seçili aralık.
+  final StudentDetailRangeFilter rangeFilter;
   final int overdueCount;
   final int missingCount;
   final int notDoneCount;
@@ -29,7 +36,7 @@ class StudentDetailState {
 
   const StudentDetailState({
     this.student,
-    this.periodDays = 7,
+    this.rangeFilter = StudentDetailRangeFilter.lastWeek,
     this.overdueCount = 0,
     this.missingCount = 0,
     this.notDoneCount = 0,
@@ -49,7 +56,7 @@ class StudentDetailState {
 
   StudentDetailState copyWith({
     StudentEntity? student,
-    int? periodDays,
+    StudentDetailRangeFilter? rangeFilter,
     int? overdueCount,
     int? missingCount,
     int? notDoneCount,
@@ -68,7 +75,7 @@ class StudentDetailState {
   }) {
     return StudentDetailState(
       student: student ?? this.student,
-      periodDays: periodDays ?? this.periodDays,
+      rangeFilter: rangeFilter ?? this.rangeFilter,
       overdueCount: overdueCount ?? this.overdueCount,
       missingCount: missingCount ?? this.missingCount,
       notDoneCount: notDoneCount ?? this.notDoneCount,

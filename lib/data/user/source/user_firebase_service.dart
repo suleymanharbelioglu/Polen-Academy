@@ -8,6 +8,7 @@ abstract class UserFirebaseService {
     String coachId,
   );
   Future<Either<String, Map<String, dynamic>?>> getStudentByUid(String uid);
+  Future<Either<String, Map<String, dynamic>?>> getStudentByParentId(String parentId);
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
 }
@@ -42,6 +43,23 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       final doc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
       if (!doc.exists || doc.data() == null) return const Right(null);
       return Right({...doc.data()!, 'uid': doc.id});
+    } catch (e) {
+      return Left('Öğrenci bilgisi yüklenirken hata: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, Map<String, dynamic>?>> getStudentByParentId(String parentId) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .where('role', isEqualTo: 'student')
+          .where('parentId', isEqualTo: parentId)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isEmpty) return const Right(null);
+      final doc = querySnapshot.docs.first;
+      return Right({...doc.data(), 'uid': doc.id});
     } catch (e) {
       return Left('Öğrenci bilgisi yüklenirken hata: ${e.toString()}');
     }

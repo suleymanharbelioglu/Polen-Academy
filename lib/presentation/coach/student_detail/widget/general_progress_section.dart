@@ -8,7 +8,7 @@ class GeneralProgressSection extends StatelessWidget {
     required this.state,
     this.minDiameter = 200,
     this.maxDiameter = 400,
-    this.strokeWidth = 12,
+    this.strokeWidth = 20,
     this.accentColor,
   });
 
@@ -72,7 +72,7 @@ class GeneralProgressCircle extends StatelessWidget {
     super.key,
     required this.percent,
     this.diameter,
-    this.strokeWidth = 12,
+    this.strokeWidth = 20,
     this.showPercent = true,
     this.accentColor,
     this.backgroundColor,

@@ -65,6 +65,11 @@ class StudentsSection extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(height: 1, color: Colors.white),
+          ),
           const SizedBox(height: 12),
           if (students.isEmpty)
             const Padding(
@@ -139,18 +144,35 @@ class _StudentCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primaryCoach.withValues(alpha: 0.5),
+              radius: 34,
+              backgroundColor: Colors.white,
               child: Text(
                 initial.toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                style: TextStyle(
+                  color: AppColors.primaryCoach,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                name.isEmpty ? 'Öğrenci' : name,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name.isEmpty ? 'Öğrenci' : name,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
+                  ),
+                  if (student.studentClass.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      student.studentClass,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
+                ],
               ),
             ),
             GeneralProgressCircle(

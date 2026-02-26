@@ -6,14 +6,12 @@ class SettingsSection extends StatelessWidget {
   const SettingsSection({
     super.key,
     required this.student,
-    required this.onOpenGoals,
     required this.onSetPassword,
     required this.onAddParent,
     required this.onConfirmDelete,
   });
 
   final StudentEntity student;
-  final VoidCallback onOpenGoals;
   final void Function(String userId, String label) onSetPassword;
   final VoidCallback onAddParent;
   final VoidCallback onConfirmDelete;
@@ -38,11 +36,6 @@ class SettingsSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SettingsTile(
-            icon: Icons.school_outlined,
-            label: 'Dersleri düzenle',
-            onTap: onOpenGoals,
-          ),
           SettingsTile(
             icon: Icons.lock_reset,
             label: 'Öğrenciye yeni şifre belirle',

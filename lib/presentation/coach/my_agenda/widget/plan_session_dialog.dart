@@ -3,6 +3,8 @@ import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
+import 'package:polen_academy/domain/notification/usecases/notify_session_planned.dart';
+import 'package:polen_academy/domain/notification/usecases/schedule_session_reminder.dart';
 import 'package:polen_academy/domain/session/usecases/create_session.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -286,7 +288,11 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
     if (context.mounted) {
       result.fold(
         (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
-        (created) => Navigator.pop(context, created),
+        (created) async {
+          await sl<NotifySessionPlannedUseCase>().call(params: created);
+          await sl<ScheduleSessionReminderUseCase>().call(params: created);
+          if (context.mounted) Navigator.pop(context, created);
+        },
       );
     }
   }

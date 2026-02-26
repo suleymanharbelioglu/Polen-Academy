@@ -17,63 +17,77 @@ const List<String> _monthNames = [
 ];
 
 class StMyAgendaPage extends StatelessWidget {
-  const StMyAgendaPage({super.key});
+  const StMyAgendaPage({
+    super.key,
+    this.overrideStudentId,
+    this.primaryColor,
+  });
+
+  final String? overrideStudentId;
+  final Color? primaryColor;
 
   @override
   Widget build(BuildContext context) {
-    final studentId = sl<AuthFirebaseService>().getCurrentUserUid() ?? '';
+    final studentId =
+        overrideStudentId ?? sl<AuthFirebaseService>().getCurrentUserUid() ?? '';
     return BlocProvider(
       create: (_) => StMyAgendaCubit(studentId: studentId)..load(),
-      child: const _StMyAgendaView(),
+      child: _StMyAgendaView(
+        primaryColor: primaryColor ?? AppColors.primaryStudent,
+        listenToNav: overrideStudentId == null,
+      ),
     );
   }
 }
 
 class _StMyAgendaView extends StatelessWidget {
-  const _StMyAgendaView();
+  const _StMyAgendaView({
+    required this.primaryColor,
+    required this.listenToNav,
+  });
+
+  final Color primaryColor;
+  final bool listenToNav;
 
   static const int _agendaTabIndex = 3;
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<StudentBottomNavbarIndexCubit, int>(
-      listenWhen: (prev, curr) => curr == _agendaTabIndex && prev != curr,
-      listener: (context, _) => context.read<StMyAgendaCubit>().refresh(),
-      child: BlocBuilder<StMyAgendaCubit, StMyAgendaState>(
-        builder: (context, state) {
-          if (state.loading && state.sessionsForMonth.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryStudent),
-            );
-          }
-          if (state.errorMessage != null && state.sessionsForMonth.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    state.errorMessage!,
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
+    final body = BlocBuilder<StMyAgendaCubit, StMyAgendaState>(
+      builder: (context, state) {
+        if (state.loading && state.sessionsForMonth.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(color: primaryColor),
+          );
+        }
+        if (state.errorMessage != null && state.sessionsForMonth.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  state.errorMessage!,
+                  style: const TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => context.read<StMyAgendaCubit>().load(),
+                  child: Text(
+                    'Tekrar dene',
+                    style: TextStyle(color: primaryColor),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.read<StMyAgendaCubit>().load(),
-                    child: const Text(
-                      'Tekrar dene',
-                      style: TextStyle(color: AppColors.primaryStudent),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+                ),
+              ],
+            ),
+          );
+        }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              await context.read<StMyAgendaCubit>().refresh();
-            },
-            color: AppColors.primaryStudent,
+        return RefreshIndicator(
+          onRefresh: () async {
+            await context.read<StMyAgendaCubit>().refresh();
+          },
+          color: primaryColor,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -131,7 +145,12 @@ class _StMyAgendaView extends StatelessWidget {
             ),
           );
         },
-      ),
+    );
+    if (!listenToNav) return body;
+    return BlocListener<StudentBottomNavbarIndexCubit, int>(
+      listenWhen: (prev, curr) => curr == _agendaTabIndex && prev != curr,
+      listener: (context, _) => context.read<StMyAgendaCubit>().refresh(),
+      child: body,
     );
   }
 

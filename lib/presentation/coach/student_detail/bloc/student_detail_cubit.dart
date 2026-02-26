@@ -10,6 +10,7 @@ import 'package:polen_academy/domain/session/usecases/get_sessions_by_date_range
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/goals/usecases/get_student_topic_progress.dart';
+import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -19,7 +20,7 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
   Future<void> load(StudentEntity student, String coachId) async {
     emit(state.copyWith(student: student, loading: true, errorMessage: null));
     final end = DateTime.now();
-    final start = end.subtract(Duration(days: state.periodDays));
+    final DateTime start = _rangeStart(state.rangeFilter, student, end);
     final startNorm = DateTime(start.year, start.month, start.day);
     final endNorm = DateTime(end.year, end.month, end.day);
 
@@ -108,9 +109,30 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
     }
   }
 
-  void setPeriodDays(int days) {
-    if (state.periodDays == days) return;
-    emit(state.copyWith(periodDays: days));
+  /// Aralık başlangıcı; kayıt tarihinden önce gitmez.
+  static DateTime _rangeStart(StudentDetailRangeFilter filter, StudentEntity student, DateTime end) {
+    final reg = student.registeredAt != null
+        ? DateTime(student.registeredAt!.year, student.registeredAt!.month, student.registeredAt!.day)
+        : null;
+    final DateTime requested;
+    switch (filter) {
+      case StudentDetailRangeFilter.lastWeek:
+        requested = end.subtract(const Duration(days: 7));
+        break;
+      case StudentDetailRangeFilter.lastMonth:
+        requested = end.subtract(const Duration(days: 30));
+        break;
+      case StudentDetailRangeFilter.all:
+        requested = reg ?? end.subtract(const Duration(days: 365));
+        break;
+    }
+    if (reg != null && requested.isBefore(reg)) return reg;
+    return requested;
+  }
+
+  void setRangeFilter(StudentDetailRangeFilter filter) {
+    if (state.rangeFilter == filter) return;
+    emit(state.copyWith(rangeFilter: filter));
     final student = state.student;
     final coachId = student?.coachId ?? '';
     if (student != null && coachId.isNotEmpty) load(student, coachId);

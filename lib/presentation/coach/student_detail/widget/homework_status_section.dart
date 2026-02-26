@@ -6,58 +6,84 @@ class HomeworkStatusSection extends StatelessWidget {
   const HomeworkStatusSection({
     super.key,
     required this.state,
+    this.onDetailsTap,
   });
 
   final StudentDetailState state;
+  final VoidCallback? onDetailsTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.secondBackground,
+    return Material(
+      color: AppColors.secondBackground,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onDetailsTap,
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ödev Durumları',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: StatusCard(
-                  label: 'GECİKEN',
-                  value: state.overdueCount,
-                  color: const Color(0xFF8D6E63),
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Ödev Durumları',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Detaylar için tıklayın',
+                    style: const TextStyle(
+                      color: AppColors.primaryCoach,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StatusCard(
-                  label: 'EKSİK',
-                  value: state.missingCount,
-                  color: Colors.amber,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StatusCard(
-                  label: 'YAPILMADI',
-                  value: state.notDoneCount,
-                  color: Colors.deepOrange.shade300,
-                ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatusCard(
+                      label: 'YAPILAN',
+                      value: state.completedHomeworkCount,
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: StatusCard(
+                      label: 'GECİKEN',
+                      value: state.overdueCount,
+                      color: const Color(0xFF8D6E63),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: StatusCard(
+                      label: 'EKSİK',
+                      value: state.missingCount,
+                      color: Colors.amber,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: StatusCard(
+                      label: 'YAPILMADI',
+                      value: state.notDoneCount,
+                      color: Colors.deepOrange.shade300,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -78,6 +78,11 @@ class DailyAgendaSection extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(height: 1, color: Colors.white),
+          ),
           const SizedBox(height: 16),
           if (todaySessions.isEmpty)
             const Padding(
@@ -291,7 +296,7 @@ class _SessionRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: AppColors.primaryCoach,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

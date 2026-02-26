@@ -8,61 +8,79 @@ class SessionStatusSection extends StatelessWidget {
   const SessionStatusSection({
     super.key,
     required this.state,
+    this.onDetailsTap,
   });
 
   final StudentDetailState state;
+  final VoidCallback? onDetailsTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.secondBackground,
+    return Material(
+      color: AppColors.secondBackground,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onDetailsTap,
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Seans Durumları',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: StatusCard(
-                  label: 'YAPILAN',
-                  value: state.completedSessions.length,
-                  color: const Color(0xFF4CAF50),
-                  subtitle: 'seans',
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Seans Durumları',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Detaylar için tıklayın',
+                    style: const TextStyle(
+                      color: AppColors.primaryCoach,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StatusCard(
-                  label: 'YAPILMAYAN',
-                  value: state.notDoneSessions.length,
-                  color: const Color(0xFFE53935),
-                  subtitle: 'seans',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StatusCard(
-                  label: 'GELECEK',
-                  value: state.futureSessions.length,
-                  color: const Color(0xFF42A5F5),
-                  subtitle: 'seans',
-                ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: StatusCard(
+                      label: 'YAPILAN',
+                      value: state.completedSessions.length,
+                      color: const Color(0xFF4CAF50),
+                      subtitle: 'seans',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: StatusCard(
+                      label: 'YAPILMAYAN',
+                      value: state.notDoneSessions.length,
+                      color: const Color(0xFFE53935),
+                      subtitle: 'seans',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: StatusCard(
+                      label: 'GELECEK',
+                      value: state.futureSessions.length,
+                      color: const Color(0xFF42A5F5),
+                      subtitle: 'seans',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

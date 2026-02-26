@@ -9,6 +9,8 @@ import 'package:polen_academy/domain/homework/entity/homework_submission_entity.
 import 'package:polen_academy/domain/homework/usecases/add_uploaded_url_to_submission.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
+import 'package:polen_academy/domain/notification/usecases/notify_homework_completed_by_student.dart';
+import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/service_locator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -72,6 +74,7 @@ Color _statusColor(HomeworkSubmissionStatus s) {
 }
 
 /// Öğrenci için ödev detayı: koçla aynı içerik; altta "Yaptım olarak işaretle" (tıklanınca dialog ile isteğe bağlı görsel ekleme).
+/// Veli için [showMarkAsDone] false verilir; "Yaptım olarak işaretle" hiç gösterilmez.
 class StHomeworkDetailSheet extends StatefulWidget {
   const StHomeworkDetailSheet({
     super.key,
@@ -79,12 +82,16 @@ class StHomeworkDetailSheet extends StatefulWidget {
     required this.studentId,
     this.submission,
     required this.onUpdated,
+    this.showMarkAsDone = true,
   });
 
   final HomeworkEntity homework;
   final String studentId;
   final HomeworkSubmissionEntity? submission;
   final VoidCallback onUpdated;
+
+  /// false ise (veli) "Yaptım olarak işaretle" butonu gösterilmez.
+  final bool showMarkAsDone;
 
   @override
   State<StHomeworkDetailSheet> createState() => _StHomeworkDetailSheetState();
@@ -161,6 +168,8 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
       builder: (ctx) => _HomeworkPhotosDialog(
         homeworkId: widget.homework.id,
         studentId: widget.studentId,
+        coachId: widget.homework.coachId,
+        courseName: widget.homework.courseName,
         existingUrls: _s.uploadedUrls,
         onSuccess: () {
           widget.onUpdated();
@@ -318,7 +327,8 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
                           .toList(),
                     ),
                   const SizedBox(height: 16),
-                  if (s.status == HomeworkSubmissionStatus.pending)
+                  if (widget.showMarkAsDone &&
+                      s.status == HomeworkSubmissionStatus.pending)
                     _ActionButton(
                       label: 'Yaptım olarak işaretle',
                       icon: Icons.check_circle_outline,
@@ -453,12 +463,16 @@ class _HomeworkPhotosDialog extends StatefulWidget {
   const _HomeworkPhotosDialog({
     required this.homeworkId,
     required this.studentId,
+    required this.coachId,
+    this.courseName,
     required this.existingUrls,
     required this.onSuccess,
   });
 
   final String homeworkId;
   final String studentId;
+  final String coachId;
+  final String? courseName;
   final List<String> existingUrls;
   final VoidCallback onSuccess;
 
@@ -525,6 +539,19 @@ class _HomeworkPhotosDialogState extends State<_HomeworkPhotosDialog> {
     final error = await LoadingOverlay.run(context, _uploadAndSetStatus());
     if (!mounted) return;
     if (error == null) {
+      final info = await sl<AuthFirebaseService>().getCurrentUserDisplayInfo();
+      final studentName = info != null
+          ? '${info['firstName'] ?? ''} ${info['lastName'] ?? ''}'.trim()
+          : 'Öğrenci';
+      await sl<NotifyHomeworkCompletedByStudentUseCase>().call(
+        params: NotifyHomeworkCompletedByStudentParams(
+          coachId: widget.coachId,
+          studentName: studentName,
+          courseName: widget.courseName,
+          homeworkId: widget.homeworkId,
+        ),
+      );
+      if (!mounted) return;
       Navigator.pop(context);
       widget.onSuccess();
     } else {

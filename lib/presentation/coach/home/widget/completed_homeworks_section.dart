@@ -59,6 +59,11 @@ class CompletedHomeworkSection extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(height: 1, color: Colors.white),
+          ),
           if (subtitle.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(

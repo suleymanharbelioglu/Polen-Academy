@@ -9,6 +9,7 @@ import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_f
 import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_homework.dart';
 import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
+import 'package:polen_academy/domain/notification/usecases/notify_homework_status_by_coach.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/homeworks_cubit.dart';
@@ -257,6 +258,14 @@ class _HomeworksViewState extends State<_HomeworksView> {
             ),
           );
         }
+        await sl<NotifyHomeworkStatusByCoachUseCase>().call(
+          params: NotifyHomeworkStatusByCoachParams(
+            studentId: studentId,
+            homeworkId: homeworkId,
+            status: status,
+            courseName: null,
+          ),
+        );
         if (context.mounted) context.read<HomeworksCubit>().refresh();
       },
     );

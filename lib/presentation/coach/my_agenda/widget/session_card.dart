@@ -24,7 +24,7 @@ class SessionCard extends StatelessWidget {
     final statusColor = sessionStatusColor(session);
 
     return Card(
-      color: AppColors.secondBackground,
+      color: AppColors.primaryCoach,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(

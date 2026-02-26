@@ -30,6 +30,15 @@ class UserRepositoryImpl extends UserRepository {
   }
 
   @override
+  Future<Either<String, StudentEntity?>> getStudentByParentId(String parentId) async {
+    final result = await sl<UserFirebaseService>().getStudentByParentId(parentId);
+    return result.fold(
+      (e) => Left(e),
+      (map) => Right(map != null ? StudentModel.fromMap(map).toEntity() : null),
+    );
+  }
+
+  @override
   Future<Either<String, void>> deleteStudent(String studentId) async {
     return sl<UserFirebaseService>().deleteStudent(studentId);
   }

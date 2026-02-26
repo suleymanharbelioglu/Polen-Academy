@@ -173,6 +173,13 @@ class HomeworkDetailSheet extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(child: _StatusButton(
+                        label: 'Yapılan ödev',
+                        color: Colors.blue,
+                        isSelected: s.status == HomeworkSubmissionStatus.completedByStudent,
+                        onTap: () => _setStatus(context, HomeworkSubmissionStatus.completedByStudent),
+                      )),
+                      const SizedBox(width: 6),
+                      Expanded(child: _StatusButton(
                         label: 'Tamamlandı',
                         color: Colors.green,
                         isSelected: s.status == HomeworkSubmissionStatus.approved,

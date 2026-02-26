@@ -32,6 +32,11 @@ class GeneralStatusSection extends StatelessWidget {
               color: Colors.white,
             ),
           ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(height: 1, color: Colors.white),
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -39,7 +44,6 @@ class GeneralStatusSection extends StatelessWidget {
                 child: GeneralStatusItem(
                   title: 'Aktif\nÖğrenci',
                   value: activeStudentCount,
-                  valueColor: activeStudentCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
@@ -47,7 +51,6 @@ class GeneralStatusSection extends StatelessWidget {
                 child: GeneralStatusItem(
                   title: 'Gecikmiş\nÖdev',
                   value: overdueHomeworkCount,
-                  valueColor: overdueHomeworkCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
               const SizedBox(width: 12),
@@ -55,7 +58,6 @@ class GeneralStatusSection extends StatelessWidget {
                 child: GeneralStatusItem(
                   title: 'Onay Bekleyen\nÖdev',
                   value: pendingApprovalCount,
-                  valueColor: pendingApprovalCount > 0 ? AppColors.primaryCoach : Colors.grey,
                 ),
               ),
             ],
@@ -69,13 +71,11 @@ class GeneralStatusSection extends StatelessWidget {
 class GeneralStatusItem extends StatelessWidget {
   final String title;
   final int value;
-  final Color valueColor;
 
   const GeneralStatusItem({
     super.key,
     required this.title,
     required this.value,
-    required this.valueColor,
   });
 
   @override
@@ -90,17 +90,21 @@ class GeneralStatusItem extends StatelessWidget {
         children: [
           Text(
             value.toString(),
-            style: TextStyle(
-              fontSize: 22,
+            style: const TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: valueColor,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
