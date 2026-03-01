@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/presentation/coach/goals/bloc/goals_cubit.dart';
 import 'package:polen_academy/presentation/coach/goals/bloc/goals_state.dart';
@@ -61,7 +62,7 @@ class _GoalsViewState extends State<_GoalsView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    state.errorMessage!,
+                    NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
                     style: const TextStyle(color: Colors.white70),
                     textAlign: TextAlign.center,
                   ),

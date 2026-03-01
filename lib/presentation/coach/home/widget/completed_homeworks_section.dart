@@ -60,10 +60,7 @@ class CompletedHomeworkSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(height: 1, color: Colors.white),
-          ),
+          Container(height: 1, color: Colors.white),
           if (subtitle.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
@@ -116,7 +113,7 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
   Widget build(BuildContext context) {
     final totalCount = widget.courseToItems.values.fold<int>(0, (sum, list) => sum + list.length);
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(12),
@@ -166,6 +163,7 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
                         child: Text(
@@ -178,7 +176,7 @@ class _StudentHomeworkGroupState extends State<_StudentHomeworkGroup> {
                         ),
                       ),
                       ...itemList.map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.only(bottom: 14),
                             child: HomeworkCard(
                               homework: item.homework,
                               displayStatus: item.submission.status,

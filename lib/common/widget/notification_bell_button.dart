@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
@@ -6,7 +8,7 @@ import 'package:polen_academy/domain/notification/repository/notification_reposi
 import 'package:polen_academy/service_locator.dart';
 
 /// App bar'da zil ikonu: sağ altında okunmamış sayısı, tıklanınca bildirim paneli.
-class NotificationBellButton extends StatelessWidget {
+class NotificationBellButton extends StatefulWidget {
   const NotificationBellButton({
     super.key,
     this.iconColor = Colors.white,
@@ -15,25 +17,70 @@ class NotificationBellButton extends StatelessWidget {
   final Color iconColor;
 
   @override
-  Widget build(BuildContext context) {
+  State<NotificationBellButton> createState() => _NotificationBellButtonState();
+}
+
+class _NotificationBellButtonState extends State<NotificationBellButton> {
+  Stream<int>? _unreadCountStream;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initStream());
+  }
+
+  void _initStream() {
+    if (!mounted) return;
     final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == null || uid.isEmpty) {
+    if (uid == _userId) return;
+    _userId = uid;
+    if (uid != null && uid.isNotEmpty) {
+      final raw = sl<NotificationRepository>().watchUnreadCount(uid);
+      _unreadCountStream = raw
+          .handleError((Object e, StackTrace st) {
+            // Firestore izin/bağlantı/indeks hatası: badge 0 gösterilir
+          })
+          .asBroadcastStream(onCancel: (s) => s.cancel());
+    } else {
+      _unreadCountStream = null;
+    }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(covariant NotificationBellButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final uid = sl<AuthFirebaseService>().getCurrentUserUid();
+    if (uid != _userId) _initStream();
+  }
+
+  void _onBellTap(BuildContext context) {
+    final uid = sl<AuthFirebaseService>().getCurrentUserUid() ?? _userId;
+    if (uid != null && uid.isNotEmpty) {
+      _showNotificationPanel(context, uid);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_unreadCountStream == null) {
       return IconButton(
-        icon: Icon(Icons.notifications_none, color: iconColor),
-        onPressed: () {},
+        icon: Icon(Icons.notifications_none, color: widget.iconColor),
+        onPressed: () => _onBellTap(context),
       );
     }
     return StreamBuilder<int>(
-      stream: sl<NotificationRepository>().watchUnreadCount(uid),
+      stream: _unreadCountStream,
       initialData: 0,
       builder: (context, snapshot) {
-        final count = snapshot.data ?? 0;
+        final count = snapshot.hasError ? 0 : (snapshot.data ?? 0);
         return Stack(
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              icon: Icon(Icons.notifications_none, color: iconColor),
-              onPressed: () => _showNotificationPanel(context, uid),
+              icon: Icon(Icons.notifications_none, color: widget.iconColor),
+              onPressed: () => _onBellTap(context),
             ),
             if (count > 0)
               Positioned(
@@ -62,87 +109,252 @@ class NotificationBellButton extends StatelessWidget {
     );
   }
 
-  Future<void> _showNotificationPanel(BuildContext context, String userId) async {
-    final result = await sl<NotificationRepository>().getForUser(userId, limit: 30);
-    final list = result.fold((_) => <NotificationEntity>[], (l) => l);
-    await sl<NotificationRepository>().markAllAsRead(userId);
+  void _showNotificationPanel(BuildContext context, String fallbackUserId) {
     if (!context.mounted) return;
+    final userId = sl<AuthFirebaseService>().getCurrentUserUid() ?? fallbackUserId;
+    if (userId.isEmpty) return;
     showDialog<void>(
       context: context,
+      barrierDismissible: true,
       builder: (ctx) => _NotificationPanelDialog(
-        notifications: list,
-        onClose: () => Navigator.pop(ctx),
+        userId: userId,
+        loadNotifications: () => sl<NotificationRepository>().getForUser(userId, limit: 50),
+        onClose: () => Navigator.of(ctx).pop(),
       ),
-    );
+    ).then((_) {
+      if (!context.mounted) return;
+      sl<NotificationRepository>().markAllAsRead(userId);
+    });
   }
 }
 
-class _NotificationPanelDialog extends StatelessWidget {
+String _formatTime(DateTime at) {
+  final now = DateTime.now();
+  final diff = now.difference(at);
+  if (diff.inMinutes < 1) return 'Az önce';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} dk önce';
+  if (diff.inHours < 24) return '${diff.inHours} saat önce';
+  if (diff.inDays < 7) return '${diff.inDays} gün önce';
+  return '${at.day.toString().padLeft(2, '0')}.${at.month.toString().padLeft(2, '0')}.${at.year} ${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
+}
+
+class _NotificationPanelDialog extends StatefulWidget {
   const _NotificationPanelDialog({
-    required this.notifications,
+    required this.userId,
+    required this.loadNotifications,
     required this.onClose,
   });
 
-  final List<NotificationEntity> notifications;
+  final String userId;
+  final Future<dynamic> Function() loadNotifications;
   final VoidCallback onClose;
+
+  @override
+  State<_NotificationPanelDialog> createState() => _NotificationPanelDialogState();
+}
+
+class _NotificationPanelDialogState extends State<_NotificationPanelDialog> {
+  List<NotificationEntity> _notifications = [];
+  bool _loading = true;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) _load();
+      });
+    });
+  }
+
+  Future<void> _load() async {
+    try {
+      final result = await widget.loadNotifications().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException('Bildirimler yüklenirken zaman aşımı'),
+      );
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = result.fold((_) => true, (_) => false);
+        _notifications = result.fold((_) => <NotificationEntity>[], (List<NotificationEntity> l) => l);
+      });
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = true;
+        _notifications = [];
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = true;
+        _notifications = [];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.secondBackground,
-      contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       title: Row(
         children: [
-          const Text('Bildirimler', style: TextStyle(color: Colors.white, fontSize: 18)),
+          const Icon(Icons.notifications_outlined, color: Colors.white70, size: 24),
+          const SizedBox(width: 10),
+          const Text('Bildirimler', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white70),
-            onPressed: onClose,
+            onPressed: widget.onClose,
           ),
         ],
       ),
       content: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
-        child: SizedBox(
-          width: double.maxFinite,
-          child: notifications.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(
-                  child: Text(
-                    'Bildirim yok.',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.55),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: _loading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(child: CircularProgressIndicator(color: AppColors.primaryCoach)),
+                    )
+                  : _error
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.error_outline, size: 48, color: Colors.white38),
+                                const SizedBox(height: 12),
+                                const Text('Bildirimler yüklenemedi.', style: TextStyle(color: Colors.white54, fontSize: 15)),
+                                const SizedBox(height: 12),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() => _loading = true);
+                                    _load();
+                                  },
+                                  child: const Text('Tekrar dene', style: TextStyle(color: AppColors.primaryCoach)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                  : _notifications.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.notifications_none, size: 48, color: Colors.white38),
+                                SizedBox(height: 12),
+                                Text('Henüz bildirim yok.', style: TextStyle(color: Colors.white54, fontSize: 15)),
+                              ],
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _notifications.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final n = _notifications[index];
+                            IconData icon = Icons.notifications;
+                            switch (n.type) {
+                              case NotificationType.sessionPlanned:
+                                icon = Icons.event;
+                                break;
+                              case NotificationType.sessionReminder:
+                                icon = Icons.schedule;
+                                break;
+                              case NotificationType.sessionCompletedOrCancelled:
+                                icon = Icons.event_available;
+                                break;
+                              case NotificationType.homeworkAssigned:
+                                icon = Icons.assignment;
+                                break;
+                              case NotificationType.homeworkCompletedByStudent:
+                                icon = Icons.check_circle;
+                                break;
+                              case NotificationType.homeworkStatusByCoach:
+                                icon = Icons.rate_review;
+                                break;
+                              case NotificationType.homeworkOverdue:
+                                icon = Icons.warning_amber_rounded;
+                                break;
+                            }
+                            final isRead = n.isRead;
+                            final titleColor = isRead ? Colors.white54 : Colors.white;
+                            final bodyColor = isRead ? Colors.white38 : Colors.white70;
+                            final iconColor = isRead ? Colors.white38 : AppColors.primaryCoach;
+                            return Container(
+                              key: ValueKey(n.id),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF252030),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: isRead ? Colors.white12 : Colors.white24, width: 1),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: iconColor.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(icon, size: 22, color: iconColor),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(n.title, style: TextStyle(color: titleColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                                        const SizedBox(height: 4),
+                                        Text(n.body, style: TextStyle(color: bodyColor, fontSize: 13, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
+                                        const SizedBox(height: 6),
+                                        Text(_formatTime(n.createdAt), style: TextStyle(color: bodyColor, fontSize: 11)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+            ),
+            const SizedBox(height: 12),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onClose,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryCoach.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryCoach.withOpacity(0.5), width: 1),
+                  ),
+                  child: const Center(
+                    child: Text('Kapat', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
                 ),
-              )
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: notifications.length,
-                itemBuilder: (context, index) {
-                  final n = notifications[index];
-                  return ListTile(
-                    key: ValueKey(n.id),
-                    title: Text(
-                      n.title,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      n.body,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                },
               ),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: onClose,
-          child: const Text('Kapat', style: TextStyle(color: AppColors.primaryCoach)),
-        ),
-      ],
     );
   }
 }

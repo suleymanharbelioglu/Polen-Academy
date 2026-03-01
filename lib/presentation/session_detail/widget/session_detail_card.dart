@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 
+String _combinedSessionNote(SessionEntity session) {
+  final parts = <String>[];
+  if (session.noteChips.isNotEmpty) parts.add(session.noteChips.join(', '));
+  if (session.noteText.isNotEmpty) parts.add(session.noteText);
+  return parts.join('\n\n');
+}
+
 const List<String> _monthNames = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
@@ -22,7 +29,7 @@ class SessionDetailCard extends StatelessWidget {
     final statusColor = sessionStatusColor(session);
 
     return Card(
-      color: AppColors.primaryCoach,
+      color: AppColors.secondBackground,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -73,14 +80,12 @@ class SessionDetailCard extends StatelessWidget {
                           session.noteChips.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          session.noteText.isNotEmpty
-                              ? session.noteText
-                              : session.noteChips.join(', '),
+                          _combinedSessionNote(session),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
                           ),
-                          maxLines: 2,
+                          maxLines: 6,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],

@@ -9,15 +9,13 @@ import 'package:polen_academy/presentation/coach/student_detail/widget/general_p
 class StudentCard extends StatelessWidget {
   final StudentEntity student;
 
-  const StudentCard({
-    super.key,
-    required this.student,
-  });
+  const StudentCard({super.key, required this.student});
 
   @override
   Widget build(BuildContext context) {
-    final initial = (student.studentName.isNotEmpty ? student.studentName[0] : '')
-        + (student.studentSurname.isNotEmpty ? student.studentSurname[0] : '');
+    final initial =
+        (student.studentName.isNotEmpty ? student.studentName[0] : '') +
+        (student.studentSurname.isNotEmpty ? student.studentSurname[0] : '');
     final name = '${student.studentName} ${student.studentSurname}'.trim();
 
     return InkWell(
@@ -25,20 +23,39 @@ class StudentCard extends StatelessWidget {
         context.read<CurrentStudentCubit>().setStudent(student);
         context.read<OpenStudentDetailCubit>().requestOpen();
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.primaryCoach.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(14),
+          color: AppColors.primaryCoach.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.primaryCoach.withValues(alpha: 0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 34,
-              backgroundColor: Colors.white,
-              child: Text(
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 34,
+                backgroundColor: Colors.white,
+                child: Text(
                 initial.toUpperCase(),
                 style: TextStyle(
                   color: AppColors.primaryCoach,
@@ -47,7 +64,8 @@ class StudentCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            ),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,13 +73,20 @@ class StudentCard extends StatelessWidget {
                 children: [
                   Text(
                     name.isEmpty ? 'Öğrenci' : name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 17,
+                    ),
                   ),
                   if (student.studentClass.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
                       student.studentClass,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ],
@@ -74,6 +99,7 @@ class StudentCard extends StatelessWidget {
               showPercent: true,
               accentColor: AppColors.primaryCoach,
               backgroundColor: Colors.white,
+              percentFontSize: 20,
             ),
           ],
         ),

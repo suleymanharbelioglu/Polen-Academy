@@ -9,10 +9,12 @@ class SessionStatusSection extends StatelessWidget {
     super.key,
     required this.state,
     this.onDetailsTap,
+    this.accentColor,
   });
 
   final StudentDetailState state;
   final VoidCallback? onDetailsTap;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +42,8 @@ class SessionStatusSection extends StatelessWidget {
                   const Spacer(),
                   Text(
                     'Detaylar için tıklayın',
-                    style: const TextStyle(
-                      color: AppColors.primaryCoach,
+                    style: TextStyle(
+                      color: accentColor ?? AppColors.primaryCoach,
                       fontSize: 13,
                     ),
                   ),

@@ -9,12 +9,16 @@ class NotifyHomeworkCompletedByStudentParams {
   final String coachId;
   final String studentName;
   final String? courseName;
+  final List<String> topicNames;
+  final String? description;
   final String homeworkId;
 
   const NotifyHomeworkCompletedByStudentParams({
     required this.coachId,
     required this.studentName,
     this.courseName,
+    this.topicNames = const [],
+    this.description,
     required this.homeworkId,
   });
 }
@@ -26,7 +30,18 @@ class NotifyHomeworkCompletedByStudentUseCase
     if (params == null) return const Right(null);
     final now = DateTime.now();
     final title = 'Ödev tamamlandı';
-    final body = '${params.studentName} ödevini tamamladı${params.courseName != null && params.courseName!.isNotEmpty ? " (${params.courseName})" : ""}.';
+    final List<String> parts = ['${params.studentName} ödevini tamamladı.'];
+    if (params.courseName != null && params.courseName!.isNotEmpty) {
+      parts.add('Ders: ${params.courseName}');
+    }
+    if (params.topicNames.isNotEmpty) {
+      parts.add('Konu: ${params.topicNames.join(', ')}');
+    }
+    if (params.description != null && params.description!.trim().isNotEmpty) {
+      final d = params.description!.trim();
+      parts.add(d.length > 80 ? '${d.substring(0, 77)}...' : d);
+    }
+    final body = parts.join('\n');
 
     final notification = NotificationEntity(
       id: '',

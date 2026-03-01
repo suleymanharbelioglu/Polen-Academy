@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/model/coach.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_creation_req_state.dart';
 import 'package:polen_academy/presentation/coach/auth/bloc/coach_cretation_req_cubit.dart';
@@ -74,7 +75,7 @@ class _CoachSignUpPageContentState extends State<_CoachSignUpPageContent> {
           LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
               backgroundColor: Colors.red,
             ),
           );

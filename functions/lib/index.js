@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendNotificationOnCreate = exports.updateUserPassword = exports.deleteStudent = exports.createParent = exports.createStudent = void 0;
+exports.sendSessionReminders = exports.sendNotificationOnCreate = exports.updateUserPassword = exports.deleteStudent = exports.createParent = exports.createStudent = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
@@ -94,4 +94,6 @@ var updateUserPassword_1 = require("./updateUserPassword");
 Object.defineProperty(exports, "updateUserPassword", { enumerable: true, get: function () { return updateUserPassword_1.updateUserPassword; } });
 var sendNotificationOnCreate_1 = require("./sendNotificationOnCreate");
 Object.defineProperty(exports, "sendNotificationOnCreate", { enumerable: true, get: function () { return sendNotificationOnCreate_1.sendNotificationOnCreate; } });
+var sendSessionReminders_1 = require("./sendSessionReminders");
+Object.defineProperty(exports, "sendSessionReminders", { enumerable: true, get: function () { return sendSessionReminders_1.sendSessionReminders; } });
 //# sourceMappingURL=index.js.map

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_week_navigation.dart';
@@ -58,7 +59,7 @@ class StHomeworksPage extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Text(
-                            state.errorMessage!,
+                            NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
                             style: const TextStyle(color: Colors.orange, fontSize: 14),
                           ),
                         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
@@ -61,6 +62,7 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
     _endTime = null;
     _selectedChips = [];
     _noteController = TextEditingController();
+    _noteController.addListener(() => setState(() {}));
   }
 
   @override
@@ -173,7 +175,15 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                 ),
               ],
               const SizedBox(height: 16),
-              const Text('Seans Notları', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const Text(
+                'Hazırda bekleyen sebepler',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Seçtikleriniz seans notlarına da eklenecektir.',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -195,16 +205,54 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              const Text(
+                'Seans konusu / ek not',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'İsterseniz hazırdan seçim yapıp aşağıya ayrıca not da yazabilirsiniz; ikisi de kaydedilir.',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _noteController,
                 maxLines: 3,
                 style: const TextStyle(color: Colors.white),
                 decoration: _inputDecoration().copyWith(
-                  hintText: 'Seansın konusu, hedefleri vb.',
+                  hintText: 'Seansın konusu, hedefleri veya ek notlarınız...',
                   hintStyle: const TextStyle(color: Colors.white54),
                 ),
               ),
+              if (_selectedChips.isNotEmpty || _noteController.text.trim().isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Kaydedilecek not özeti',
+                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _buildCombinedNotePreview(),
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -240,6 +288,14 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
     final startIdx = _timeSlots.indexOf(_startTime);
     final endIdx = _timeSlots.indexOf(_endTime!);
     return startIdx >= 0 && endIdx > startIdx;
+  }
+
+  String _buildCombinedNotePreview() {
+    final parts = <String>[];
+    if (_selectedChips.isNotEmpty) parts.add(_selectedChips.join(', '));
+    final text = _noteController.text.trim();
+    if (text.isNotEmpty) parts.add(text);
+    return parts.join('\n\n');
   }
 
   InputDecoration _inputDecoration() {
@@ -287,7 +343,7 @@ class _PlanSessionDialogState extends State<PlanSessionDialog> {
     final result = await LoadingOverlay.run(context, sl<CreateSessionUseCase>().call(params: entity));
     if (context.mounted) {
       result.fold(
-        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
+        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e)), backgroundColor: Colors.red)),
         (created) async {
           await sl<NotifySessionPlannedUseCase>().call(params: created);
           await sl<ScheduleSessionReminderUseCase>().call(params: created);

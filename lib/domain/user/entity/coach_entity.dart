@@ -4,6 +4,7 @@ class CoachEntity {
   final String lastName;
   final String email;
   final String role;
+  final bool isVip;
 
   CoachEntity({
     required this.uid,
@@ -11,5 +12,6 @@ class CoachEntity {
     required this.lastName,
     required this.email,
     required this.role,
+    this.isVip = false,
   });
 }

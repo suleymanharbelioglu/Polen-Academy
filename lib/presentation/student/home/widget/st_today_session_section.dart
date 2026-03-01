@@ -57,13 +57,21 @@ class _SessionCard extends StatelessWidget {
 
   final SessionEntity session;
 
+  static String _combinedNote(SessionEntity s) {
+    final parts = <String>[];
+    if (s.noteChips.isNotEmpty) parts.add(s.noteChips.join(', '));
+    if (s.noteText.isNotEmpty) parts.add(s.noteText);
+    final combined = parts.join('\n\n');
+    return combined.isEmpty ? 'Koç Görüşmesi' : combined;
+  }
+
   @override
   Widget build(BuildContext context) {
     final accentColor = sessionStatusColor(session);
-    final label = session.noteText.isNotEmpty ? session.noteText : 'Koç Görüşmesi';
+    final label = _combinedNote(session);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: accentColor.withOpacity(0.15),
@@ -71,10 +79,12 @@ class _SessionCard extends StatelessWidget {
         border: Border.all(color: accentColor.withOpacity(0.4), width: 1),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   label,
@@ -83,15 +93,31 @@ class _SessionCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Saat: ${session.startTime}',
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
+                if (session.statusNote != null &&
+                    session.statusNote!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Koç notu: ${session.statusNote}',
+                    style: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Icon(Icons.schedule, color: accentColor, size: 28),
         ],
       ),

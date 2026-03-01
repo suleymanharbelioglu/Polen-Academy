@@ -1,11 +1,22 @@
 import 'package:dartz/dartz.dart';
+import 'package:polen_academy/data/user/model/coach.dart';
 import 'package:polen_academy/data/user/model/student.dart';
 import 'package:polen_academy/data/user/source/user_firebase_service.dart';
+import 'package:polen_academy/domain/user/entity/coach_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/service_locator.dart';
 
 class UserRepositoryImpl extends UserRepository {
+  @override
+  Future<Either<String, CoachEntity?>> getCoachByUid(String uid) async {
+    final result = await sl<UserFirebaseService>().getCoachByUid(uid);
+    return result.fold(
+      (e) => Left(e),
+      (model) => Right(model?.toEntity()),
+    );
+  }
+
   @override
   Future<Either<String, List<StudentEntity>>> getMyStudents(
     String coachId,
@@ -46,5 +57,10 @@ class UserRepositoryImpl extends UserRepository {
   @override
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword) async {
     return sl<UserFirebaseService>().updateUserPassword(userId, newPassword);
+  }
+
+  @override
+  Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip) async {
+    return sl<UserFirebaseService>().updateCoachVip(coachUid, isVip);
   }
 }

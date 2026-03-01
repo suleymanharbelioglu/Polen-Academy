@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/auth/repository/auth.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -31,7 +32,7 @@ class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
     if (!mounted) return;
     result.fold(
       (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
+        SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(error)), backgroundColor: Colors.red),
       ),
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(

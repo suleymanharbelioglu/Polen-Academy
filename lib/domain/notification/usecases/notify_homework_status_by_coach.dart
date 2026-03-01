@@ -12,12 +12,16 @@ class NotifyHomeworkStatusByCoachParams {
   final String homeworkId;
   final HomeworkSubmissionStatus status;
   final String? courseName;
+  final List<String> topicNames;
+  final String? description;
 
   const NotifyHomeworkStatusByCoachParams({
     required this.studentId,
     required this.homeworkId,
     required this.status,
     this.courseName,
+    this.topicNames = const [],
+    this.description,
   });
 }
 
@@ -43,11 +47,18 @@ class NotifyHomeworkStatusByCoachUseCase
     if (params == null) return const Right(null);
     final now = DateTime.now();
     final title = 'Ödev durumu güncellendi';
-    final body = _statusLabel(params.status);
-    final suffix = params.courseName != null && params.courseName!.isNotEmpty
-        ? ' (${params.courseName})'
-        : '';
-    final fullBody = '$body$suffix';
+    final List<String> parts = [_statusLabel(params.status)];
+    if (params.courseName != null && params.courseName!.isNotEmpty) {
+      parts.add('Ders: ${params.courseName}');
+    }
+    if (params.topicNames.isNotEmpty) {
+      parts.add('Konu: ${params.topicNames.join(', ')}');
+    }
+    if (params.description != null && params.description!.trim().isNotEmpty) {
+      final d = params.description!.trim();
+      parts.add(d.length > 80 ? '${d.substring(0, 77)}...' : d);
+    }
+    final fullBody = parts.join('\n');
 
     final notification = NotificationEntity(
       id: '',

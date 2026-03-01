@@ -15,15 +15,22 @@ class StatusSectionsWithRange extends StatelessWidget {
     super.key,
     required this.state,
     required this.student,
+    this.accentColor,
+    this.onHomeworkDetailsTap,
+    this.onSessionDetailsTap,
   });
 
   final StudentDetailState state;
   final StudentEntity student;
+  final Color? accentColor;
+  final VoidCallback? onHomeworkDetailsTap;
+  final VoidCallback? onSessionDetailsTap;
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<StudentDetailCubit>();
     final selected = state.rangeFilter;
+    final accent = accentColor ?? AppColors.primaryCoach;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,18 +58,21 @@ class StatusSectionsWithRange extends StatelessWidget {
                       label: 'Son Hafta',
                       selected: selected == StudentDetailRangeFilter.lastWeek,
                       onTap: () => cubit.setRangeFilter(StudentDetailRangeFilter.lastWeek),
+                      accentColor: accent,
                     ),
                     const SizedBox(width: 8),
                     _RangeChip(
                       label: 'Son Ay',
                       selected: selected == StudentDetailRangeFilter.lastMonth,
                       onTap: () => cubit.setRangeFilter(StudentDetailRangeFilter.lastMonth),
+                      accentColor: accent,
                     ),
                     const SizedBox(width: 8),
                     _RangeChip(
                       label: 'Tümü',
                       selected: selected == StudentDetailRangeFilter.all,
                       onTap: () => cubit.setRangeFilter(StudentDetailRangeFilter.all),
+                      accentColor: accent,
                     ),
                   ],
                 ),
@@ -73,7 +83,8 @@ class StatusSectionsWithRange extends StatelessWidget {
         const SizedBox(height: 20),
         HomeworkStatusSection(
           state: state,
-          onDetailsTap: () => Navigator.push(
+          accentColor: accent,
+          onDetailsTap: onHomeworkDetailsTap ?? () => Navigator.push(
             context,
             MaterialPageRoute<void>(
               builder: (_) => HomeworkDetailPage(student: student),
@@ -83,7 +94,8 @@ class StatusSectionsWithRange extends StatelessWidget {
         const SizedBox(height: 20),
         SessionStatusSection(
           state: state,
-          onDetailsTap: () => Navigator.push(
+          accentColor: accent,
+          onDetailsTap: onSessionDetailsTap ?? () => Navigator.push(
             context,
             MaterialPageRoute<void>(
               builder: (_) => SessionDetailPage(student: student),
@@ -100,18 +112,21 @@ class _RangeChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.accentColor,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? AppColors.primaryCoach;
     return Expanded(
       child: Material(
         color: selected
-            ? AppColors.primaryCoach.withOpacity(0.3)
+            ? accent.withOpacity(0.3)
             : Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
@@ -123,7 +138,7 @@ class _RangeChip extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: selected ? AppColors.primaryCoach : Colors.white70,
+                  color: selected ? accent : Colors.white70,
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),

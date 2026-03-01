@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:polen_academy/core/usecase/usecase.dart';
 import 'package:polen_academy/domain/notification/entity/notification_entity.dart';
 import 'package:polen_academy/domain/notification/repository/notification_repository.dart';
-import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -14,6 +13,10 @@ class NotifySessionStatusParams {
   final DateTime date;
   final String startTime;
   final bool isCompleted;
+  /// Seans konusu (noteChips + noteText)
+  final String? sessionNote;
+  /// Koç yorumu (tamamlandı/iptal edildi diye işaretlerken eklenen not)
+  final String? statusNote;
 
   const NotifySessionStatusParams({
     required this.sessionId,
@@ -22,6 +25,8 @@ class NotifySessionStatusParams {
     required this.date,
     required this.startTime,
     required this.isCompleted,
+    this.sessionNote,
+    this.statusNote,
   });
 }
 
@@ -34,7 +39,16 @@ class NotifySessionStatusUseCase implements UseCase<Either<String, void>, Notify
     if (params == null) return const Right(null);
     final now = DateTime.now();
     final title = params.isCompleted ? 'Seans tamamlandı' : 'Seans iptal edildi';
-    final body = '${params.studentName} - ${_formatDate(params.date)} ${params.startTime}';
+    String body = '${params.studentName} - ${_formatDate(params.date)} ${params.startTime}';
+    if (params.statusNote != null && params.statusNote!.trim().isNotEmpty) {
+      final note = params.statusNote!.trim();
+      final trimmed = note.length > 100 ? '${note.substring(0, 97)}...' : note;
+      body += '\nKoç yorumu: $trimmed';
+    } else if (params.sessionNote != null && params.sessionNote!.trim().isNotEmpty) {
+      final note = params.sessionNote!.trim();
+      final trimmed = note.length > 100 ? '${note.substring(0, 97)}...' : note;
+      body += '\nSeans konusu: $trimmed';
+    }
 
     final studentResult = await sl<UserRepository>().getStudentByUid(params.studentId);
     final student = studentResult.fold((_) => null, (s) => s);

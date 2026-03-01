@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
 import 'package:polen_academy/domain/goals/entity/topic_status.dart';
@@ -62,7 +63,7 @@ class _StudentGoalsView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    state.errorMessage!,
+                    NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
                     style: const TextStyle(color: Colors.white70, fontSize: 15),
                     textAlign: TextAlign.center,
                   ),

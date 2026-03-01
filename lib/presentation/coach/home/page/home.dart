@@ -49,7 +49,10 @@ class HomePage extends StatelessWidget {
                         onSessionPlanned: () => context.read<HomeCubit>().load(),
                       ),
                       const SizedBox(height: 16),
-                      StudentsSection(students: state.students),
+                      StudentsSection(
+                        students: state.students,
+                        studentProgressMap: state.studentProgressMap,
+                      ),
                       const SizedBox(height: 16),
                       OverdueHomeworkSection(
                         items: state.overdueHomeworks,

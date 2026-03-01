@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/add_uploaded_url_to_submission.dart';
@@ -147,7 +148,7 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
           result.fold(
             (err) => ScaffoldMessenger.of(
               sheetContext,
-            ).showSnackBar(SnackBar(content: Text(err))),
+            ).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(err)))),
             (_) {
               widget.onUpdated();
               Navigator.pop(sheetContext);
@@ -170,6 +171,8 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
         studentId: widget.studentId,
         coachId: widget.homework.coachId,
         courseName: widget.homework.courseName,
+        topicNames: widget.homework.topicNames,
+        description: widget.homework.description.trim().isEmpty ? null : widget.homework.description,
         existingUrls: _s.uploadedUrls,
         onSuccess: () {
           widget.onUpdated();
@@ -332,7 +335,7 @@ class _StHomeworkDetailSheetState extends State<StHomeworkDetailSheet> {
                     _ActionButton(
                       label: 'Yaptım olarak işaretle',
                       icon: Icons.check_circle_outline,
-                      color: Colors.green,
+                      color: Colors.blue,
                       loading: false,
                       onTap: _openMarkAsDoneDialog,
                     ),
@@ -465,6 +468,8 @@ class _HomeworkPhotosDialog extends StatefulWidget {
     required this.studentId,
     required this.coachId,
     this.courseName,
+    this.topicNames = const [],
+    this.description,
     required this.existingUrls,
     required this.onSuccess,
   });
@@ -473,6 +478,8 @@ class _HomeworkPhotosDialog extends StatefulWidget {
   final String studentId;
   final String coachId;
   final String? courseName;
+  final List<String> topicNames;
+  final String? description;
   final List<String> existingUrls;
   final VoidCallback onSuccess;
 
@@ -548,6 +555,8 @@ class _HomeworkPhotosDialogState extends State<_HomeworkPhotosDialog> {
           coachId: widget.coachId,
           studentName: studentName,
           courseName: widget.courseName,
+          topicNames: widget.topicNames,
+          description: widget.description,
           homeworkId: widget.homeworkId,
         ),
       );
@@ -557,7 +566,7 @@ class _HomeworkPhotosDialogState extends State<_HomeworkPhotosDialog> {
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+      ).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(error))));
     }
   }
 

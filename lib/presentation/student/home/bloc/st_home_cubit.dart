@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
+import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/repository/homework_submission_repository.dart';
 import 'package:polen_academy/domain/homework/usecases/get_homeworks_by_student_and_date_range.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
@@ -24,50 +25,76 @@ class StHomeCubit extends Cubit<StHomeState> {
     final epoch = DateTime(2000, 1, 1);
 
     final sessionResult = await sl<GetSessionsByStudentAndDateUseCase>().call(
-      params: GetSessionsByStudentAndDateParams(studentId: studentId, date: now),
-    );
-    final todayHomeworkResult = await sl<GetHomeworksByStudentAndDateRangeUseCase>().call(
-      params: GetHomeworksByStudentAndDateRangeParams(
+      params: GetSessionsByStudentAndDateParams(
         studentId: studentId,
-        start: today,
-        end: today,
+        date: now,
       ),
     );
-    final overdueRawResult = await sl<GetHomeworksByStudentAndDateRangeUseCase>().call(
-      params: GetHomeworksByStudentAndDateRangeParams(
-        studentId: studentId,
-        start: epoch,
-        end: yesterday,
-      ),
-    );
+    final todayHomeworkResult =
+        await sl<GetHomeworksByStudentAndDateRangeUseCase>().call(
+          params: GetHomeworksByStudentAndDateRangeParams(
+            studentId: studentId,
+            start: today,
+            end: today,
+          ),
+        );
+    final overdueRawResult =
+        await sl<GetHomeworksByStudentAndDateRangeUseCase>().call(
+          params: GetHomeworksByStudentAndDateRangeParams(
+            studentId: studentId,
+            start: epoch,
+            end: yesterday,
+          ),
+        );
 
     if (isClosed) return;
 
-    final todaySessions = sessionResult.fold((_) => <SessionEntity>[], (list) => list);
-    final todayHomeworks = todayHomeworkResult.fold((_) => <HomeworkEntity>[], (list) => list);
-    final overdueRaw = overdueRawResult.fold((_) => <HomeworkEntity>[], (list) => list);
+    final todaySessions = sessionResult.fold(
+      (_) => <SessionEntity>[],
+      (list) => list,
+    );
+    final todayHomeworks = todayHomeworkResult.fold(
+      (_) => <HomeworkEntity>[],
+      (list) => list,
+    );
+    final overdueRaw = overdueRawResult.fold(
+      (_) => <HomeworkEntity>[],
+      (list) => list,
+    );
 
     final todayItems = await _withSubmissions(todayHomeworks);
     final overdueCandidates = overdueRaw
         .where((h) => h.endDate.isBefore(today))
         .toList();
-    final overdueItems = await _withSubmissions(overdueCandidates);
-    // Son tarihi geçmiş tüm ödevler: yapılmamış, yaptım (onay bekliyor) ve onaylanmış dahil
-    emit(state.copyWith(
-      loading: false,
-      todaySessions: todaySessions,
-      todayHomeworkItems: todayItems,
-      overdueHomeworkItems: overdueItems,
-    ));
+    final overdueWithSubmissions = await _withSubmissions(overdueCandidates);
+    // Sadece öğrencinin "yaptım" demediği ve hocanın tamamlandı/eksik/tamamlanmadı işaretlemediği gecikmiş ödevler
+    final overdueItems = overdueWithSubmissions
+        .where((item) => item.displayStatus == HomeworkSubmissionStatus.pending)
+        .toList();
+    emit(
+      state.copyWith(
+        loading: false,
+        todaySessions: todaySessions,
+        todayHomeworkItems: todayItems,
+        overdueHomeworkItems: overdueItems,
+      ),
+    );
   }
 
-  Future<List<StHomeworkItem>> _withSubmissions(List<HomeworkEntity> homeworks) async {
+  Future<List<StHomeworkItem>> _withSubmissions(
+    List<HomeworkEntity> homeworks,
+  ) async {
     final repo = sl<HomeworkSubmissionRepository>();
     final items = <StHomeworkItem>[];
     for (final h in homeworks) {
       final sub = await repo.getByHomeworkAndStudent(h.id, studentId);
       if (isClosed) return items;
-      items.add(StHomeworkItem(homework: h, submission: sub.fold((_) => null, (s) => s)));
+      items.add(
+        StHomeworkItem(
+          homework: h,
+          submission: sub.fold((_) => null, (s) => s),
+        ),
+      );
     }
     return items;
   }

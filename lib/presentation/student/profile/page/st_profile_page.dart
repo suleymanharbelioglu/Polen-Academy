@@ -8,8 +8,10 @@ import 'package:polen_academy/presentation/coach/student_detail/bloc/student_det
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/class_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
-import 'package:polen_academy/presentation/coach/student_detail/widget/homework_status_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/profile_section.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/status_sections_with_range.dart';
+import 'package:polen_academy/presentation/homework_detail/page/homework_detail_page.dart';
+import 'package:polen_academy/presentation/session_detail/page/session_detail_page.dart';
 import 'package:polen_academy/service_locator.dart';
 
 /// Öğrenci kendi profil sayfası: koç öğrenci detayıyla aynı içerik (profil, ödev durumları, genel/sınıf ilerleme).
@@ -154,7 +156,27 @@ class _StProfilePageState extends State<StProfilePage> {
                       accentColor: AppColors.primaryStudent,
                     ),
                     const SizedBox(height: 20),
-                    HomeworkStatusSection(state: state),
+                    StatusSectionsWithRange(
+                      state: state,
+                      student: student,
+                      accentColor: AppColors.primaryStudent,
+                      onHomeworkDetailsTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => HomeworkDetailPage(
+                            student: student,
+                            useStudentDetailSheet: true,
+                            showMarkAsDone: true,
+                          ),
+                        ),
+                      ),
+                      onSessionDetailsTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => SessionDetailPage(student: student),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     GeneralProgressSection(
                       state: state,

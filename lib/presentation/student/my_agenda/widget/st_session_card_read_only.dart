@@ -3,6 +3,13 @@ import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart'
     show SessionEntity, sessionStatusColor;
 
+String _combinedSessionNote(SessionEntity session) {
+  final parts = <String>[];
+  if (session.noteChips.isNotEmpty) parts.add(session.noteChips.join(', '));
+  if (session.noteText.isNotEmpty) parts.add(session.noteText);
+  return parts.join('\n\n');
+}
+
 /// Öğrenci için sadece görüntüleme: seans bilgisi, müdahale yok.
 class StSessionCardReadOnly extends StatelessWidget {
   const StSessionCardReadOnly({
@@ -72,15 +79,51 @@ class StSessionCardReadOnly extends StatelessWidget {
                           session.noteChips.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          session.noteText.isNotEmpty
-                              ? session.noteText
-                              : session.noteChips.join(', '),
+                          _combinedSessionNote(session),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
                           ),
-                          maxLines: 2,
+                          maxLines: 4,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (session.statusNote != null &&
+                          session.statusNote!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Koç notu: ',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  session.statusNote!,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ],

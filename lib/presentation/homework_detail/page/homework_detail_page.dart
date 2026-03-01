@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/repository/homework_submission_repository.dart';
@@ -12,15 +13,22 @@ import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_detail_sheet.dart';
 import 'package:polen_academy/presentation/homework_detail/widget/homework_detail_card.dart';
+import 'package:polen_academy/presentation/student/homeworks/widget/st_homework_detail_sheet.dart';
 import 'package:polen_academy/service_locator.dart';
 
 class HomeworkDetailPage extends StatefulWidget {
   const HomeworkDetailPage({
     super.key,
     required this.student,
+    this.useStudentDetailSheet = false,
+    this.showMarkAsDone = true,
   });
 
   final StudentEntity student;
+  /// Öğrenci/veli profilinden açıldığında true; ödev tıklanınca StHomeworkDetailSheet açılır.
+  final bool useStudentDetailSheet;
+  /// Veli için false; "Yaptım olarak işaretle" butonu gösterilmez.
+  final bool showMarkAsDone;
 
   @override
   State<HomeworkDetailPage> createState() => _HomeworkDetailPageState();
@@ -68,6 +76,8 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage>
         return sub != null && sub.isCompleted;
       }).toList();
 
+  /// Koç ana sayfasındaki gecikmiş ödev mantığıyla uyumlu: sadece süresi geçmiş ve henüz
+  /// değerlendirilmemiş (pending veya submission yok). Eksik / yapılmadı / onaylı gösterilmez.
   List<HomeworkEntity> get _overdue => _homeworks.where((h) {
         final sub = _submissionByHomeworkId[h.id];
         final endDay = DateTime(h.endDate.year, h.endDate.month, h.endDate.day);
@@ -76,34 +86,21 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage>
           DateTime.now().month,
           DateTime.now().day,
         );
-        return (sub == null || !sub.isCompleted) && endDay.isBefore(today);
+        if (!endDay.isBefore(today)) return false;
+        if (sub == null) return true;
+        return sub.status == HomeworkSubmissionStatus.pending;
       }).toList();
 
+  /// Eksik işaretlenen ödevler (süresi geçmiş olsa da Eksik sekmesinde; Geciken’de değil).
   List<HomeworkEntity> get _missing => _homeworks.where((h) {
         final sub = _submissionByHomeworkId[h.id];
-        final endDay = DateTime(h.endDate.year, h.endDate.month, h.endDate.day);
-        final today = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-        );
-        if (sub != null && sub.isCompleted) return false;
-        if (endDay.isBefore(today)) return false;
-        return sub?.status == HomeworkSubmissionStatus.missing ||
-            sub?.status == HomeworkSubmissionStatus.pending;
+        return sub != null && sub.status == HomeworkSubmissionStatus.missing;
       }).toList();
 
+  /// Yapılmadı işaretlenen ödevler (süresi geçmiş olsa da Yapılmadı sekmesinde).
   List<HomeworkEntity> get _notDone => _homeworks.where((h) {
         final sub = _submissionByHomeworkId[h.id];
-        final endDay = DateTime(h.endDate.year, h.endDate.month, h.endDate.day);
-        final today = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-        );
-        if (sub != null && sub.isCompleted) return false;
-        if (endDay.isBefore(today)) return false;
-        return sub?.status == HomeworkSubmissionStatus.notDone;
+        return sub != null && sub.status == HomeworkSubmissionStatus.notDone;
       }).toList();
 
   @override
@@ -207,6 +204,21 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage>
           completedAt: null,
           updatedAt: DateTime.now(),
         );
+    if (widget.useStudentDetailSheet) {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => StHomeworkDetailSheet(
+          homework: homework,
+          studentId: student.uid,
+          submission: submission,
+          onUpdated: () => _loadHomeworks(),
+          showMarkAsDone: widget.showMarkAsDone,
+        ),
+      );
+      return;
+    }
     final studentName = '${student.studentName} ${student.studentSurname}';
     final item = CompletedHomeworkItem(
       homework: homework,
@@ -240,7 +252,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage>
     );
     if (!mounted) return;
     result.fold(
-      (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e))),
+      (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e)))),
       (_) async {
         if (status == HomeworkSubmissionStatus.pending) {
           await sl<RevertTopicProgressForHomeworkUseCase>().call(
@@ -500,19 +512,33 @@ class _HomeworkList extends StatelessWidget {
   final StudentEntity student;
   final void Function(HomeworkEntity homework) onHomeworkTap;
 
+  /// Ödev durumuna göre renk: submission varsa onun statusu, yoksa süresi geçtiyse notDone, değilse pending.
   HomeworkSubmissionStatus _displayStatus(HomeworkEntity h) {
     final sub = submissionByHomeworkId[h.id];
+    if (sub != null) return sub.status;
     final today = DateTime(
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day,
     );
     final endDay = DateTime(h.endDate.year, h.endDate.month, h.endDate.day);
-    if (sub != null && sub.isCompleted) return HomeworkSubmissionStatus.approved;
-    if (endDay.isBefore(today)) return HomeworkSubmissionStatus.pending;
-    if (sub?.status == HomeworkSubmissionStatus.missing) return HomeworkSubmissionStatus.missing;
-    if (sub?.status == HomeworkSubmissionStatus.notDone) return HomeworkSubmissionStatus.notDone;
-    return HomeworkSubmissionStatus.missing;
+    if (endDay.isBefore(today)) return HomeworkSubmissionStatus.notDone;
+    return HomeworkSubmissionStatus.pending;
+  }
+
+  static int _statusOrder(HomeworkSubmissionStatus s) {
+    switch (s) {
+      case HomeworkSubmissionStatus.approved:
+        return 0;
+      case HomeworkSubmissionStatus.completedByStudent:
+        return 1;
+      case HomeworkSubmissionStatus.pending:
+        return 2;
+      case HomeworkSubmissionStatus.missing:
+        return 3;
+      case HomeworkSubmissionStatus.notDone:
+        return 4;
+    }
   }
 
   @override
@@ -525,11 +551,22 @@ class _HomeworkList extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: homeworks.length,
+    final sorted = List<HomeworkEntity>.from(homeworks)
+      ..sort((a, b) {
+        final statusA = _displayStatus(a);
+        final statusB = _displayStatus(b);
+        final order = _statusOrder(statusA).compareTo(_statusOrder(statusB));
+        if (order != 0) return order;
+        final da = a.assignedDate ?? a.createdAt;
+        final db = b.assignedDate ?? b.createdAt;
+        return db.compareTo(da);
+      });
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: sorted.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final h = homeworks[index];
+        final h = sorted[index];
         return InkWell(
           onTap: () => onHomeworkTap(h),
           borderRadius: BorderRadius.circular(12),

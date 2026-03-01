@@ -134,6 +134,40 @@ export const deleteStudent = functions.region("us-central1").https.onCall(async 
     await batch.commit();
   }
 
+  // 4.1) Öğrenciye veya öğrenciyle alakalı tüm bildirimleri sil (recipientUserId veya relatedId2 == studentId)
+  const notifRecipientSnap = await db.collection("notifications")
+    .where("recipientUserId", "==", studentId)
+    .get();
+  if (!notifRecipientSnap.empty) {
+    for (let i = 0; i < notifRecipientSnap.docs.length; i += FIRESTORE_BATCH_SIZE) {
+      const chunk = notifRecipientSnap.docs.slice(i, i + FIRESTORE_BATCH_SIZE);
+      const batch = db.batch();
+      chunk.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+    }
+  }
+  const notifRelatedSnap = await db.collection("notifications")
+    .where("relatedId2", "==", studentId)
+    .get();
+  if (!notifRelatedSnap.empty) {
+    for (let i = 0; i < notifRelatedSnap.docs.length; i += FIRESTORE_BATCH_SIZE) {
+      const chunk = notifRelatedSnap.docs.slice(i, i + FIRESTORE_BATCH_SIZE);
+      const batch = db.batch();
+      chunk.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+    }
+  }
+
+  // 4.2) Bu öğrenciye ait seans hatırlatmaları (scheduled_reminders)
+  const remindersSnap = await db.collection("scheduled_reminders")
+    .where("studentId", "==", studentId)
+    .get();
+  if (!remindersSnap.empty) {
+    const batch = db.batch();
+    remindersSnap.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+  }
+
   // 5) Storage: öğrenci idsi ile isimlendirilmiş ödev dosyalarını sil (HomeworkFiles/{studentId}/)
   try {
     const [files] = await bucket.getFiles({ prefix: `HomeworkFiles/${studentId}/` });

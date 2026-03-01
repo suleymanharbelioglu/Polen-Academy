@@ -16,8 +16,17 @@ class NotifyHomeworkAssignedUseCase implements UseCase<Either<String, void>, Hom
     final h = params;
     final now = DateTime.now();
     final title = 'Yeni ödev atandı';
-    final courseLabel = h.courseName?.isNotEmpty == true ? h.courseName! : (h.courseId ?? 'Ödev');
-    final body = '$courseLabel - Son tarih: ${_formatDate(h.endDate)}';
+    final courseLabel = h.courseName?.isNotEmpty == true ? h.courseName! : (h.courseId?.isNotEmpty == true ? h.courseId! : 'Ödev');
+    final List<String> parts = ['Ders: $courseLabel'];
+    if (h.topicNames.isNotEmpty) {
+      parts.add('Konu: ${h.topicNames.join(', ')}');
+    }
+    parts.add('Son tarih: ${_formatDate(h.endDate)}');
+    if (h.description.trim().isNotEmpty) {
+      final desc = h.description.trim();
+      parts.add(desc.length > 80 ? '${desc.substring(0, 77)}...' : desc);
+    }
+    final body = parts.join('\n');
 
     final notification = NotificationEntity(
       id: '',

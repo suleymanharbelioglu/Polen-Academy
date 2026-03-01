@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_state.dart';
 
@@ -54,7 +55,7 @@ class _AddParentDialogState extends State<AddParentDialog> {
           LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
               backgroundColor: Colors.red,
             ),
           );

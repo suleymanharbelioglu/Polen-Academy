@@ -4,6 +4,7 @@ import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date_range.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
+import 'package:polen_academy/presentation/session_detail/widget/session_day_sheet.dart';
 import 'package:polen_academy/presentation/session_detail/widget/session_detail_card.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -234,10 +235,26 @@ class _SessionDetailPageState extends State<SessionDetailPage>
               : TabBarView(
                   controller: _tabController,
                   children: [
-                    _SessionList(sessions: _completed),
-                    _SessionList(sessions: _notDone),
-                    _SessionList(sessions: _future),
-                    _SessionList(sessions: _allSessions),
+                    _SessionList(
+                      sessions: _completed,
+                      coachId: widget.student.coachId,
+                      onRefresh: _loadSessions,
+                    ),
+                    _SessionList(
+                      sessions: _notDone,
+                      coachId: widget.student.coachId,
+                      onRefresh: _loadSessions,
+                    ),
+                    _SessionList(
+                      sessions: _future,
+                      coachId: widget.student.coachId,
+                      onRefresh: _loadSessions,
+                    ),
+                    _SessionList(
+                      sessions: _allSessions,
+                      coachId: widget.student.coachId,
+                      onRefresh: _loadSessions,
+                    ),
                   ],
                 ),
     );
@@ -311,9 +328,15 @@ class _SessionNavItem extends StatelessWidget {
 }
 
 class _SessionList extends StatelessWidget {
-  const _SessionList({required this.sessions});
+  const _SessionList({
+    required this.sessions,
+    required this.coachId,
+    required this.onRefresh,
+  });
 
   final List<SessionEntity> sessions;
+  final String coachId;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -328,8 +351,25 @@ class _SessionList extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: sessions.length,
-      itemBuilder: (context, index) =>
-          SessionDetailCard(session: sessions[index]),
+      itemBuilder: (context, index) {
+        final session = sessions[index];
+        return InkWell(
+          onTap: () {
+            showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => SessionDaySheet(
+                coachId: coachId,
+                date: session.date,
+                onRefresh: onRefresh,
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: SessionDetailCard(session: session),
+        );
+      },
     );
   }
 }

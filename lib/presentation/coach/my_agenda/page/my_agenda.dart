@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/presentation/coach/bottom_navbar/bloc/bottom_navbar_index_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_agenda/bloc/my_agenda_cubit.dart';
@@ -51,7 +52,7 @@ class _MyAgendaView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  state.errorMessage!,
+                  NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
                   style: const TextStyle(color: Colors.white70),
                   textAlign: TextAlign.center,
                 ),

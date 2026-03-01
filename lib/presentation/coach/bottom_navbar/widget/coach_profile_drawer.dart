@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/user/usecases/delete_student.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
@@ -15,8 +16,8 @@ import 'package:url_launcher/url_launcher.dart';
 class CoachProfileDrawer extends StatelessWidget {
   const CoachProfileDrawer({super.key});
 
-  static const String _termsUrl = 'https://polenacademy.com/kullanim-kosullari';
-  static const String _privacyUrl = 'https://polenacademy.com/gizlilik-sozlesmesi';
+  static const String _termsUrl = 'https://docs.google.com/document/d/1MImi4_L1mk8YqLaCojRDflZWvDco4mRgbzQx1DXH5yo/view';
+  static const String _privacyUrl = 'https://docs.google.com/document/d/1GwrRMJKr-pEs0apxG67fCIr76VLE-KZBecOleykP6cQ/view';
 
   String _roleLabel(String? role) {
     switch (role?.toLowerCase()) {
@@ -91,7 +92,7 @@ class CoachProfileDrawer extends StatelessWidget {
     LoadingOverlay.hide(context);
     if (errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage!), backgroundColor: Colors.red),
+        SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(errorMessage)), backgroundColor: Colors.red),
       );
       return;
     }

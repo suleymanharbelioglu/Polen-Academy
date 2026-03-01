@@ -4,6 +4,7 @@ import 'package:polen_academy/common/widget/add_parent_dialog.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/common/widget/parent_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/auth/entity/parent_credentials_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/user/usecases/delete_student.dart';
@@ -157,7 +158,7 @@ class StudentDetailView extends StatelessWidget {
     if (!context.mounted) return;
     result.fold(
       (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
+        SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(error)), backgroundColor: Colors.red),
       ),
       (_) => showNewPasswordInfoDialog(context, newPassword),
     );
@@ -219,7 +220,7 @@ class StudentDetailView extends StatelessWidget {
     if (!context.mounted) return;
     result.fold(
       (error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
+        SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(error)), backgroundColor: Colors.red),
       ),
       (_) {
         context.read<CurrentStudentCubit>().clearStudent();

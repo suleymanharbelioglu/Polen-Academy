@@ -16,10 +16,18 @@ class GeneralStatusSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.secondBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -27,17 +35,15 @@ class GeneralStatusSection extends StatelessWidget {
           const Text(
             'Genel Durum',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
+              letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(height: 1, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          Container(height: 1, color: AppColors.borderLight),
+          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(
@@ -46,14 +52,14 @@ class GeneralStatusSection extends StatelessWidget {
                   value: activeStudentCount,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Gecikmiş\nÖdev',
                   value: overdueHomeworkCount,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: GeneralStatusItem(
                   title: 'Onay Bekleyen\nÖdev',
@@ -81,29 +87,32 @@ class GeneralStatusItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.primaryCoach.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.primaryCoach.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primaryCoach.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Text(
             value.toString(),
             style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.9),
               fontWeight: FontWeight.w600,
+              height: 1.3,
             ),
           ),
         ],

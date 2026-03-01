@@ -16,9 +16,12 @@ class StudentsSection extends StatelessWidget {
   const StudentsSection({
     super.key,
     this.students = const [],
+    this.studentProgressMap = const {},
   });
 
   final List<StudentEntity> students;
+  /// Öğrenci uid -> genel ilerleme yüzdesi (0–100). Yoksa kart student.progress kullanır.
+  final Map<String, int> studentProgressMap;
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +69,7 @@ class StudentsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(height: 1, color: Colors.white),
-          ),
+          Container(height: 1, color: Colors.white),
           const SizedBox(height: 12),
           if (students.isEmpty)
             const Padding(
@@ -82,7 +82,10 @@ class StudentsSection extends StatelessWidget {
               ),
             )
           else
-            ...students.take(5).map((s) => _StudentCard(student: s)),
+            ...students.take(5).map((s) => _StudentCard(
+                  student: s,
+                  progressPercent: studentProgressMap[s.uid] ?? s.progress,
+                )),
           if (students.length > 5)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -122,9 +125,11 @@ class StudentsSection extends StatelessWidget {
 }
 
 class _StudentCard extends StatelessWidget {
-  const _StudentCard({required this.student});
+  const _StudentCard({required this.student, required this.progressPercent});
 
   final StudentEntity student;
+  /// Genel durum yüzdesi (0–100). Konu ilerlemesinden hesaplanır.
+  final int progressPercent;
 
   @override
   Widget build(BuildContext context) {
@@ -176,12 +181,13 @@ class _StudentCard extends StatelessWidget {
               ),
             ),
             GeneralProgressCircle(
-              percent: student.progress,
+              percent: progressPercent,
               diameter: 58,
               strokeWidth: 5,
               showPercent: true,
               accentColor: AppColors.primaryCoach,
               backgroundColor: Colors.white,
+              percentFontSize: 20,
             ),
           ],
         ),

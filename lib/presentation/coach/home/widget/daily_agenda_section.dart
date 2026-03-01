@@ -29,10 +29,18 @@ class DailyAgendaSection extends StatelessWidget {
     final todaySessions = List<SessionEntity>.from(sessions)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.secondBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,22 +50,23 @@ class DailyAgendaSection extends StatelessWidget {
               const Text(
                 'Günün Ajandası',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
+                  letterSpacing: 0.3,
                 ),
               ),
               const Spacer(),
               Material(
                 color: AppColors.primaryCoach,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () => _openPlanSession(context),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -78,12 +87,9 @@ class DailyAgendaSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(height: 1, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          Container(height: 1, color: AppColors.borderLight),
+          const SizedBox(height: 18),
           if (todaySessions.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
@@ -293,10 +299,10 @@ class _SessionRow extends StatelessWidget {
     final isCancelled = session.status == SessionStatus.cancelled;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.primaryCoach,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -323,6 +329,19 @@ class _SessionRow extends StatelessWidget {
                   '${session.startTime}${session.endTime != null && session.endTime!.isNotEmpty ? ' - ${session.endTime}' : ''}',
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
+                if (session.statusNote != null &&
+                    session.statusNote!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Koç notu: ${session.statusNote}',
+                    style: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
+import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/presentation/coach/homeworks/bloc/homeworks_state.dart';
 import 'package:polen_academy/presentation/coach/homeworks/widget/homework_card.dart';
 
@@ -24,11 +25,33 @@ class HomeworkDailyCard extends StatelessWidget {
 
   static const _dayNames = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
+  /// Sıralama: Tamamlanmış → Onay bekliyor → Bekleyen → Eksik → Yapılmadı
+  static int _statusOrder(HomeworkSubmissionStatus s) {
+    switch (s) {
+      case HomeworkSubmissionStatus.approved:
+        return 0;
+      case HomeworkSubmissionStatus.completedByStudent:
+        return 1;
+      case HomeworkSubmissionStatus.pending:
+        return 2;
+      case HomeworkSubmissionStatus.missing:
+        return 3;
+      case HomeworkSubmissionStatus.notDone:
+        return 4;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dayName = _dayNames[date.weekday - 1];
+    final sortedHomeworks = List<HomeworkEntity>.from(homeworks)
+      ..sort((a, b) {
+        final statusA = state.displayStatus(a, state.submissionFor(a));
+        final statusB = state.displayStatus(b, state.submissionFor(b));
+        return _statusOrder(statusA).compareTo(_statusOrder(statusB));
+      });
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.secondBackground,
@@ -84,13 +107,13 @@ class HomeworkDailyCard extends StatelessWidget {
                 ),
             ],
           ),
-          if (homeworks.isNotEmpty) ...[
+          if (sortedHomeworks.isNotEmpty) ...[
             const SizedBox(height: 12),
-            ...homeworks.map((h) {
+            ...sortedHomeworks.map((h) {
               final sub = state.submissionFor(h);
               final displayStatus = state.displayStatus(h, sub);
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 14),
                 child: SizedBox(
                   width: double.infinity,
                   child: HomeworkCard(

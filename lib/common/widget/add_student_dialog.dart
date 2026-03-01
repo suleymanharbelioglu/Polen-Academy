@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/student/student_helper.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/curriculum/entity/course_entity.dart';
 import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
@@ -98,7 +99,7 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       builder: (context, state) {
         final isLoading = state is StudentCreationReqLoading;
         final errorMessage = state is StudentCreationReqFailure
-            ? state.errorMessage
+            ? NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)
             : null;
         return LayoutBuilder(
           builder: (context, constraints) {

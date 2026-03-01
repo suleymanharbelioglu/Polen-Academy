@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
@@ -63,7 +64,7 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+          ).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage))));
         }
       },
       child: Scaffold(
@@ -569,7 +570,7 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
     if (cubit.state.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(cubit.state.errorMessage!),
+          content: Text(NetworkErrorHelper.getUserFriendlyMessage(cubit.state.errorMessage)),
           backgroundColor: Colors.red,
         ),
       );

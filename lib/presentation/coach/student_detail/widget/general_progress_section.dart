@@ -76,6 +76,7 @@ class GeneralProgressCircle extends StatelessWidget {
     this.showPercent = true,
     this.accentColor,
     this.backgroundColor,
+    this.percentFontSize,
   });
 
   final int percent;
@@ -92,11 +93,15 @@ class GeneralProgressCircle extends StatelessWidget {
   /// Daire arka plan (boş kısım) rengi. Null ise Colors.white24.
   final Color? backgroundColor;
 
+  /// Yüzde yazısı font boyutu. Null ise diameter * 0.16 kullanılır (büyük daireler için).
+  final double? percentFontSize;
+
   @override
   Widget build(BuildContext context) {
     final size = diameter ?? 220.0;
     final color = accentColor ?? AppColors.primaryCoach;
     final bgColor = backgroundColor ?? Colors.white24;
+    final fontSize = percentFontSize ?? size * 0.16;
     return SizedBox(
       width: size,
       height: size,
@@ -118,7 +123,7 @@ class GeneralProgressCircle extends StatelessWidget {
               '$percent%',
               style: TextStyle(
                 color: color,
-                fontSize: size * 0.16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
               ),
             ),

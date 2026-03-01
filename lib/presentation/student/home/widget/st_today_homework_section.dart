@@ -44,7 +44,7 @@ class StTodayHomeworkSection extends StatelessWidget {
             )
           else
             ...items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 14),
                   child: SizedBox(
                     width: double.infinity,
                     child: StHomeworkCard(

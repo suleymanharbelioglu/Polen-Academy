@@ -101,36 +101,48 @@ class _BottomNavbarPageState extends State<BottomNavbarPage> {
       ),
       actions: [
         const NotificationBellButton(iconColor: Colors.white),
-        IconButton(
-          icon: const Icon(Icons.help_outline, color: Colors.white),
-          onPressed: () {},
-        ),
       ],
     );
   }
 
   /// ---------------- BOTTOM NAVBAR ----------------
   Widget _buildBottomNavBar(BuildContext context, int currentIndex) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.background,
-      currentIndex: currentIndex,
-      selectedItemColor: AppColors.primaryCoach,
-      unselectedItemColor: Colors.white,
-      onTap: (index) {
-        context.read<BottomNavbarIndexCubit>().changeIndex(index);
-        context.read<BottomNavbarPageTitleCubit>().changeTitle(index);
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
-        BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Hedefler'),
-        BottomNavigationBarItem(icon: Icon(Icons.checklist), label: 'Ödevler'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: 'Ajandam',
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.secondBackground,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          currentIndex: currentIndex,
+          selectedItemColor: AppColors.primaryCoach,
+          unselectedItemColor: AppColors.onSurfaceVariant,
+          elevation: 0,
+          onTap: (index) {
+            context.read<BottomNavbarIndexCubit>().changeIndex(index);
+            context.read<BottomNavbarPageTitleCubit>().changeTitle(index);
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Anasayfa'),
+            BottomNavigationBarItem(icon: Icon(Icons.flag_rounded), label: 'Hedefler'),
+            BottomNavigationBarItem(icon: Icon(Icons.checklist_rounded), label: 'Ödevler'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month_rounded),
+              label: 'Ajandam',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.menu_rounded), label: 'Menü'),
+          ],
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menü'),
-      ],
+      ),
     );
   }
 }

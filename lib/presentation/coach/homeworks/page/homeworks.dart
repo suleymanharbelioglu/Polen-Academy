@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
@@ -68,7 +69,7 @@ class _HomeworksViewState extends State<_HomeworksView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    state.errorMessage!,
+                    NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
                     style: const TextStyle(color: Colors.white70),
                     textAlign: TextAlign.center,
                   ),
@@ -239,7 +240,7 @@ class _HomeworksViewState extends State<_HomeworksView> {
     if (!context.mounted) return;
     await result.fold(
       (e) async {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e))));
       },
       (_) async {
         if (status == HomeworkSubmissionStatus.pending) {
@@ -258,12 +259,25 @@ class _HomeworksViewState extends State<_HomeworksView> {
             ),
           );
         }
+        final state = context.read<HomeworksCubit>().state;
+        HomeworkEntity? homework;
+        for (final h in state.homeworks) {
+          if (h.id == homeworkId) {
+            homework = h;
+            break;
+          }
+        }
+        final courseName = homework?.courseName;
+        final topicNames = homework?.topicNames ?? const [];
+        final description = homework?.description.trim().isEmpty == true ? null : homework?.description;
         await sl<NotifyHomeworkStatusByCoachUseCase>().call(
           params: NotifyHomeworkStatusByCoachParams(
             studentId: studentId,
             homeworkId: homeworkId,
             status: status,
-            courseName: null,
+            courseName: courseName,
+            topicNames: topicNames,
+            description: description,
           ),
         );
         if (context.mounted) context.read<HomeworksCubit>().refresh();

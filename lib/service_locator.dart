@@ -14,6 +14,7 @@ import 'package:polen_academy/data/notification/repository/notification_reposito
 import 'package:polen_academy/data/notification/source/notification_firebase_service.dart';
 import 'package:polen_academy/data/session/repository/session_repository_impl.dart';
 import 'package:polen_academy/data/session/source/session_firebase_service.dart';
+import 'package:polen_academy/data/revenuecat/revenuecat_service.dart';
 import 'package:polen_academy/data/user/repository/user_repository_impl.dart';
 import 'package:polen_academy/data/user/source/user_firebase_service.dart';
 import 'package:polen_academy/domain/auth/repository/auth.dart';
@@ -28,6 +29,7 @@ import 'package:polen_academy/domain/auth/usecases/student_signup.dart';
 import 'package:polen_academy/domain/curriculum/repository/curriculum_repository.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
 import 'package:polen_academy/domain/goals/repository/goals_repository.dart';
+import 'package:polen_academy/domain/goals/usecases/get_overall_progress_for_student.dart';
 import 'package:polen_academy/domain/goals/usecases/get_student_topic_progress.dart';
 import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_homework.dart';
 import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
@@ -93,6 +95,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<HomeworkSubmissionRepository>(HomeworkSubmissionRepositoryImpl(sl()));
   sl.registerSingleton<NotificationFirebaseService>(NotificationFirebaseServiceImpl());
   sl.registerSingleton<NotificationRepository>(NotificationRepositoryImpl());
+  sl.registerLazySingleton<RevenueCatService>(() => RevenueCatService());
 
   // Auth Usecases
   sl.registerSingleton<CoachSignupUseCase>(CoachSignupUseCase());
@@ -124,6 +127,7 @@ Future<void> initializeDependencies() async {
   // Curriculum & Goals Usecases
   sl.registerSingleton<GetCurriculumTreeUseCase>(GetCurriculumTreeUseCase());
   sl.registerSingleton<GetStudentTopicProgressUseCase>(GetStudentTopicProgressUseCase());
+  sl.registerSingleton<GetOverallProgressForStudentUseCase>(GetOverallProgressForStudentUseCase());
   sl.registerSingleton<UpdateTopicProgressUseCase>(UpdateTopicProgressUseCase());
   sl.registerSingleton<SyncTopicProgressFromHomeworkUseCase>(SyncTopicProgressFromHomeworkUseCase());
   sl.registerSingleton<RevertTopicProgressForHomeworkUseCase>(RevertTopicProgressForHomeworkUseCase());

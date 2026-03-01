@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/widget/add_student_dialog.dart';
 import 'package:polen_academy/common/widget/student_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/auth/entity/student_credentials_entity.dart';
+import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/display_my_all_students_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/display_my_all_students_state.dart';
@@ -16,6 +18,7 @@ import 'package:polen_academy/presentation/coach/my_all_students/bloc/student_cr
 import 'package:polen_academy/presentation/coach/my_all_students/widget/my_all_students_app_bar.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/widget/student_card.dart';
 import 'package:polen_academy/presentation/coach/student_detail/page/student_detail.dart';
+import 'package:polen_academy/presentation/coach/vip/page/vip_page.dart';
 import 'package:polen_academy/service_locator.dart';
 
 class MyAllStudentsPage extends StatelessWidget {
@@ -72,7 +75,7 @@ class _MyAllStudentsView extends StatelessWidget {
           listenWhen: (_, state) => state is RequestAddStudentOpenDialog,
           listener: (context, state) {
             context.read<RequestAddStudentCubit>().reset();
-            _showAddStudentDialog(context);
+            _onRequestAddStudent(context);
           },
         ),
         BlocListener<DisplayMyAllStudentsCubit, DisplayMyAllStudentsState>(
@@ -80,7 +83,7 @@ class _MyAllStudentsView extends StatelessWidget {
           listener: (context, state) {
             if (state is DisplayMyAllStudentsFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage), backgroundColor: Colors.red),
+                SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)), backgroundColor: Colors.red),
               );
             }
           },
@@ -123,6 +126,38 @@ class _MyAllStudentsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _onRequestAddStudent(BuildContext context) async {
+    final coachUid = sl<AuthFirebaseService>().getCurrentUserUid();
+    if (coachUid == null) return;
+    final coachResult = await sl<UserRepository>().getCoachByUid(coachUid);
+    if (!context.mounted) return;
+    final coach = coachResult.fold((_) => null, (c) => c);
+    final displayState = context.read<DisplayMyAllStudentsCubit>().state;
+    final studentCount = displayState is DisplayMyAllStudentsSuccess ? displayState.students.length : 0;
+    if (coach != null && !coach.isVip && studentCount >= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'VIP üyeliğe geçerek daha fazla öğrenci ekleyebilirsiniz. Menü > VIP\'e Geçin.',
+          ),
+          backgroundColor: AppColors.primaryCoach,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'VIP',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const VipPage()),
+              );
+            },
+          ),
+        ),
+      );
+      return;
+    }
+    _showAddStudentDialog(context);
   }
 
   Future<void> _showAddStudentDialog(BuildContext context) async {

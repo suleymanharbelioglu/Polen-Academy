@@ -11,13 +11,25 @@ class NotifySessionPlannedUseCase implements UseCase<Either<String, void>, Sessi
   static String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
 
+  static String _combinedSessionNote(SessionEntity s) {
+    final parts = <String>[];
+    if (s.noteChips.isNotEmpty) parts.add(s.noteChips.join(', '));
+    if (s.noteText.trim().isNotEmpty) parts.add(s.noteText.trim());
+    return parts.join('\n');
+  }
+
   @override
   Future<Either<String, void>> call({SessionEntity? params}) async {
     if (params == null) return const Right(null);
     final session = params;
     final now = DateTime.now();
     final title = 'Yeni seans planlandı';
-    final body = '${session.studentName} için ${_formatDate(session.date)} ${session.startTime}';
+    String body = '${session.studentName} için ${_formatDate(session.date)} ${session.startTime}';
+    final note = _combinedSessionNote(session);
+    if (note.isNotEmpty) {
+      final trimmed = note.length > 120 ? '${note.substring(0, 117)}...' : note;
+      body += '\nKoç notu: $trimmed';
+    }
 
     final studentResult = await sl<UserRepository>().getStudentByUid(session.studentId);
     final student = studentResult.fold((_) => null, (s) => s);

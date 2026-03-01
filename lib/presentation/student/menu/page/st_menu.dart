@@ -5,6 +5,7 @@ import 'package:polen_academy/common/bloc/logout_state.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/presentation/auth/page/welcome.dart';
 import 'package:polen_academy/presentation/student/profile/page/st_profile_page.dart';
 
@@ -36,7 +37,7 @@ class _StMenuPageContent extends StatelessWidget {
           LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
               backgroundColor: Colors.red,
             ),
           );

@@ -73,6 +73,8 @@ class HomeworkDetailCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 8),
+            Container(height: 0.5, color: Colors.white),
+            const SizedBox(height: 8),
             Text(
               teacherNote,
               style: const TextStyle(

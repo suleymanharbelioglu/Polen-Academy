@@ -11,12 +11,16 @@ class NotifyOverdueToParentParams {
   final String studentName;
   final String homeworkId;
   final String? courseName;
+  final List<String> topicNames;
+  final String? description;
 
   const NotifyOverdueToParentParams({
     required this.studentId,
     required this.studentName,
     required this.homeworkId,
     this.courseName,
+    this.topicNames = const [],
+    this.description,
   });
 }
 
@@ -32,7 +36,15 @@ class NotifyOverdueToParentUseCase implements UseCase<Either<String, void>, Noti
     final now = DateTime.now();
     final title = 'Gecikmiş ödev';
     final courseLabel = params.courseName?.isNotEmpty == true ? params.courseName! : 'Ödev';
-    final body = '${params.studentName} - $courseLabel ödevi süresi geçti.';
+    final List<String> parts = ['${params.studentName} - $courseLabel ödevi süresi geçti.'];
+    if (params.topicNames.isNotEmpty) {
+      parts.add('Konu: ${params.topicNames.join(', ')}');
+    }
+    if (params.description != null && params.description!.trim().isNotEmpty) {
+      final d = params.description!.trim();
+      parts.add(d.length > 80 ? '${d.substring(0, 77)}...' : d);
+    }
+    final body = parts.join('\n');
 
     final notification = NotificationEntity(
       id: '',

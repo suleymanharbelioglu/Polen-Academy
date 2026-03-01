@@ -5,9 +5,11 @@ import 'package:polen_academy/common/bloc/logout_state.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/presentation/auth/page/welcome.dart';
 import 'package:polen_academy/presentation/coach/menu/widget/logout_menu_item.dart';
 import 'package:polen_academy/presentation/coach/menu/widget/students_menu_item.dart';
+import 'package:polen_academy/presentation/coach/menu/widget/vip_card.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -37,7 +39,7 @@ class _MenuPageContent extends StatelessWidget {
           LoadingOverlay.hide(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
               backgroundColor: Colors.red,
             ),
           );
@@ -49,6 +51,7 @@ class _MenuPageContent extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: const [
+              VipCard(),
               StudentsMenuItem(),
               Spacer(),
               LogoutMenuItem(),

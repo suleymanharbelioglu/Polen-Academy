@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/service_locator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
+
+String _combinedSessionNote(SessionEntity session) {
+  final parts = <String>[];
+  if (session.noteChips.isNotEmpty) parts.add(session.noteChips.join(', '));
+  if (session.noteText.isNotEmpty) parts.add(session.noteText);
+  return parts.join('\n\n');
+}
 
 class SessionCard extends StatelessWidget {
   const SessionCard({
@@ -24,8 +32,8 @@ class SessionCard extends StatelessWidget {
     final statusColor = sessionStatusColor(session);
 
     return Card(
-      color: AppColors.primaryCoach,
-      margin: const EdgeInsets.only(bottom: 12),
+      color: AppColors.secondBackground,
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -77,15 +85,51 @@ class SessionCard extends StatelessWidget {
                           session.noteChips.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          session.noteText.isNotEmpty
-                              ? session.noteText
-                              : session.noteChips.join(', '),
+                          _combinedSessionNote(session),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
                           ),
-                          maxLines: 2,
+                          maxLines: 4,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (session.statusNote != null &&
+                          session.statusNote!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Koç notu: ',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  session.statusNote!,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ],
@@ -206,7 +250,7 @@ class SessionCard extends StatelessWidget {
     );
     if (context.mounted) {
       updateResult.fold(
-        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
+        (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e)), backgroundColor: Colors.red)),
         (_) => onRefresh(),
       );
     }
@@ -244,7 +288,7 @@ class SessionCard extends StatelessWidget {
       result.fold(
         (e) => ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e), backgroundColor: Colors.red)),
+        ).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e)), backgroundColor: Colors.red)),
         (_) => onRefresh(),
       );
     }

@@ -35,6 +35,7 @@ class CoachModel {
       'lastName': lastName,
       'email': email,
       'role': role,
+      'isVip': false,
     };
   }
 }

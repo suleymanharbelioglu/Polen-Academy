@@ -29,6 +29,7 @@ class NotificationFirebaseServiceImpl extends NotificationFirebaseService {
       final ref = FirebaseFirestore.instance.collection(_collection).doc();
       final map = notification.toMap();
       map['createdAt'] = Timestamp.fromDate(notification.createdAt);
+      // Okunmamış sayısı sorgusu (readAt == null) için alan her zaman yazılmalı
       map['readAt'] = notification.readAt != null
           ? Timestamp.fromDate(notification.readAt!)
           : null;

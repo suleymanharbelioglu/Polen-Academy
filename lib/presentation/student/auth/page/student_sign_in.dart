@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
+import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/model/student_signin_req.dart';
 import 'package:polen_academy/presentation/student/auth/bloc/student_signin_cubit.dart';
 import 'package:polen_academy/presentation/student/auth/bloc/student_signin_state.dart';
@@ -24,7 +25,7 @@ class StudentSignInPage extends StatelessWidget {
             LoadingOverlay.hide(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.errorMessage),
+                content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
                 backgroundColor: Colors.red,
               ),
             );

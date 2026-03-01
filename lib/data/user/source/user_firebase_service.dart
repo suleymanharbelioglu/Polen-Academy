@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dartz/dartz.dart';
+import 'package:polen_academy/data/user/model/coach.dart';
 import 'package:polen_academy/data/user/model/student.dart';
 
 abstract class UserFirebaseService {
+  Future<Either<String, CoachModel?>> getCoachByUid(String uid);
   Future<Either<String, List<Map<String, dynamic>>>> getMyStudents(
     String coachId,
   );
@@ -11,10 +13,25 @@ abstract class UserFirebaseService {
   Future<Either<String, Map<String, dynamic>?>> getStudentByParentId(String parentId);
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
+  Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip);
 }
 
 class UserFirebaseServiceImpl extends UserFirebaseService {
   static const String _functionsRegion = 'us-central1';
+
+  @override
+  Future<Either<String, CoachModel?>> getCoachByUid(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+      if (!doc.exists || doc.data() == null) return const Right(null);
+      final data = doc.data()!;
+      if ((data['role'] ?? '') != 'coach') return const Right(null);
+      final map = {...data, 'uid': doc.id};
+      return Right(CoachModel.fromMap(map));
+    } catch (e) {
+      return Left('Koç bilgisi alınamadı: ${e.toString()}');
+    }
+  }
 
   @override
   Future<Either<String, List<Map<String, dynamic>>>> getMyStudents(
@@ -101,6 +118,21 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       return Left(message);
     } catch (e) {
       return Left('Şifre güncellenirken hata oluştu: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip) async {
+    try {
+      final ref = FirebaseFirestore.instance.collection('Users').doc(coachUid);
+      final doc = await ref.get();
+      if (!doc.exists || (doc.data()?['role'] ?? '') != 'coach') {
+        return const Left('Koç bulunamadı.');
+      }
+      await ref.update({'isVip': isVip});
+      return const Right(null);
+    } catch (e) {
+      return Left('VIP durumu güncellenemedi: ${e.toString()}');
     }
   }
 }

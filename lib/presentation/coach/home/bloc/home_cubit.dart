@@ -11,6 +11,7 @@ import 'package:polen_academy/domain/homework/usecases/set_homework_submission_s
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
+import 'package:polen_academy/domain/goals/usecases/get_overall_progress_for_student.dart';
 import 'package:polen_academy/domain/user/usecases/get_my_students.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_state.dart';
 import 'package:polen_academy/service_locator.dart';
@@ -48,10 +49,20 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       ),
     );
+    final Map<String, int> progressMap = {};
+    if (students.isNotEmpty) {
+      final futures = students.map((s) => sl<GetOverallProgressForStudentUseCase>().call(params: s));
+      final percents = await Future.wait(futures);
+      for (var i = 0; i < students.length; i++) {
+        progressMap[students[i].uid] = percents[i];
+      }
+    }
+    if (isClosed) return;
     emit(state.copyWith(
       loading: false,
       todaySessions: todaySessions,
       students: students,
+      studentProgressMap: progressMap,
       overdueHomeworks: overdue,
       completedHomeworks: completed,
       errorMessage: errorMessage,
@@ -63,6 +74,8 @@ class HomeCubit extends Cubit<HomeState> {
           studentName: item.studentName,
           homeworkId: item.homework.id,
           courseName: item.homework.courseName,
+          topicNames: item.homework.topicNames,
+          description: item.homework.description.trim().isEmpty ? null : item.homework.description,
         ),
       );
     }
@@ -80,6 +93,7 @@ class HomeCubit extends Cubit<HomeState> {
           if (s.id == sessionId) { session = s; break; }
         }
         if (session != null) {
+          final sessionNote = _combinedSessionNote(session);
           await sl<NotifySessionStatusUseCase>().call(
             params: NotifySessionStatusParams(
               sessionId: sessionId,
@@ -88,6 +102,8 @@ class HomeCubit extends Cubit<HomeState> {
               date: session.date,
               startTime: session.startTime,
               isCompleted: true,
+              sessionNote: sessionNote.isEmpty ? null : sessionNote,
+              statusNote: statusNote?.trim().isEmpty == true ? null : statusNote,
             ),
           );
         }
@@ -108,6 +124,7 @@ class HomeCubit extends Cubit<HomeState> {
           if (s.id == sessionId) { session = s; break; }
         }
         if (session != null) {
+          final sessionNote = _combinedSessionNote(session);
           await sl<NotifySessionStatusUseCase>().call(
             params: NotifySessionStatusParams(
               sessionId: sessionId,
@@ -116,12 +133,21 @@ class HomeCubit extends Cubit<HomeState> {
               date: session.date,
               startTime: session.startTime,
               isCompleted: false,
+              sessionNote: sessionNote.isEmpty ? null : sessionNote,
+              statusNote: statusNote?.trim().isEmpty == true ? null : statusNote,
             ),
           );
         }
         load();
       },
     );
+  }
+
+  static String _combinedSessionNote(SessionEntity s) {
+    final parts = <String>[];
+    if (s.noteChips.isNotEmpty) parts.add(s.noteChips.join(', '));
+    if (s.noteText.trim().isNotEmpty) parts.add(s.noteText.trim());
+    return parts.join('\n');
   }
 
   Future<void> setSubmissionStatus(String homeworkId, String studentId, HomeworkSubmissionStatus status) async {
@@ -155,12 +181,16 @@ class HomeCubit extends Cubit<HomeState> {
           }
         }
         final courseName = item?.homework.courseName;
+        final topicNames = item?.homework.topicNames ?? const [];
+        final description = item?.homework.description.trim().isEmpty == true ? null : item?.homework.description;
         await sl<NotifyHomeworkStatusByCoachUseCase>().call(
           params: NotifyHomeworkStatusByCoachParams(
             studentId: studentId,
             homeworkId: homeworkId,
             status: status,
             courseName: courseName,
+            topicNames: topicNames,
+            description: description,
           ),
         );
         load();

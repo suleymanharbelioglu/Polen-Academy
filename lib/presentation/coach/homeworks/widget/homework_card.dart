@@ -44,14 +44,20 @@ class HomeworkCard extends StatelessWidget {
     final teacherNote = homework.description.isEmpty ? 'Ödev' : homework.description;
     return Material(
       color: color,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      shadowColor: Colors.black26,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          width: double.infinity,
+          constraints: const BoxConstraints(minHeight: 88),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 courseLabel.toUpperCase(),
@@ -73,6 +79,8 @@ class HomeworkCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              const SizedBox(height: 8),
+              Container(height: 0.5, color: Colors.white),
               const SizedBox(height: 8),
               Text(
                 teacherNote,

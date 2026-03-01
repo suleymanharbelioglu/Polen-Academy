@@ -6,6 +6,7 @@ class CoachModel {
   final String lastName;
   final String email;
   final String role;
+  final bool isVip;
 
   CoachModel({
     required this.uid,
@@ -13,6 +14,7 @@ class CoachModel {
     required this.lastName,
     required this.email,
     required this.role,
+    this.isVip = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +24,7 @@ class CoachModel {
       'lastName': lastName,
       'email': email,
       'role': role,
+      'isVip': isVip,
     };
   }
 
@@ -32,6 +35,7 @@ class CoachModel {
       lastName: map['lastName'] ?? '',
       email: map['email'] ?? '',
       role: map['role'] ?? 'coach',
+      isVip: map['isVip'] == true,
     );
   }
 }
@@ -44,6 +48,7 @@ extension CoachModelX on CoachModel {
       lastName: lastName,
       email: email,
       role: role,
+      isVip: isVip,
     );
   }
 }
@@ -56,6 +61,7 @@ extension CoachEntityX on CoachEntity {
       lastName: lastName,
       email: email,
       role: role,
+      isVip: isVip,
     );
   }
 }
