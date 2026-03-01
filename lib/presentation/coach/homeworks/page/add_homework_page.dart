@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -557,15 +559,22 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
       allowMultiple: true,
+      withData: true,
     );
     if (result == null || result.files.isEmpty || !context.mounted) return;
-    final paths = result.files
-        .where((f) => f.path != null && f.path!.isNotEmpty)
-        .map((f) => f.path!)
-        .toList();
-    if (paths.isEmpty) return;
+    // iOS'ta bazen path null, bytes dolu olur; Android'de genelde path dolu
+    final files = <({String? path, Uint8List? bytes, String name})>[];
+    for (final f in result.files) {
+      final name = f.name.isNotEmpty ? f.name : 'file_${files.length}';
+      if (f.path != null && f.path!.isNotEmpty) {
+        files.add((path: f.path, bytes: null, name: name));
+      } else if (f.bytes != null && f.bytes!.isNotEmpty) {
+        files.add((path: null, bytes: f.bytes, name: name));
+      }
+    }
+    if (files.isEmpty) return;
     final cubit = context.read<AddHomeworkCubit>();
-    await cubit.uploadFilesWithLoading(paths);
+    await cubit.uploadPlatformFilesWithLoading(files);
     if (!context.mounted) return;
     if (cubit.state.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -574,7 +583,7 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
           backgroundColor: Colors.red,
         ),
       );
-    } else if (paths.length > 1) {
+    } else if (files.length > 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Dosyalar eklendi'),

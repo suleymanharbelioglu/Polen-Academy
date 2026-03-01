@@ -645,7 +645,10 @@ class _HomeworkPhotosDialogState extends State<_HomeworkPhotosDialog> {
                 runSpacing: 8,
                 children: List.generate(_images.length, (i) {
                   final x = _images[i];
-                  final path = x.path;
+                  // iOS'ta path bazen "file://" ile başlar; File() için düz path gerekir
+                  final path = x.path.startsWith('file://')
+                      ? x.path.replaceFirst('file://', '')
+                      : x.path;
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [

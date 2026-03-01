@@ -46,8 +46,8 @@ class _StudentSignInContent extends StatefulWidget {
 
 class _StudentSignInContentState extends State<_StudentSignInContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'umutsumak@polenacademy.com');
-  final _passwordController = TextEditingController(text: 'Xp0sfJjkOKEV');
+  final _emailController = TextEditingController(text: 'ahmetceylan@polenacademy.com');
+  final _passwordController = TextEditingController(text: 'MSIm95EiaJOJ');
 
   @override
   void dispose() {

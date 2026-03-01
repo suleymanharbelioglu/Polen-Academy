@@ -31,13 +31,20 @@ class HomeworkStorageServiceImpl extends HomeworkStorageService {
     return '${DateTime.now().millisecondsSinceEpoch}_${suffix}_$sanitizedFileName';
   }
 
+  /// iOS'ta file_picker bazen "file://" önekli path döner; File() için düz path gerekir.
+  static String _normalizePath(String path) {
+    if (path.startsWith('file://')) return path.replaceFirst('file://', '');
+    return path;
+  }
+
   @override
   Future<Either<String, String>> uploadFile({
     required String filePath,
     required String studentId,
   }) async {
     try {
-      final file = File(filePath);
+      final normalizedPath = _normalizePath(filePath);
+      final file = File(normalizedPath);
       if (!await file.exists()) {
         return const Left('Dosya bulunamadı.');
       }
@@ -45,7 +52,7 @@ class HomeworkStorageServiceImpl extends HomeworkStorageService {
       if (length > _maxFileSizeBytes) {
         return const Left('Dosya en fazla 5MB olabilir.');
       }
-      final name = filePath.split(RegExp(r'[/\\]')).last;
+      final name = normalizedPath.split(RegExp(r'[/\\]')).last;
       final sanitized = name.replaceAll(RegExp(r'[^\w\s\-\.]'), '_');
       final storagePath =
           '${AppUrl.homeworkFilesStoragePath}/$studentId/${_uniqueStorageFileName(sanitized)}';

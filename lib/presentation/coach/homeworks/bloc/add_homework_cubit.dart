@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/domain/curriculum/entity/curriculum_tree.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
@@ -96,6 +98,7 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
   }
 
   /// Birden fazla dosyayı yükler; başta loading true, sonda false emit eder (LoadingOverlay için).
+  /// [paths] dosya yolları (Android'de ve bazen iOS'ta dolu).
   Future<void> uploadFilesWithLoading(List<String> paths) async {
     if (paths.isEmpty) return;
     emit(state.copyWith(loading: true, errorMessage: null));
@@ -108,6 +111,60 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
         (error) => emit(state.copyWith(errorMessage: error)),
         (url) => addFileUrl(url),
       );
+      if (state.errorMessage != null) break;
+    }
+    emit(state.copyWith(loading: false));
+  }
+
+  /// Bytes ile yükle (iOS'ta file_picker path null döndüğünde kullanılır).
+  Future<String?> uploadBytesAndAddFile({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final result = await sl<UploadHomeworkFileUseCase>().fromBytes(
+      studentId: student.uid,
+      bytes: bytes,
+      fileName: fileName,
+    );
+    return result.fold(
+      (error) {
+        emit(state.copyWith(errorMessage: error));
+        return null;
+      },
+      (url) {
+        addFileUrl(url);
+        return url;
+      },
+    );
+  }
+
+  /// Hem path hem bytes ile dosya listesi; iOS uyumluluğu için (path null olanlar bytes ile yüklenir).
+  Future<void> uploadPlatformFilesWithLoading(
+    List<({String? path, Uint8List? bytes, String name})> files,
+  ) async {
+    if (files.isEmpty) return;
+    emit(state.copyWith(loading: true, errorMessage: null));
+    for (final f in files) {
+      if (f.path != null && f.path!.isNotEmpty) {
+        final result = await sl<UploadHomeworkFileUseCase>().call(
+          filePath: f.path!,
+          studentId: student.uid,
+        );
+        result.fold(
+          (error) => emit(state.copyWith(errorMessage: error)),
+          (url) => addFileUrl(url),
+        );
+      } else if (f.bytes != null && f.bytes!.isNotEmpty) {
+        final result = await sl<UploadHomeworkFileUseCase>().fromBytes(
+          studentId: student.uid,
+          bytes: f.bytes!,
+          fileName: f.name,
+        );
+        result.fold(
+          (error) => emit(state.copyWith(errorMessage: error)),
+          (url) => addFileUrl(url),
+        );
+      }
       if (state.errorMessage != null) break;
     }
     emit(state.copyWith(loading: false));
