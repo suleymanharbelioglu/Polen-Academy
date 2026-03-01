@@ -1,0 +1,35 @@
+# Codemagic ile iOS .ipa üretmek için
+# Codemagic dashboard'da: Team > Code signing > iOS'u yapılandır (Apple Developer / App Store Connect API key)
+# Sonra bu workflow ile Build'i tetikle; Artifacts'tan .ipa indirilir.
+
+workflows:
+  ios-ipa:
+    name: iOS IPA
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+        - pattern: main
+          include: true
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -exec dirname {} \; | head -1 | xargs -I {} sh -c 'cd {} && pod install'
+      - name: Build IPA
+        script: flutter build ipa --release
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      scripts:
+        - name: IPA artifact
+          script: |
+            echo "IPA build tamamlandı. Artifacts bölümünden .ipa dosyasını indirebilirsiniz."

@@ -177,9 +177,13 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
         hasError: hasError,
         onClose: () {
           Navigator.of(ctx).pop();
-          if (context.mounted) {
-            sl<NotificationRepository>().markAllAsRead(userId);
-          }
+          // Her zaman okundu işaretle
+          sl<NotificationRepository>().markAllAsRead(userId).then((_) {
+            if (!mounted) return;
+            // Zil sayacını güncellemek için stream'i yeniden oluştur (Firestore snapshot bazen gecikmeli)
+            _userId = null;
+            _initStream();
+          });
         },
       ),
     );
@@ -337,7 +341,6 @@ class _NotificationTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF252030),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isRead ? Colors.white12 : Colors.white24, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

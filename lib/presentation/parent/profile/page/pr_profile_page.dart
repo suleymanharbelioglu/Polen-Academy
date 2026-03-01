@@ -67,7 +67,7 @@ class _PrProfilePageState extends State<PrProfilePage> {
         appBar: AppBar(
           backgroundColor: AppColors.secondBackground,
           foregroundColor: Colors.white,
-          title: const Text('Profilim'),
+          title: const Text('Öğrencimin Profili'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
@@ -84,7 +84,7 @@ class _PrProfilePageState extends State<PrProfilePage> {
         appBar: AppBar(
           backgroundColor: AppColors.secondBackground,
           foregroundColor: Colors.white,
-          title: const Text('Profilim'),
+          title: const Text('Öğrencimin Profili'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
@@ -124,7 +124,7 @@ class _PrProfilePageState extends State<PrProfilePage> {
         appBar: AppBar(
           backgroundColor: AppColors.secondBackground,
           foregroundColor: Colors.white,
-          title: const Text('Profilim'),
+          title: const Text('Öğrencimin Profili'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),

@@ -87,7 +87,7 @@ class PrProfileMenuItem extends StatelessWidget {
             Icon(Icons.person_outline, color: AppColors.primaryParent),
             SizedBox(width: 16),
             Text(
-              'Profilim',
+              'Öğrencimin Profili',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
