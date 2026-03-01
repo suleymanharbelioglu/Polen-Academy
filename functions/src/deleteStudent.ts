@@ -99,6 +99,7 @@ export const deleteStudent = functions.region("us-central1").https.onCall(async 
   const homeworksSnap = await db.collection("Homeworks")
     .where("studentId", "==", studentId)
     .get();
+  const homeworkIds = homeworksSnap.docs.map((d) => d.id);
   const bucket = admin.storage().bucket(STORAGE_BUCKET);
   if (!homeworksSnap.empty) {
     for (const doc of homeworksSnap.docs) {
@@ -158,6 +159,21 @@ export const deleteStudent = functions.region("us-central1").https.onCall(async 
     }
   }
 
+  // 4.1b) Koça giden "ödev tamamlandı" bildirimleri (bu öğrencinin ödevleriyle ilgili); Firestore "in" en fazla 30
+  const NOTIFICATION_IN_LIMIT = 30;
+  for (let i = 0; i < homeworkIds.length; i += NOTIFICATION_IN_LIMIT) {
+    const chunk = homeworkIds.slice(i, i + NOTIFICATION_IN_LIMIT);
+    const notifCoachSnap = await db.collection("notifications")
+      .where("type", "==", "homeworkCompletedByStudent")
+      .where("relatedId", "in", chunk)
+      .get();
+    if (!notifCoachSnap.empty) {
+      const batch = db.batch();
+      notifCoachSnap.docs.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+    }
+  }
+
   // 4.2) Bu öğrenciye ait seans hatırlatmaları (scheduled_reminders)
   const remindersSnap = await db.collection("scheduled_reminders")
     .where("studentId", "==", studentId)
@@ -176,9 +192,20 @@ export const deleteStudent = functions.region("us-central1").https.onCall(async 
     // Prefix yoksa veya hata olursa devam et
   }
 
-  // 6) Veli hesabı (varsa)
+  // 6) Veli hesabı (varsa): veliye giden tüm bildirimleri sil, sonra Auth + Users
   const parentId = (studentData?.parentId ?? "") as string;
   if (parentId) {
+    const notifParentSnap = await db.collection("notifications")
+      .where("recipientUserId", "==", parentId)
+      .get();
+    if (!notifParentSnap.empty) {
+      for (let i = 0; i < notifParentSnap.docs.length; i += FIRESTORE_BATCH_SIZE) {
+        const chunk = notifParentSnap.docs.slice(i, i + FIRESTORE_BATCH_SIZE);
+        const batch = db.batch();
+        chunk.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+      }
+    }
     try {
       await auth.deleteUser(parentId);
     } catch (e) {

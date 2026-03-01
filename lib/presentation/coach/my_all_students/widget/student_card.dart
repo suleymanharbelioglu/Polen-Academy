@@ -30,7 +30,9 @@ class StudentCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.primaryCoach.withValues(alpha: 0.22),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.primaryCoach.withValues(alpha: 0.35)),
+          border: Border.all(
+            color: AppColors.primaryCoach.withValues(alpha: 0.35),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.15),
@@ -56,14 +58,14 @@ class StudentCard extends StatelessWidget {
                 radius: 34,
                 backgroundColor: Colors.white,
                 child: Text(
-                initial.toUpperCase(),
-                style: TextStyle(
-                  color: AppColors.primaryCoach,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
+                  initial.toUpperCase(),
+                  style: TextStyle(
+                    color: AppColors.primaryCoach,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
                 ),
               ),
-            ),
             ),
             const SizedBox(width: 18),
             Expanded(

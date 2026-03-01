@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/helper/student/student_helper.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
@@ -30,7 +31,10 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
   @override
   void initState() {
     super.initState();
-    _loadCoursesForClass();
+    // Dialog ilk frame'de çizilsin, sonra yükle (overlay açmadan; donmayı önlemek için)
+    SchedulerBinding.instance.scheduleFrameCallback((_) {
+      if (mounted) _loadCoursesForClass();
+    });
   }
 
   @override
@@ -42,7 +46,6 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
 
   Future<void> _loadCoursesForClass() async {
     if (!mounted) return;
-    LoadingOverlay.show(context);
     setState(() => _loadingCourses = true);
     final result = await sl<GetCurriculumTreeUseCase>().call(
       params: _selectedClass,
@@ -50,7 +53,6 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
     if (!mounted) return;
     result.fold(
       (_) {
-        LoadingOverlay.hide(context);
         setState(() {
           _coursesForClass = [];
           _loadingCourses = false;
@@ -58,7 +60,6 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       },
       (CurriculumTree tree) {
         final courses = tree.courses.map((c) => c.course).toList();
-        LoadingOverlay.hide(context);
         setState(() {
           _coursesForClass = courses;
           _loadingCourses = false;

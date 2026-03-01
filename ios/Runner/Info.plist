@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Polen Academy ödev dosyası eklemek ve profil fotoğrafı seçmek için galeri erişimi kullanılır.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Polen Academy ödev fotoğrafı çekmek ve profil fotoğrafı için kamera kullanılır.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Video kaydı için mikrofon kullanılır.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
