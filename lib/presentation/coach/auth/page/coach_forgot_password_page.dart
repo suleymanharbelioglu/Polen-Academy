@@ -15,7 +15,7 @@ class CoachForgotPasswordPage extends StatefulWidget {
 
 class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'harba.suleyman@gmail.com');
+  final _emailController = TextEditingController();
 
   @override
   void dispose() {

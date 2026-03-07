@@ -32,10 +32,8 @@ class _CoachSignInPageContent extends StatefulWidget {
 
 class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(
-    text: 'harba.suleyman@gmail.com',
-  );
-  final _passwordController = TextEditingController(text: 'cmylmZ.31');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
