@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:polen_academy/core/utils/link_launcher_helper.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/homework/usecases/get_completed_homeworks_for_coach.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_cubit.dart';
@@ -355,10 +355,8 @@ class _TeacherResourceTile extends StatelessWidget {
   }
 
   Future<void> _openInBrowser(BuildContext context) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
+    final ok = await LinkLauncherHelper.launchHomeworkLink(url);
+    if (context.mounted && !ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Dosya açılamadı.')),
       );
@@ -411,25 +409,37 @@ class _ClickableHomeworkLink extends StatelessWidget {
 
   final String url;
 
-  Future<void> _openUrl() async {
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _openUrl(BuildContext context) async {
+    final ok = await LinkLauncherHelper.launchHomeworkLink(url);
+    if (context.mounted && !ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link açılamadı.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: _openUrl,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Text(
-          url,
-          style: const TextStyle(
-            color: AppColors.primaryCoach,
-            fontSize: 14,
-            decoration: TextDecoration.underline,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openUrl(context),
+        borderRadius: BorderRadius.circular(4),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                url,
+                style: const TextStyle(
+                  color: AppColors.primaryCoach,
+                  fontSize: 14,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ),
         ),
       ),

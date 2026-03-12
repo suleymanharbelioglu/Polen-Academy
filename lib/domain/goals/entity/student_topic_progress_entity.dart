@@ -17,6 +17,14 @@ class StudentTopicProgressEntity {
   bool get konuStudied => konuStatus == TopicStatus.completed;
   bool get revisionDone => revisionStatus == TopicStatus.completed;
 
+  /// İlerleme katkısı: 0 (hiçbiri), 0.5 (konu veya tekrardan biri), 1 (ikisi de tamamlandı).
+  static double progressContribution(StudentTopicProgressEntity? p) {
+    if (p == null) return 0;
+    final konu = p.konuStatus == TopicStatus.completed ? 1 : 0;
+    final tekrar = p.revisionStatus == TopicStatus.completed ? 1 : 0;
+    return (konu + tekrar) / 2.0;
+  }
+
   StudentTopicProgressEntity copyWith({
     String? studentId,
     String? topicId,

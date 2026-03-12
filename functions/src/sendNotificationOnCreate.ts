@@ -35,13 +35,20 @@ export const sendNotificationOnCreate = functions
       return null;
     }
 
+    // Sadece "data" gönderiyoruz; uygulama kendi bildirimini (tam metin, BigText) gösterecek.
+    // "notification" kullanılmadığı için sistem bildirimi kesmez.
     try {
       await admin.messaging().send({
         token: fcmToken,
-        notification: { title, body },
+        data: { title, body },
         android: { priority: "high" as const },
         apns: {
-          payload: { aps: { sound: "default" } },
+          payload: {
+            aps: {
+              sound: "default",
+              contentAvailable: 1,
+            },
+          },
         },
       });
       functions.logger.info("FCM sent", {

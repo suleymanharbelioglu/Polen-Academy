@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
-import 'package:polen_academy/domain/session/usecases/get_sessions_by_date_range.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/student_detail_state.dart';
+import 'package:polen_academy/presentation/session_detail/bloc/session_detail_cubit.dart';
+import 'package:polen_academy/presentation/session_detail/bloc/session_detail_state.dart';
 import 'package:polen_academy/presentation/session_detail/widget/session_day_sheet.dart';
 import 'package:polen_academy/presentation/session_detail/widget/session_detail_card.dart';
-import 'package:polen_academy/service_locator.dart';
 
 class SessionDetailPage extends StatefulWidget {
   const SessionDetailPage({
@@ -23,61 +24,12 @@ class SessionDetailPage extends StatefulWidget {
 class _SessionDetailPageState extends State<SessionDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  StudentDetailRangeFilter _rangeFilter = StudentDetailRangeFilter.lastWeek;
-  List<SessionEntity> _allSessions = [];
-  bool _loading = true;
-  String? _error;
-
-  List<SessionEntity> get _completed =>
-      _allSessions.where((s) => s.status == SessionStatus.completed).toList();
-  List<SessionEntity> get _notDone =>
-      _allSessions.where((s) => s.status == SessionStatus.cancelled).toList();
-  List<SessionEntity> get _future {
-    final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
-    return _allSessions.where((s) {
-      final d = DateTime(s.date.year, s.date.month, s.date.day);
-      return d.isAfter(today) && s.status == SessionStatus.scheduled;
-    }).toList();
-  }
-
-  static DateTime _rangeStart(
-    StudentDetailRangeFilter filter,
-    StudentEntity student,
-    DateTime end,
-  ) {
-    final reg = student.registeredAt != null
-        ? DateTime(
-            student.registeredAt!.year,
-            student.registeredAt!.month,
-            student.registeredAt!.day,
-          )
-        : null;
-    final DateTime requested;
-    switch (filter) {
-      case StudentDetailRangeFilter.lastWeek:
-        requested = end.subtract(const Duration(days: 7));
-        break;
-      case StudentDetailRangeFilter.lastMonth:
-        requested = end.subtract(const Duration(days: 30));
-        break;
-      case StudentDetailRangeFilter.all:
-        requested = reg ?? end.subtract(const Duration(days: 365));
-        break;
-    }
-    if (reg != null && requested.isBefore(reg)) return reg;
-    return requested;
-  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() => setState(() {}));
-    _loadSessions();
   }
 
   @override
@@ -86,182 +38,152 @@ class _SessionDetailPageState extends State<SessionDetailPage>
     super.dispose();
   }
 
-  Future<void> _loadSessions() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final end = DateTime.now();
-    final start = _rangeStart(_rangeFilter, widget.student, end);
-    final startNorm = DateTime(start.year, start.month, start.day);
-    final endWithFuture = end.add(const Duration(days: 60));
-
-    final result = await sl<GetSessionsByDateRangeUseCase>().call(
-      params: GetSessionsByDateRangeParams(
-        coachId: widget.student.coachId,
-        start: startNorm,
-        end: endWithFuture,
-      ),
-    );
-
-    if (!mounted) return;
-    result.fold(
-      (e) => setState(() {
-        _loading = false;
-        _error = e;
-        _allSessions = [];
-      }),
-      (list) => setState(() {
-        _loading = false;
-        _error = null;
-        _allSessions = list
-            .where((s) => s.studentId == widget.student.uid)
-            .toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
-      }),
-    );
-  }
-
-  void _setRange(StudentDetailRangeFilter filter) {
-    if (_rangeFilter == filter) return;
-    setState(() => _rangeFilter = filter);
-    _loadSessions();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.secondBackground,
-        foregroundColor: Colors.white,
-        title: const Text('Seans Detayları'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: DropdownButton<StudentDetailRangeFilter>(
-              value: _rangeFilter,
-              dropdownColor: AppColors.secondBackground,
-              underline: const SizedBox(),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              onChanged: (v) {
-                if (v != null) _setRange(v);
-              },
-              items: const [
-                DropdownMenuItem(
-                  value: StudentDetailRangeFilter.lastWeek,
-                  child: Text('Son Hafta'),
-                ),
-                DropdownMenuItem(
-                  value: StudentDetailRangeFilter.lastMonth,
-                  child: Text('Son Ay'),
-                ),
-                DropdownMenuItem(
-                  value: StudentDetailRangeFilter.all,
-                  child: Text('Tümü'),
+    return BlocProvider(
+      create: (_) => SessionDetailCubit()..load(widget.student),
+      child: BlocBuilder<SessionDetailCubit, SessionDetailState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              backgroundColor: AppColors.secondBackground,
+              foregroundColor: Colors.white,
+              title: const Text('Seans Detayları'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: DropdownButton<StudentDetailRangeFilter>(
+                    value: state.rangeFilter,
+                    dropdownColor: AppColors.secondBackground,
+                    underline: const SizedBox(),
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    onChanged: (v) {
+                      if (v != null) {
+                        context.read<SessionDetailCubit>().setRangeFilter(v);
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: StudentDetailRangeFilter.lastWeek,
+                        child: Text('Son Hafta'),
+                      ),
+                      DropdownMenuItem(
+                        value: StudentDetailRangeFilter.lastMonth,
+                        child: Text('Son Ay'),
+                      ),
+                      DropdownMenuItem(
+                        value: StudentDetailRangeFilter.all,
+                        child: Text('Tümü'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _loading || _error != null
-          ? null
-          : Container(
-              color: AppColors.secondBackground,
-              child: SafeArea(
-                child: ListenableBuilder(
-                  listenable: _tabController,
-                  builder: (context, _) {
-                    return SizedBox(
-                      height: 64,
-                      child: Row(
+            bottomNavigationBar: state.loading || state.error != null
+                ? null
+                : Container(
+                    color: AppColors.secondBackground,
+                    child: SafeArea(
+                      child: ListenableBuilder(
+                        listenable: _tabController,
+                        builder: (context, _) => SizedBox(
+                          height: 64,
+                          child: Row(
+                            children: [
+                              _SessionNavItem(
+                                label: 'Yapılan',
+                                count: state.completedCount,
+                                selected: _tabController.index == 0,
+                                onTap: () => _tabController.animateTo(0),
+                                color: const Color(0xFF4CAF50),
+                              ),
+                              _SessionNavItem(
+                                label: 'Yapılmayan',
+                                count: state.notDoneCount,
+                                selected: _tabController.index == 1,
+                                onTap: () => _tabController.animateTo(1),
+                                color: const Color(0xFFE53935),
+                              ),
+                              _SessionNavItem(
+                                label: 'Gelecek',
+                                count: state.futureCount,
+                                selected: _tabController.index == 2,
+                                onTap: () => _tabController.animateTo(2),
+                                color: const Color(0xFF42A5F5),
+                              ),
+                              _SessionNavItem(
+                                label: 'Tümü',
+                                count: state.sessions.length,
+                                selected: _tabController.index == 3,
+                                onTap: () => _tabController.animateTo(3),
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+            body: state.loading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryCoach,
+                    ),
+                  )
+                : state.error != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            state.error!,
+                            style: const TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
+                    : TabBarView(
+                        controller: _tabController,
                         children: [
-                          _SessionNavItem(
-                            label: 'Yapılan',
-                            count: _completed.length,
-                            selected: _tabController.index == 0,
-                            onTap: () => _tabController.animateTo(0),
-                            color: const Color(0xFF4CAF50),
+                          _SessionList(
+                            sessions: state.completedSessions,
+                            coachId: widget.student.coachId,
+                            onRefresh: () =>
+                                context.read<SessionDetailCubit>().load(widget.student),
                           ),
-                          _SessionNavItem(
-                            label: 'Yapılmayan',
-                            count: _notDone.length,
-                            selected: _tabController.index == 1,
-                            onTap: () => _tabController.animateTo(1),
-                            color: const Color(0xFFE53935),
+                          _SessionList(
+                            sessions: state.notDoneSessions,
+                            coachId: widget.student.coachId,
+                            onRefresh: () =>
+                                context.read<SessionDetailCubit>().load(widget.student),
                           ),
-                          _SessionNavItem(
-                            label: 'Gelecek',
-                            count: _future.length,
-                            selected: _tabController.index == 2,
-                            onTap: () => _tabController.animateTo(2),
-                            color: const Color(0xFF42A5F5),
+                          _SessionList(
+                            sessions: state.futureSessions,
+                            coachId: widget.student.coachId,
+                            onRefresh: () =>
+                                context.read<SessionDetailCubit>().load(widget.student),
                           ),
-                          _SessionNavItem(
-                            label: 'Tümü',
-                            count: _allSessions.length,
-                            selected: _tabController.index == 3,
-                            onTap: () => _tabController.animateTo(3),
-                            color: Colors.grey,
+                          _SessionList(
+                            sessions: state.sessions,
+                            coachId: widget.student.coachId,
+                            onRefresh: () =>
+                                context.read<SessionDetailCubit>().load(widget.student),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryCoach),
-            )
-          : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _SessionList(
-                      sessions: _completed,
-                      coachId: widget.student.coachId,
-                      onRefresh: _loadSessions,
-                    ),
-                    _SessionList(
-                      sessions: _notDone,
-                      coachId: widget.student.coachId,
-                      onRefresh: _loadSessions,
-                    ),
-                    _SessionList(
-                      sessions: _future,
-                      coachId: widget.student.coachId,
-                      onRefresh: _loadSessions,
-                    ),
-                    _SessionList(
-                      sessions: _allSessions,
-                      coachId: widget.student.coachId,
-                      onRefresh: _loadSessions,
-                    ),
-                  ],
-                ),
+          );
+        },
+      ),
     );
   }
 }
 
-/// Bottom nav: kelime üstte, sayı altta; en altta rengiyle çizgi, seçiliyken belirgin.
 class _SessionNavItem extends StatelessWidget {
   const _SessionNavItem({
     required this.label,

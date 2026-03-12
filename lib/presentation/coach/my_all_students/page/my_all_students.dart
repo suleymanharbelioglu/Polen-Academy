@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
 import 'package:polen_academy/common/widget/add_student_dialog.dart';
 import 'package:polen_academy/common/widget/student_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/domain/auth/entity/student_credentials_entity.dart';
-import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/display_my_all_students_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/display_my_all_students_state.dart';
@@ -131,33 +131,47 @@ class _MyAllStudentsView extends StatelessWidget {
   Future<void> _onRequestAddStudent(BuildContext context) async {
     final coachUid = sl<AuthFirebaseService>().getCurrentUserUid();
     if (coachUid == null) return;
-    final coachResult = await sl<UserRepository>().getCoachByUid(coachUid);
-    if (!context.mounted) return;
-    final coach = coachResult.fold((_) => null, (c) => c);
+    final isPremium = context.read<IsPremiumCubit>().state;
     final displayState = context.read<DisplayMyAllStudentsCubit>().state;
     final studentCount = displayState is DisplayMyAllStudentsSuccess ? displayState.students.length : 0;
-    if (coach != null && !coach.isVip && studentCount >= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'VIP üyeliğe geçerek daha fazla öğrenci ekleyebilirsiniz. Menü > VIP\'e Geçin.',
-          ),
-          backgroundColor: AppColors.primaryCoach,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'VIP',
-            textColor: Colors.white,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const VipPage()),
-              );
-            },
-          ),
-        ),
-      );
+    if (!isPremium && studentCount >= 1) {
+      final shouldOpenVip = await _showPremiumRequiredDialog(context);
+      if (!context.mounted) return;
+      if (shouldOpenVip) {
+        final activated = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => const VipPage()),
+        );
+        if (activated == true && context.mounted) {
+          context.read<IsPremiumCubit>().activatePremium();
+        }
+      }
       return;
     }
     _showAddStudentDialog(context);
+  }
+
+  Future<bool> _showPremiumRequiredDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Premium Gerekli'),
+        content: const Text(
+          'Premium üyeliğiniz olmadığı için en fazla 1 öğrenci ekleyebilirsiniz. Daha fazla öğrenci eklemek için Premium sayfasına gidin.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primaryCoach),
+            child: const Text('Premiuma Git'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _showAddStudentDialog(BuildContext context) async {

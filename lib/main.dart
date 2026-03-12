@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polen_academy/common/widget/offline_banner.dart';
 import 'package:polen_academy/core/configs/theme/app_theme.dart';
@@ -14,14 +15,11 @@ import 'package:polen_academy/presentation/splash/page/splash.dart';
 import 'package:polen_academy/service_locator.dart';
 
 /// Uygulama kapalı veya arka plandayken gelen FCM mesajları.
-/// Sunucu "notification" (title + body) ile gönderirse Android/iOS bildirimi otomatik gösterir.
-/// Sadece "data" ile gönderilirse bu handler çalışır; bildirim göstermek için sunucu tarafında
-/// mutlaka notification payload kullanın.
+/// Sunucu sadece "data" (title, body) gönderiyor; bildirimi tam metinle biz gösteriyoruz.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Arka planda/terminated: notification payload varsa sistem zaten gösterir.
-  // Data-only mesajlarda bildirim göstermek için sunucu FCM'de "notification" alanı eklemeli.
+  await showBackgroundNotification(message);
 }
 
 Future<void> main() async {
@@ -53,6 +51,7 @@ class MyApp extends StatelessWidget {
       builder: (_, child) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => SplashCubit()..appStarted()),
+          BlocProvider(create: (context) => IsPremiumCubit()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

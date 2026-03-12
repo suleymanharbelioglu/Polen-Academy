@@ -41,8 +41,7 @@ class NotifyOverdueToParentUseCase implements UseCase<Either<String, void>, Noti
       parts.add('Konu: ${params.topicNames.join(', ')}');
     }
     if (params.description != null && params.description!.trim().isNotEmpty) {
-      final d = params.description!.trim();
-      parts.add(d.length > 80 ? '${d.substring(0, 77)}...' : d);
+      parts.add(params.description!.trim());
     }
     final body = parts.join('\n');
 

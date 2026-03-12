@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
+import 'package:polen_academy/core/utils/homework_ui_helper.dart';
 import 'package:polen_academy/presentation/student/home/bloc/st_home_state.dart';
 
-/// Öğrenci ödev kartı: onaylı=yeşil, onay bekliyor=mavi, eksik=turuncu, yapılmadı=kırmızı, bekleyen=gri.
+/// Öğrenci ödev kartı; renk HomeworkUiHelper'dan.
 class StHomeworkCard extends StatelessWidget {
   const StHomeworkCard({
     super.key,
@@ -13,24 +13,9 @@ class StHomeworkCard extends StatelessWidget {
   final StHomeworkItem item;
   final VoidCallback? onTap;
 
-  static Color colorForStatus(HomeworkSubmissionStatus s) {
-    switch (s) {
-      case HomeworkSubmissionStatus.approved:
-        return Colors.green;
-      case HomeworkSubmissionStatus.completedByStudent:
-        return Colors.blue;
-      case HomeworkSubmissionStatus.missing:
-        return Colors.orange;
-      case HomeworkSubmissionStatus.notDone:
-        return Colors.red;
-      case HomeworkSubmissionStatus.pending:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = colorForStatus(item.displayStatus);
+    final color = HomeworkUiHelper.colorForStatus(item.displayStatus);
     final h = item.homework;
     final courseLabel = h.courseName != null && h.courseName!.isNotEmpty
         ? h.courseName!

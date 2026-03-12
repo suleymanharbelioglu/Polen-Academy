@@ -17,7 +17,9 @@ abstract class HomeworkFirebaseService {
 class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
   static const String _collection = 'Homeworks';
 
-  Map<String, dynamic> _docToMap(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  Map<String, dynamic> _docToMap(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = Map<String, dynamic>.from(doc.data());
     data['id'] = doc.id;
     for (final key in ['startDate', 'endDate', 'assignedDate', 'createdAt']) {
@@ -61,9 +63,9 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
       final list = snapshot.docs
           .map((doc) => HomeworkModel.fromMap(_docToMap(doc)))
           .where((m) {
-        final effectiveStart = m.startDate ?? m.endDate;
-        return !effectiveStart.isAfter(endAt);
-      })
+            final effectiveStart = m.startDate ?? m.endDate;
+            return !effectiveStart.isAfter(endAt);
+          })
           .toList();
       return Right(list);
     } catch (e) {
@@ -72,14 +74,18 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
   }
 
   @override
-  Future<Either<String, List<HomeworkModel>>> getByCoachId(String coachId) async {
+  Future<Either<String, List<HomeworkModel>>> getByCoachId(
+    String coachId,
+  ) async {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection(_collection)
           .where('coachId', isEqualTo: coachId)
           .orderBy('createdAt', descending: true)
           .get();
-      final list = snapshot.docs.map((doc) => HomeworkModel.fromMap(_docToMap(doc))).toList();
+      final list = snapshot.docs
+          .map((doc) => HomeworkModel.fromMap(_docToMap(doc)))
+          .toList();
       return Right(list);
     } catch (e) {
       return Left('Ödevler yüklenirken hata: ${e.toString()}');
@@ -89,7 +95,10 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
   @override
   Future<Either<String, HomeworkModel?>> getById(String homeworkId) async {
     try {
-      final doc = await FirebaseFirestore.instance.collection(_collection).doc(homeworkId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection(_collection)
+          .doc(homeworkId)
+          .get();
       if (doc.data() == null) return const Right(null);
       final data = Map<String, dynamic>.from(doc.data()!);
       data['id'] = doc.id;
@@ -142,7 +151,10 @@ class HomeworkFirebaseServiceImpl extends HomeworkFirebaseService {
   @override
   Future<Either<String, void>> delete(String homeworkId) async {
     try {
-      await FirebaseFirestore.instance.collection(_collection).doc(homeworkId).delete();
+      await FirebaseFirestore.instance
+          .collection(_collection)
+          .doc(homeworkId)
+          .delete();
       return const Right(null);
     } catch (e) {
       return Left('Ödev silinirken hata: ${e.toString()}');

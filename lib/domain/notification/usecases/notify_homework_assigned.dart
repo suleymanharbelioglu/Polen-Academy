@@ -23,8 +23,7 @@ class NotifyHomeworkAssignedUseCase implements UseCase<Either<String, void>, Hom
     }
     parts.add('Son tarih: ${_formatDate(h.endDate)}');
     if (h.description.trim().isNotEmpty) {
-      final desc = h.description.trim();
-      parts.add(desc.length > 80 ? '${desc.substring(0, 77)}...' : desc);
+      parts.add(h.description.trim());
     }
     final body = parts.join('\n');
 

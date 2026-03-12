@@ -5,6 +5,67 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+/// Arka planda veya uygulama kapalıyken gelen FCM data mesajı için bildirimi gösterir (tam metin).
+/// Sadece data payload gönderildiğinde çağrılır; bu isolate'ta plugin yeniden init edilir.
+@pragma('vm:entry-point')
+Future<void> showBackgroundNotification(RemoteMessage message) async {
+  final title = message.data['title'] as String? ?? 'Bildirim';
+  final body = message.data['body'] as String? ?? '';
+  if (body.isEmpty && title == 'Bildirim') return;
+
+  final plugin = FlutterLocalNotificationsPlugin();
+  const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
+  const iosInit = DarwinInitializationSettings(
+    requestAlertPermission: true,
+    requestBadgePermission: true,
+  );
+  await plugin.initialize(
+    const InitializationSettings(android: androidInit, iOS: iosInit),
+    onDidReceiveNotificationResponse: (_) {},
+  );
+
+  if (Platform.isAndroid) {
+    const channel = AndroidNotificationChannel(
+      'polen_academy_notifications',
+      'Bildirimler',
+      description: 'Polen Academy uygulama bildirimleri',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    );
+    await plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
+
+  final androidDetails = AndroidNotificationDetails(
+    'polen_academy_notifications',
+    'Bildirimler',
+    channelDescription: 'Polen Academy uygulama bildirimleri',
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: '@drawable/ic_notification',
+    styleInformation: BigTextStyleInformation(
+      body,
+      contentTitle: title,
+      summaryText: '',
+    ),
+  );
+  const iosDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+  final id = (message.sentTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch).remainder(0x7FFFFFFF);
+  await plugin.show(
+    id,
+    title,
+    body,
+    NotificationDetails(android: androidDetails, iOS: iosDetails),
+  );
+}
+
 /// FCM token kaydı ve uygulama öndeyken gelen bildirimi sistem bildirimi olarak gösterme.
 class FcmService {
   static const String _usersCollection = 'Users';
@@ -67,21 +128,27 @@ class FcmService {
   }
 
   /// Uygulama öndeyken gelen FCM ile sistem bildirimi (banner) gösterir.
+  /// Android'de BigTextStyle ile tam metin gösterilir (açıldığında).
   static Future<void> showForegroundNotification(String title, String body) async {
-    const android = AndroidNotificationDetails(
+    final android = AndroidNotificationDetails(
       'polen_academy_notifications',
       'Bildirimler',
       channelDescription: 'Polen Academy uygulama bildirimleri',
       importance: Importance.high,
       priority: Priority.high,
       icon: '@drawable/ic_notification',
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+        summaryText: '',
+      ),
     );
     const ios = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
-    const details = NotificationDetails(android: android, iOS: ios);
+    final details = NotificationDetails(android: android, iOS: ios);
     final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     await _localNotifications.show(id, title, body, details);
   }

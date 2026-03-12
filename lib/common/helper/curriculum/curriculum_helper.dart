@@ -213,58 +213,7 @@ class CurriculumHelper {
   static Future<void> _seedGrade2(FirebaseFirestore firestore) async {
     const classLevel = '2. Sınıf';
 
-    const cTurkce = 'course_2_turkce';
-    await _setCourse(
-      firestore,
-      courseId: cTurkce,
-      classLevel: classLevel,
-      name: 'Türkçe',
-    );
-    const uTurkce1 = 'unit_2_turkce_1';
-    await _setUnit(
-      firestore,
-      unitId: uTurkce1,
-      courseId: cTurkce,
-      name: 'Okuma',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_turkce_1_1',
-      unitId: uTurkce1,
-      name: 'Akıcı okuma',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_turkce_1_2',
-      unitId: uTurkce1,
-      name: 'Ana fikir',
-      order: 1,
-    );
-    const uTurkce2 = 'unit_2_turkce_2';
-    await _setUnit(
-      firestore,
-      unitId: uTurkce2,
-      courseId: cTurkce,
-      name: 'Yazma',
-      order: 1,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_turkce_2_1',
-      unitId: uTurkce2,
-      name: 'Cümle kurma',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_turkce_2_2',
-      unitId: uTurkce2,
-      name: 'Noktalama',
-      order: 1,
-    );
-
+    // Matematik
     const cMat = 'course_2_matematik';
     await _setCourse(
       firestore,
@@ -277,38 +226,146 @@ class CurriculumHelper {
       firestore,
       unitId: uMat1,
       courseId: cMat,
-      name: 'Sayılar ve İşlemler',
+      name: 'Konular',
       order: 0,
     );
-    await _setTopic(
+    final matTopics = [
+      'Geometrik cisimler ve şekiller',
+      'Sıvılar',
+      'Doğal sayılar',
+      'Doğal sayılarda toplama ve çıkarma işlemi',
+      'Doğal sayılarda çarpma ve bölme işlemi',
+      'Kesirler',
+      'Paralarımız',
+      'Zaman ölçme',
+      'Uzunluk ve kütle ölçme',
+      'Uzamsal ilişkiler simetri',
+    ];
+    for (var i = 0; i < matTopics.length; i++) {
+      await _setTopic(
+        firestore,
+        topicId: 'topic_2_matematik_1_${i + 1}',
+        unitId: uMat1,
+        name: matTopics[i],
+        order: i,
+      );
+    }
+
+    // Türkçe
+    const cTurkce = 'course_2_turkce';
+    await _setCourse(
       firestore,
-      topicId: 'topic_2_matematik_1_1',
-      unitId: uMat1,
-      name: '1-100 doğal sayılar',
-      order: 0,
+      courseId: cTurkce,
+      classLevel: classLevel,
+      name: 'Türkçe',
     );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_matematik_1_2',
-      unitId: uMat1,
-      name: 'Toplama - çıkarma',
-      order: 1,
-    );
-    const uMat2 = 'unit_2_matematik_2';
+    const uTurkce1 = 'unit_2_turkce_1';
     await _setUnit(
       firestore,
-      unitId: uMat2,
-      courseId: cMat,
-      name: 'Geometri',
-      order: 1,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_2_matematik_2_1',
-      unitId: uMat2,
-      name: 'Şekiller ve örüntüler',
+      unitId: uTurkce1,
+      courseId: cTurkce,
+      name: 'Konular',
       order: 0,
     );
+    final turkceTopics = [
+      'Harf Bilgisi',
+      'Hece Bilgisi',
+      'Sözcük Bilgisi',
+      'Eş ve Zıt anlamlı sözcükler',
+      'Cümle Bilgisi',
+      'Neden Sonuç Cümleleri',
+      'Karşılaştırma',
+      'Benzetme',
+      'Örneklendirme',
+      'Mi soru ekinin yazımı',
+      'Büyük Harflerin Yazımı',
+      'Noktalama İşaretleri',
+      'Kurallı Kuralsız Cümle',
+      'Eş Sesli Sözcükler',
+      'Adlar İsimler',
+      'Özel Ad Tür Adı',
+      'Tekil Çoğul Topluluk Adları',
+      'Sıfatlar',
+      'Zamirler',
+      'Eylemler',
+    ];
+    for (var i = 0; i < turkceTopics.length; i++) {
+      await _setTopic(
+        firestore,
+        topicId: 'topic_2_turkce_1_${i + 1}',
+        unitId: uTurkce1,
+        name: turkceTopics[i],
+        order: i,
+      );
+    }
+
+    // Hayat Bilgisi
+    const cHayat = 'course_2_hayat_bilgisi';
+    await _setCourse(
+      firestore,
+      courseId: cHayat,
+      classLevel: classLevel,
+      name: 'Hayat Bilgisi',
+    );
+    const uHayat1 = 'unit_2_hayat_1';
+    await _setUnit(
+      firestore,
+      unitId: uHayat1,
+      courseId: cHayat,
+      name: 'Konular',
+      order: 0,
+    );
+    final hayatTopics = [
+      'Ben ve Okulum',
+      'Sağlığım ve Güvenliğim',
+      'Ailem ve Toplum',
+      'Yaşadığım yer ve ülkem',
+      'Doğa ve çevre',
+      'Bilim teknoloji ve sanat',
+    ];
+    for (var i = 0; i < hayatTopics.length; i++) {
+      await _setTopic(
+        firestore,
+        topicId: 'topic_2_hayat_1_${i + 1}',
+        unitId: uHayat1,
+        name: hayatTopics[i],
+        order: i,
+      );
+    }
+
+    // İngilizce
+    const cIng = 'course_2_ingilizce';
+    await _setCourse(
+      firestore,
+      courseId: cIng,
+      classLevel: classLevel,
+      name: 'İngilizce',
+    );
+    const uIng1 = 'unit_2_ingilizce_1';
+    await _setUnit(
+      firestore,
+      unitId: uIng1,
+      courseId: cIng,
+      name: 'Konular',
+      order: 0,
+    );
+    final ingTopics = [
+      'School Life',
+      'Classroom Life',
+      'Personal Life',
+      'Family Life',
+      'Homes & Houses & Neighborhoods',
+      'Life in the city & The world',
+    ];
+    for (var i = 0; i < ingTopics.length; i++) {
+      await _setTopic(
+        firestore,
+        topicId: 'topic_2_ingilizce_1_${i + 1}',
+        unitId: uIng1,
+        name: ingTopics[i],
+        order: i,
+      );
+    }
   }
 
   // -------------------------
@@ -421,95 +478,109 @@ class CurriculumHelper {
   static Future<void> _seedGrade4(FirebaseFirestore firestore) async {
     const classLevel = '4. Sınıf';
 
+    // Türkçe
     const cTurkce = 'course_4_turkce';
-    await _setCourse(
-      firestore,
-      courseId: cTurkce,
-      classLevel: classLevel,
-      name: 'Türkçe',
-    );
+    await _setCourse(firestore, courseId: cTurkce, classLevel: classLevel, name: 'Türkçe');
     const uTurkce1 = 'unit_4_turkce_1';
-    await _setUnit(
-      firestore,
-      unitId: uTurkce1,
-      courseId: cTurkce,
-      name: 'Okuma',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_turkce_1_1',
-      unitId: uTurkce1,
-      name: 'Ana fikir',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_turkce_1_2',
-      unitId: uTurkce1,
-      name: 'Yardımcı fikir',
-      order: 1,
-    );
-    const uTurkce2 = 'unit_4_turkce_2';
-    await _setUnit(
-      firestore,
-      unitId: uTurkce2,
-      courseId: cTurkce,
-      name: 'Yazma',
-      order: 1,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_turkce_2_1',
-      unitId: uTurkce2,
-      name: 'Paragraf',
-      order: 0,
-    );
+    await _setUnit(firestore, unitId: uTurkce1, courseId: cTurkce, name: 'Konular', order: 0);
+    const turkceTopics = [
+      'Harf Bilgisi', 'Alfabetik Sıralama', 'Hece Bilgisi', 'Satır Sonuna Sığmayan Kelimeler',
+      'Kitabın Bölümleri', 'Kelime Bilgisi', 'Türkçe\'ye Giren Yabancı Kelimeler', 'Eş Anlamlı Kelimeler',
+      'Zıt Anlamlı Kelimeler', 'Eş Sesli Kelimeler', 'Varlıkların Niteliklerini Belirleyen Kelimeler',
+      'Cümle Bilgisi', '5N 1K', 'Noktalama İşaretleri', 'Yazım Kuralları', 'Atasözleri ve Deyimler',
+      'Metinde Konu ve Ana Fikir', 'Şiir', 'Metni Oluşturan Ögeler', 'Metin Türleri', 'Hikâye Unsurları',
+      'Olayların Oluş Sırası', 'Dijital Metinler', 'Mektup ve Davetiye Yazımı', 'Yönerge ve Form Yazma',
+      'Gerçek ve Hayal Ürünü Unsurlar', 'Görsel Okuma', 'Grafik ve Harita Okuma',
+    ];
+    for (var i = 0; i < turkceTopics.length; i++) {
+      await _setTopic(firestore, topicId: 'topic_4_turkce_1_${i + 1}', unitId: uTurkce1, name: turkceTopics[i], order: i);
+    }
 
+    // Matematik
     const cMat = 'course_4_matematik';
-    await _setCourse(
-      firestore,
-      courseId: cMat,
-      classLevel: classLevel,
-      name: 'Matematik',
-    );
+    await _setCourse(firestore, courseId: cMat, classLevel: classLevel, name: 'Matematik');
     const uMat1 = 'unit_4_matematik_1';
-    await _setUnit(
-      firestore,
-      unitId: uMat1,
-      courseId: cMat,
-      name: 'Doğal Sayılar',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_matematik_1_1',
-      unitId: uMat1,
-      name: 'Dört işlem',
-      order: 0,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_matematik_1_2',
-      unitId: uMat1,
-      name: 'Problem çözme',
-      order: 1,
-    );
-    const uMat2 = 'unit_4_matematik_2';
-    await _setUnit(
-      firestore,
-      unitId: uMat2,
-      courseId: cMat,
-      name: 'Geometri',
-      order: 1,
-    );
-    await _setTopic(
-      firestore,
-      topicId: 'topic_4_matematik_2_1',
-      unitId: uMat2,
-      name: 'Açılar',
-      order: 0,
-    );
+    await _setUnit(firestore, unitId: uMat1, courseId: cMat, name: 'Konular', order: 0);
+    const matTopics = [
+      'Üç Basamaklı Doğal Sayıları Okuyalım ve Yazalım', 'Birer, Onar ve Yüzer Ritmik Sayalım',
+      'Basamak Adları ve Basamak Değerleri', 'Sayıları Yuvarlayalım', 'Doğal Sayıları Karşılaştıralım ve Sıralayalım',
+      'Ritmik Sayma Yapalım', 'Sayı Örüntüleri', 'Tek ve Çift Doğal Sayılar', 'Romen Rakamları',
+      'Toplama İşlemi Yapalım', 'Çıkarma İşlemi Yapalım', 'Toplamı Tahmin Edelim',
+      'Zihinden Çıkaralım - Zihinden Toplayalım', 'Verilmeyen Toplananı Bulalım', 'Toplama İşlemi ile Problem Çözelim',
+      'Farkı Tahmin Edelim', 'Toplama ve Çıkarma Problemleri', 'Grafik ve Tablo Okuyalım',
+      'Grafiklerle İlgili Problem Çözelim', 'Çarpmanın Kat Anlamı', 'Çarpım Tablosu Oluşturalım',
+      'Eldesiz ve Eldeli Çarpma İşlemi', '10 ve 100 ile Kısa Yoldan Çarpalım',
+      'Azalan ve Artan Çarpanlar Arasındaki İlişki', 'Çarpma Problemleri', 'Bölme İşlemi Yapalım',
+      '10\'a Kısa Yoldan Bölelim', 'Bölme İşleminde Terimler Arasındaki İlişkiler', 'Bölme İşlemi Problemleri',
+      'Bütün, Yarım, Çeyrek', 'Birim Kesir', 'Pay ve Payda Arasındaki İlişki',
+      'Bir Çokluğun Belirtilen Birim Kesir Kadarını Bulalım', 'Payı Paydasından Küçük Kesirler Elde Edelim',
+      'Saatler', 'Zaman Ölçüleri Arasındaki İlişki - Olayların Oluş Süresi', 'Zaman Problemleri',
+      'Paralarımız - Paralarla İlgili Problemler', 'Tartma Yapalım', 'Tartma Problemleri',
+      'Geometrik Cisimler', 'Geometrik Şekiller', 'Geometrik Örüntüler', 'Nokta',
+      'Doğru, Işın ve Doğru Parçası', 'Açı', 'Simetri', 'Uzunlukları Ölçelim', 'Uzunluk Problemleri',
+      'Çevresini Ölçelim', 'Çevre Problemleri', 'Alan Ölçelim', 'Sıvıları Ölçelim', 'Sıvı Problemleri Çözelim',
+    ];
+    for (var i = 0; i < matTopics.length; i++) {
+      await _setTopic(firestore, topicId: 'topic_4_matematik_1_${i + 1}', unitId: uMat1, name: matTopics[i], order: i);
+    }
+
+    // Fen Bilimleri
+    const cFen = 'course_4_fen';
+    await _setCourse(firestore, courseId: cFen, classLevel: classLevel, name: 'Fen Bilimleri');
+    const uFen1 = 'unit_4_fen_1';
+    await _setUnit(firestore, unitId: uFen1, courseId: cFen, name: 'Konular', order: 0);
+    const fenTopics = [
+      'Dünya\'nın Şekli ve Katmanları', 'Dünya\'nın Yapısı', 'Duyu Organlarımız',
+      'Varlıkların Hareket Özellikleri', 'Cisimleri Hareket Ettirme ve Durdurma', 'Maddeyi Niteleyen Özellikler',
+      'Maddenin Hâlleri', 'Işığın Görmedeki Rolü', 'Işık Kaynakları', 'Çevremizdeki Sesler',
+      'Sesin İşitmedeki Rolü', 'Çevremizdeki Varlıkları Tanıyalım', 'Ben ve Çevrem',
+      'Elektrikli Araç ve Gereçler', 'Elektrik Kaynakları', 'Elektriğin Güvenli Kullanımı',
+    ];
+    for (var i = 0; i < fenTopics.length; i++) {
+      await _setTopic(firestore, topicId: 'topic_4_fen_1_${i + 1}', unitId: uFen1, name: fenTopics[i], order: i);
+    }
+
+    // Hayat Bilgisi (305 → 306 → 307 sırası)
+    const cHayat = 'course_4_hayat_bilgisi';
+    await _setCourse(firestore, courseId: cHayat, classLevel: classLevel, name: 'Hayat Bilgisi');
+    const uHayat1 = 'unit_4_hayat_1';
+    await _setUnit(firestore, unitId: uHayat1, courseId: cHayat, name: 'Konular', order: 0);
+    const hayatTopics = [
+      'Güçlü Yönlerimiz, İlgi Alanlarımız', 'Davranışlarımız Arkadaşlarımızı Nasıl Etkiler',
+      'Arkadaşlarımızın Davranışlarının Etkileri', 'Arkadaşlıklarımızı Değerlerimizle Güçlendirelim',
+      'Sınıfımızın ve Okulumuzun Krokisini Çizelim', 'Okulumuzun Bize ve Topluma Katkıları',
+      'Okulumuzda Sosyal Yardımlaşma ve Dayanışma', 'Okulumuzda Kendimizi Demokratik Yollarla İfade Edelim',
+      'Okulumuz Hepimizindir', 'Mesleklerin Yaşamımızdaki Yeri', 'Aile Büyüklerimiz de Çocuktu',
+      'Komşuluk İlişkilerimiz', 'Evimizin Bulunduğu Yerin Krokisini Çizelim', 'Evdeki Görev ve Sorumluluklarımız',
+      'Evimizdeki Alet ve Teknolojik Ürünler', 'Evimizdeki Kaynakları Verimli ve Etkili Kullanıyoruz',
+      'Hayatımızı Planlayalım', 'Aile Bütçemize Katkı Sağlayalım', 'Kişisel Bakım Yaparken Kaynakları Verimli Kullanalım',
+      'Bilinçli Tüketici Olalım', 'Mevsimlere Özgü Yiyeceklerle Beslenelim', 'Sağlıklı Beslenelim',
+      'Temizlik ve Hijyen Kurallarına Uyalım', 'Trafik İşaret ve Levhalarını Tanıyalım', 'Trafik Kurallarına Uyalım',
+      'Çevremizdeki Kazalardan Korunalım', 'Afet ve Acil Durum', 'Güvenliğimiz Tehlikedeyken',
+      'Olağanüstü Durumlarda Güvenlik Tedbirleri', 'Oyun Oynarken Güvenliğimize Dikkat Edelim',
+      'Yakın Çevremizdeki Yönetim Birimleri', 'Ülkemizin Yönetim Şekli',
+      'Çevremizdeki Tarihî, Doğal ve Turistik Yerler', 'Ülkemizi Geliştirelim', 'Mallarımızı Koruyalım',
+      'Millî Birlik ve Beraberlik', 'Sosyal Sorumluluk Projelerine Katılalım', 'Atatürk\'ün Kişilik Özellikleri',
+      'Ülkemizin Gelişmesine Katkıda Bulunan Kişilere Minnettarız', 'Bitki ve Hayvanların Yaşamımızdaki Önemi',
+      'Meyve ve Sebzeler', 'Yönleri Nasıl Buluruz?', 'İnsanların Doğal Unsurlar Üzerindeki Etkileri',
+      'Doğa ve Çevremizi Koruyoruz, Geri Dönüşüme Katkı Sağlıyoruz',
+    ];
+    for (var i = 0; i < hayatTopics.length; i++) {
+      await _setTopic(firestore, topicId: 'topic_4_hayat_1_${i + 1}', unitId: uHayat1, name: hayatTopics[i], order: i);
+    }
+
+    // İngilizce
+    const cIng = 'course_4_ingilizce';
+    await _setCourse(firestore, courseId: cIng, classLevel: classLevel, name: 'İngilizce');
+    const uIng1 = 'unit_4_ingilizce_1';
+    await _setUnit(firestore, unitId: uIng1, courseId: cIng, name: 'Konular', order: 0);
+    const ingTopics = [
+      'Greetings', 'My Family', 'People I Love', 'Feelings', 'Toys and Games', 'My house',
+      'My City', 'Transportation', 'Weather', 'Nature',
+    ];
+    for (var i = 0; i < ingTopics.length; i++) {
+      await _setTopic(firestore, topicId: 'topic_4_ingilizce_1_${i + 1}', unitId: uIng1, name: ingTopics[i], order: i);
+    }
   }
 
   // -------------------------

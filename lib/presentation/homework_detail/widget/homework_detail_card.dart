@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:polen_academy/core/utils/homework_ui_helper.dart';
 import 'package:polen_academy/domain/homework/entity/homework_entity.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 
-/// Ödev detay sayfasında listelenen ödev kartı. Koç tarafındaki ödev kartı (HomeworkCard) ile aynı mantık: durum rengi, ders, konu, hoca notu.
+/// Ödev detay sayfasında listelenen ödev kartı. Renk ve metin helper'dan.
 class HomeworkDetailCard extends StatelessWidget {
   const HomeworkDetailCard({
     super.key,
@@ -13,24 +14,9 @@ class HomeworkDetailCard extends StatelessWidget {
   final HomeworkEntity homework;
   final HomeworkSubmissionStatus displayStatus;
 
-  static Color colorForStatus(HomeworkSubmissionStatus s) {
-    switch (s) {
-      case HomeworkSubmissionStatus.approved:
-        return Colors.green;
-      case HomeworkSubmissionStatus.completedByStudent:
-        return Colors.blue;
-      case HomeworkSubmissionStatus.missing:
-        return Colors.orange;
-      case HomeworkSubmissionStatus.notDone:
-        return Colors.red;
-      case HomeworkSubmissionStatus.pending:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = colorForStatus(displayStatus);
+    final color = HomeworkUiHelper.colorForStatus(displayStatus);
     final courseLabel = homework.courseName != null &&
             homework.courseName!.isNotEmpty
         ? homework.courseName!
@@ -40,8 +26,7 @@ class HomeworkDetailCard extends StatelessWidget {
     final topicText = homework.topicNames.isNotEmpty
         ? homework.topicNames.join(' • ')
         : null;
-    final teacherNote =
-        homework.description.isEmpty ? 'Ödev' : homework.description;
+    final hasDescription = homework.description.trim().isNotEmpty;
 
     return Material(
       color: color,
@@ -52,43 +37,89 @@ class HomeworkDetailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              courseLabel.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    courseLabel.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    HomeworkUiHelper.typeLabel(homework.type),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
             if (topicText != null && topicText.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(
-                '• $topicText',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
+              const Text(
+                'Konu:',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                topicText,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            const SizedBox(height: 8),
-            Container(height: 0.5, color: Colors.white),
-            const SizedBox(height: 8),
-            Text(
-              teacherNote,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
+            if (hasDescription) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Açıklama / Serbest metin:',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+              const SizedBox(height: 2),
+              Text(
+                homework.description.trim(),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (!hasDescription && (topicText == null || topicText.isEmpty))
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'Açıklama yok',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                _formatDate(homework.assignedDate ?? homework.createdAt),
+                HomeworkUiHelper.formatDate(
+                  homework.assignedDate ?? homework.createdAt,
+                ),
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 11,
@@ -99,9 +130,5 @@ class HomeworkDetailCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _formatDate(DateTime d) {
-    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
   }
 }

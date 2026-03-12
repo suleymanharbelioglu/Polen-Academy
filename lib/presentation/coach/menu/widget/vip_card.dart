@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
-import 'package:polen_academy/domain/user/entity/coach_entity.dart';
-import 'package:polen_academy/domain/user/repository/user_repository.dart';
 import 'package:polen_academy/presentation/coach/vip/page/vip_page.dart';
-import 'package:polen_academy/service_locator.dart';
 
 /// Koç menüsünün üstünde VIP durumunu gösteren kart. Tıklanınca VIP sayfasına gider.
 class VipCard extends StatelessWidget {
@@ -12,23 +10,21 @@ class VipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == null || uid.isEmpty) return const SizedBox.shrink();
-
-    return FutureBuilder<CoachEntity?>(
-      future: _getCoach(uid),
-      builder: (context, snapshot) {
-        final coach = snapshot.data;
-        final isVip = coach?.isVip ?? false;
-
+    return BlocBuilder<IsPremiumCubit, bool>(
+      builder: (context, isPremium) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const VipPage()),
-              ),
+              onTap: () async {
+                final activated = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const VipPage()),
+                );
+                if (activated == true && context.mounted) {
+                  context.read<IsPremiumCubit>().activatePremium();
+                }
+              },
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 width: double.infinity,
@@ -37,7 +33,7 @@ class VipCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isVip
+                    colors: isPremium
                         ? [
                             AppColors.primaryCoach,
                             AppColors.primaryCoach.withOpacity(0.8),
@@ -50,11 +46,11 @@ class VipCard extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isVip ? AppColors.primaryCoach.withOpacity(0.6) : Colors.white12,
+                    color: isPremium ? AppColors.primaryCoach.withOpacity(0.6) : Colors.white12,
                     width: 1,
                   ),
                   boxShadow: [
-                    if (isVip)
+                    if (isPremium)
                       BoxShadow(
                         color: AppColors.primaryCoach.withOpacity(0.25),
                         blurRadius: 10,
@@ -67,12 +63,12 @@ class VipCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: (isVip ? Colors.white : AppColors.primaryCoach).withOpacity(0.2),
+                        color: (isPremium ? Colors.white : AppColors.primaryCoach).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        isVip ? Icons.workspace_premium : Icons.star_border_rounded,
-                        color: isVip ? Colors.amber : AppColors.primaryCoach,
+                        isPremium ? Icons.workspace_premium : Icons.star_border_rounded,
+                        color: isPremium ? Colors.amber : AppColors.primaryCoach,
                         size: 28,
                       ),
                     ),
@@ -82,7 +78,7 @@ class VipCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isVip ? 'VIP Üye' : 'VIP\'e Geçin',
+                            isPremium ? 'VIP Üye' : 'VIP\'e Geçin',
                             style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
@@ -91,7 +87,7 @@ class VipCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isVip
+                            isPremium
                                 ? 'Sınırsız öğrenci ve tüm avantajlar aktif.'
                                 : 'Sınırsız öğrenci ekleyin, avantajlardan yararlanın.',
                             style: TextStyle(
@@ -115,10 +111,5 @@ class VipCard extends StatelessWidget {
         );
       },
     );
-  }
-
-  Future<CoachEntity?> _getCoach(String uid) async {
-    final result = await sl<UserRepository>().getCoachByUid(uid);
-    return result.fold((_) => null, (c) => c);
   }
 }

@@ -49,7 +49,6 @@ dependencies:
   file_picker: ^8.0.0
   image_picker: ^1.0.7
   connectivity_plus: ^6.0.3
-  purchases_flutter: ^8.6.0
   flutter_screenutil: ^5.9.3
 
 dev_dependencies:

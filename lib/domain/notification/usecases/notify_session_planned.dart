@@ -27,8 +27,7 @@ class NotifySessionPlannedUseCase implements UseCase<Either<String, void>, Sessi
     String body = '${session.studentName} için ${_formatDate(session.date)} ${session.startTime}';
     final note = _combinedSessionNote(session);
     if (note.isNotEmpty) {
-      final trimmed = note.length > 120 ? '${note.substring(0, 117)}...' : note;
-      body += '\nKoç notu: $trimmed';
+      body += '\nKoç notu: $note';
     }
 
     final studentResult = await sl<UserRepository>().getStudentByUid(session.studentId);

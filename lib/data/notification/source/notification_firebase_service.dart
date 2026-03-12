@@ -131,6 +131,8 @@ class NotificationFirebaseServiceImpl extends NotificationFirebaseService {
     }
   }
 
+  /// Okunmamış sayı: recipientUserId eşleşen ve readAt null veya alan yok olan belgeler.
+  /// Client tarafında da readAt kontrolü yapılıyor (Firestore sorgu/cache tutarlılığı için).
   @override
   Stream<int> watchUnreadCount(String userId) {
     return FirebaseFirestore.instance
@@ -138,7 +140,11 @@ class NotificationFirebaseServiceImpl extends NotificationFirebaseService {
         .where('recipientUserId', isEqualTo: userId)
         .where('readAt', isEqualTo: null)
         .snapshots()
-        .map((snapshot) => snapshot.docs.length);
+        .map((snapshot) {
+          return snapshot.docs
+              .where((d) => d.data()['readAt'] == null)
+              .length;
+        });
   }
 
   /// Seans hatırlatması: 1 gün önce akşam 20:00'de gönderilmek üzere kaydedilir.

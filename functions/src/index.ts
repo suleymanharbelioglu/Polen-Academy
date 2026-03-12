@@ -115,3 +115,4 @@ export { deleteStudent } from "./deleteStudent";
 export { updateUserPassword } from "./updateUserPassword";
 export { sendNotificationOnCreate } from "./sendNotificationOnCreate";
 export { sendSessionReminders } from "./sendSessionReminders";
+export { sendOverdueHomeworkNotifications } from "./sendOverdueHomeworkNotifications";

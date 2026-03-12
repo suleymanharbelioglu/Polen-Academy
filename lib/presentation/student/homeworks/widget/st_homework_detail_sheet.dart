@@ -12,8 +12,8 @@ import 'package:polen_academy/domain/homework/usecases/set_homework_submission_s
 import 'package:polen_academy/domain/homework/usecases/upload_homework_file.dart';
 import 'package:polen_academy/domain/notification/usecases/notify_homework_completed_by_student.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
+import 'package:polen_academy/core/utils/link_launcher_helper.dart';
 import 'package:polen_academy/service_locator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 const List<String> _weekdays = [
   'Pazartesi',
@@ -815,13 +815,11 @@ class _TeacherResourceTile extends StatelessWidget {
   static bool _isPdfUrl(String url) => url.toLowerCase().contains('.pdf');
 
   Future<void> _openInBrowser(BuildContext context) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Dosya açılamadı.')));
+    final ok = await LinkLauncherHelper.launchHomeworkLink(url);
+    if (context.mounted && !ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dosya açılamadı.')),
+      );
     }
   }
 
@@ -872,25 +870,37 @@ class _ClickableLink extends StatelessWidget {
 
   final String url;
 
-  Future<void> _openUrl() async {
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _openUrl(BuildContext context) async {
+    final ok = await LinkLauncherHelper.launchHomeworkLink(url);
+    if (context.mounted && !ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link açılamadı.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: _openUrl,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Text(
-          url,
-          style: const TextStyle(
-            color: AppColors.primaryStudent,
-            fontSize: 14,
-            decoration: TextDecoration.underline,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openUrl(context),
+        borderRadius: BorderRadius.circular(4),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                url,
+                style: const TextStyle(
+                  color: AppColors.primaryStudent,
+                  fontSize: 14,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ),
         ),
       ),

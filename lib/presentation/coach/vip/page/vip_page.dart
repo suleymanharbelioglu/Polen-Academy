@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
-import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
-import 'package:polen_academy/data/revenuecat/revenuecat_service.dart';
-import 'package:polen_academy/service_locator.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 
 class VipPage extends StatefulWidget {
   const VipPage({super.key});
@@ -13,89 +11,21 @@ class VipPage extends StatefulWidget {
 }
 
 class _VipPageState extends State<VipPage> {
-  Offerings? _offerings;
-  bool _loading = true;
   bool _purchasing = false;
-  final _rc = RevenueCatService();
-
-  @override
-  void initState() {
-    super.initState();
-    _initAndLoadOfferings();
-  }
-
-  Future<void> _initAndLoadOfferings() async {
-    final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == null || uid.isEmpty) {
-      setState(() => _loading = false);
-      return;
-    }
-    await _rc.configure(uid);
-    final offerings = await _rc.getOfferings();
-    if (mounted) {
-      setState(() {
-        _offerings = offerings;
-        _loading = false;
-      });
-    }
-  }
-
-  Package? get _monthlyPackage {
-    final current = _offerings?.current;
-    if (current == null) return null;
-    final list = current.availablePackages.where((p) => p.packageType == PackageType.monthly).toList();
-    return list.isEmpty ? null : list.first;
-  }
-
-  Package? get _annualPackage {
-    final current = _offerings?.current;
-    if (current == null) return null;
-    final list = current.availablePackages.where((p) => p.packageType == PackageType.annual).toList();
-    return list.isEmpty ? null : list.first;
-  }
-
-  Future<void> _purchase(Package? package) async {
-    if (package == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bu plan şu an kullanılamıyor.'), behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == null) return;
+  Future<void> _purchase() async {
     setState(() => _purchasing = true);
-    final error = await _rc.purchasePackage(package, uid);
+    await Future<void>.delayed(const Duration(milliseconds: 450));
     if (!mounted) return;
+    context.read<IsPremiumCubit>().activatePremium();
     setState(() => _purchasing = false);
-    if (error != null && error.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('VIP üyeliğiniz aktif.'), backgroundColor: AppColors.primaryCoach, behavior: SnackBarBehavior.floating),
-      );
-      Navigator.of(context).pop(true);
-    }
-  }
-
-  Future<void> _restore() async {
-    final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == null) return;
-    setState(() => _purchasing = true);
-    final error = await _rc.restorePurchases(uid);
-    if (!mounted) return;
-    setState(() => _purchasing = false);
-    if (error != null && error.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Satın almalar geri yüklendi.'), backgroundColor: AppColors.primaryCoach, behavior: SnackBarBehavior.floating),
-      );
-      Navigator.of(context).pop(true);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('VIP üyeliğiniz aktif.'),
+        backgroundColor: AppColors.primaryCoach,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    Navigator.of(context).pop(true);
   }
 
   @override
@@ -108,80 +38,71 @@ class _VipPageState extends State<VipPage> {
         centerTitle: true,
         title: const Text('VIP Üyelik', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          if (!_loading && !_purchasing)
-            TextButton(
-              onPressed: _restore,
-              child: const Text('Geri yükle', style: TextStyle(color: Colors.white70, fontSize: 13)),
-            ),
-        ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryCoach))
-          : Stack(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                const SizedBox(height: 8),
+                Text(
+                  'Sınırsız öğrenci, öncelikli destek ve daha fazlası.',
+                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 15, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                _VipPlanCard(
+                  title: 'Aylık Plan',
+                  price: '300',
+                  period: '/ay',
+                  description: 'İstediğiniz zaman iptal edebilirsiniz.',
+                  features: const ['Sınırsız öğrenci', 'Tüm özelliklere erişim', 'Öncelikli destek'],
+                  isPopular: false,
+                  onTap: _purchase,
+                ),
+                const SizedBox(height: 16),
+                _VipPlanCard(
+                  title: 'Yıllık Plan',
+                  price: '3.000',
+                  period: '/yıl',
+                  description: '2 ay bedava – en avantajlı seçenek.',
+                  features: const ['Sınırsız öğrenci', 'Tüm özelliklere erişim', 'Öncelikli destek', 'Yıllık tasarruf'],
+                  isPopular: true,
+                  onTap: _purchase,
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Row(
                     children: [
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sınırsız öğrenci, öncelikli destek ve daha fazlası.',
-                        style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 15, height: 1.4),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 28),
-                      _VipPlanCard(
-                        title: 'Aylık Plan',
-                        price: _monthlyPackage?.storeProduct.priceString ?? '300',
-                        period: '/ay',
-                        description: 'İstediğiniz zaman iptal edebilirsiniz.',
-                        features: const ['Sınırsız öğrenci', 'Tüm özelliklere erişim', 'Öncelikli destek'],
-                        isPopular: false,
-                        onTap: () => _purchase(_monthlyPackage),
-                      ),
-                      const SizedBox(height: 16),
-                      _VipPlanCard(
-                        title: 'Yıllık Plan',
-                        price: _annualPackage?.storeProduct.priceString ?? '3.000',
-                        period: '/yıl',
-                        description: '2 ay bedava – en avantajlı seçenek.',
-                        features: const ['Sınırsız öğrenci', 'Tüm özelliklere erişim', 'Öncelikli destek', 'Yıllık tasarruf'],
-                        isPopular: true,
-                        onTap: () => _purchase(_annualPackage),
-                      ),
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondBackground,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, size: 20, color: AppColors.primaryCoach),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Ödeme RevenueCat ile güvenli altyapıda yapılır. İstediğiniz zaman iptal edebilirsiniz.',
-                                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
-                              ),
-                            ),
-                          ],
+                      Icon(Icons.info_outline, size: 20, color: AppColors.primaryCoach),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Satın alma geçici olarak simüle edilir. Satın alma butonuna bastığınızda premium aktif olur.',
+                          style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (_purchasing)
-                  Container(
-                    color: Colors.black26,
-                    child: const Center(child: CircularProgressIndicator(color: AppColors.primaryCoach)),
-                  ),
               ],
             ),
+          ),
+          if (_purchasing)
+            Container(
+              color: Colors.black26,
+              child: const Center(child: CircularProgressIndicator(color: AppColors.primaryCoach)),
+            ),
+        ],
+      ),
     );
   }
 }

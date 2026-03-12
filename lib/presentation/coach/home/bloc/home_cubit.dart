@@ -5,7 +5,6 @@ import 'package:polen_academy/domain/goals/usecases/revert_topic_progress_for_ho
 import 'package:polen_academy/domain/goals/usecases/sync_topic_progress_from_homework.dart';
 import 'package:polen_academy/domain/homework/entity/homework_submission_entity.dart';
 import 'package:polen_academy/domain/notification/usecases/notify_homework_status_by_coach.dart';
-import 'package:polen_academy/domain/notification/usecases/notify_overdue_to_parent.dart';
 import 'package:polen_academy/domain/notification/usecases/notify_session_status.dart';
 import 'package:polen_academy/domain/homework/usecases/set_homework_submission_status.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
@@ -67,18 +66,7 @@ class HomeCubit extends Cubit<HomeState> {
       completedHomeworks: completed,
       errorMessage: errorMessage,
     ));
-    for (final item in overdue) {
-      sl<NotifyOverdueToParentUseCase>().call(
-        params: NotifyOverdueToParentParams(
-          studentId: item.submission.studentId,
-          studentName: item.studentName,
-          homeworkId: item.homework.id,
-          courseName: item.homework.courseName,
-          topicNames: item.homework.topicNames,
-          description: item.homework.description.trim().isEmpty ? null : item.homework.description,
-        ),
-      );
-    }
+    // Geciken ödev bildirimi veliye akşam 20:00'da Cloud Function ile gönderiliyor (ayrı ayrı).
   }
 
   Future<void> approveSession(String sessionId, [String? statusNote]) async {

@@ -8,11 +8,24 @@ import 'package:polen_academy/domain/notification/repository/notification_reposi
 import 'package:polen_academy/service_locator.dart';
 
 /// App bar'da zil ikonu: sağ altında okunmamış sayısı, tıklanınca bildirim paneli.
+///
+/// ZİL SAYISI NASIL ÇEKİLİYOR?
+/// 1. Uygulama açılınca: _initStream() → NotificationRepository.watchUnreadCount(uid)
+/// 2. watchUnreadCount: Firestore'da canlı dinleme (snapshots):
+///    collection('notifications')
+///    .where('recipientUserId', isEqualTo: giriş yapan kullanıcı uid)
+///    .where('readAt', isEqualTo: null)
+///    .snapshots()
+///    → Her snapshot'ta eşleşen döküman sayısı (docs.length) yayınlanır.
+/// 3. Sayı = Sadece "okunmamış" bildirimler (readAt alanı null olanlar).
+/// 4. Panel kapatılınca: markAllAsRead(uid) ile bu kullanıcının tüm readAt=null
+///    bildirimlerine readAt=serverTimestamp() yazılır. Firestore kuralı gerekir:
+///    allow update: if resource.data.recipientUserId == request.auth.uid
+/// 5. Eğer uygulama açıldığında zil "tüm" sayıyı gösteriyorsa: Firestore'da
+///    bildirimlerin hepsi hâlâ readAt=null demektir (markAllAsRead çalışmıyor veya
+///    hiç çağrılmıyor). Console'da notifications koleksiyonunda readAt alanını kontrol edin.
 class NotificationBellButton extends StatefulWidget {
-  const NotificationBellButton({
-    super.key,
-    this.iconColor = Colors.white,
-  });
+  const NotificationBellButton({super.key, this.iconColor = Colors.white});
 
   final Color iconColor;
 
@@ -23,6 +36,9 @@ class NotificationBellButton extends StatefulWidget {
 class _NotificationBellButtonState extends State<NotificationBellButton> {
   Stream<int>? _unreadCountStream;
   String? _userId;
+  /// Panel kapatılınca Firestore güncellenene kadar 0 göstermek için (eski sayı flash etmesin).
+  int? _overrideUnreadCount;
+  StreamSubscription<int>? _overrideSub;
 
   @override
   void initState() {
@@ -30,10 +46,16 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _initStream());
   }
 
+  @override
+  void dispose() {
+    _overrideSub?.cancel();
+    super.dispose();
+  }
+
   void _initStream() {
     if (!mounted) return;
     final uid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (uid == _userId) return;
+    if (uid == _userId && _unreadCountStream != null) return;
     _userId = uid;
     if (uid != null && uid.isNotEmpty) {
       final raw = sl<NotificationRepository>().watchUnreadCount(uid);
@@ -55,6 +77,24 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
     if (uid != _userId) _initStream();
   }
 
+  /// Panel kapatıldı, markAllAsRead çağrıldı; sayıyı hemen 0 göster, stream 0 gelince override kaldır.
+  void _onPanelClosedMarkAllRead() {
+    _overrideSub?.cancel();
+    _overrideUnreadCount = 0;
+    if (_unreadCountStream == null || !mounted) {
+      setState(() {});
+      return;
+    }
+    _overrideSub = _unreadCountStream!.listen((value) {
+      if (value == 0 && mounted && _overrideUnreadCount != null) {
+        _overrideSub?.cancel();
+        _overrideSub = null;
+        setState(() => _overrideUnreadCount = null);
+      }
+    });
+    setState(() {});
+  }
+
   void _onBellTap(BuildContext context) {
     final uid = sl<AuthFirebaseService>().getCurrentUserUid() ?? _userId;
     if (uid != null && uid.isNotEmpty) {
@@ -74,7 +114,8 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
       stream: _unreadCountStream,
       initialData: 0,
       builder: (context, snapshot) {
-        final count = snapshot.hasError ? 0 : (snapshot.data ?? 0);
+        final fromStream = snapshot.hasError ? 0 : (snapshot.data ?? 0);
+        final count = _overrideUnreadCount ?? fromStream;
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -87,12 +128,18 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
                 right: 6,
                 top: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
                   child: Text(
                     count > 99 ? '99+' : count.toString(),
                     style: const TextStyle(
@@ -111,7 +158,8 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
 
   void _showNotificationPanel(BuildContext context, String fallbackUserId) {
     if (!context.mounted) return;
-    final userId = sl<AuthFirebaseService>().getCurrentUserUid() ?? fallbackUserId;
+    final userId =
+        sl<AuthFirebaseService>().getCurrentUserUid() ?? fallbackUserId;
     if (userId.isEmpty) return;
 
     // Önce sadece "Yükleniyor" dialog'u aç (içinde async yok, donma riski yok)
@@ -130,7 +178,10 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
                 children: [
                   CircularProgressIndicator(color: AppColors.primaryCoach),
                   SizedBox(height: 16),
-                  Text('Bildirimler yükleniyor...', style: TextStyle(color: Colors.white70)),
+                  Text(
+                    'Bildirimler yükleniyor...',
+                    style: TextStyle(color: Colors.white70),
+                  ),
                 ],
               ),
             ),
@@ -150,7 +201,10 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
           if (!context.mounted) return;
           Navigator.of(context).pop(); // loading dialog kapat
           if (!context.mounted) return;
-          final list = result.fold((_) => <NotificationEntity>[], (List<NotificationEntity> l) => l);
+          final list = result.fold(
+            (_) => <NotificationEntity>[],
+            (List<NotificationEntity> l) => l,
+          );
           final hasError = result.fold((_) => true, (_) => false);
           _showResultDialog(context, userId, list, hasError);
         })
@@ -175,18 +229,13 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
       builder: (ctx) => _NotificationResultDialog(
         notifications: notifications,
         hasError: hasError,
-        onClose: () {
-          Navigator.of(ctx).pop();
-          // Her zaman okundu işaretle
-          sl<NotificationRepository>().markAllAsRead(userId).then((_) {
-            if (!mounted) return;
-            // Zil sayacını güncellemek için stream'i yeniden oluştur (Firestore snapshot bazen gecikmeli)
-            _userId = null;
-            _initStream();
-          });
-        },
+        onClose: () => Navigator.of(ctx).pop(),
       ),
-    );
+    ).then((_) {
+      // Panel kapandı: okundu işaretle, zilde hemen 0 göster (stream güncellenene kadar)
+      sl<NotificationRepository>().markAllAsRead(userId);
+      _onPanelClosedMarkAllRead();
+    });
   }
 }
 
@@ -220,9 +269,20 @@ class _NotificationResultDialog extends StatelessWidget {
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       title: Row(
         children: [
-          const Icon(Icons.notifications_outlined, color: Colors.white70, size: 24),
+          const Icon(
+            Icons.notifications_outlined,
+            color: Colors.white70,
+            size: 24,
+          ),
           const SizedBox(width: 10),
-          const Text('Bildirimler', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Bildirimler',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white70),
@@ -232,42 +292,18 @@ class _NotificationResultDialog extends StatelessWidget {
       ),
       content: SizedBox(
         width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: maxH - 60,
-              child: hasError
-                  ? _buildError(context)
-                  : notifications.isEmpty
-                      ? _buildEmpty(context)
-                      : ListView.separated(
-                          itemCount: notifications.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
-                          itemBuilder: (context, index) => _NotificationTile(n: notifications[index]),
-                        ),
-            ),
-            const SizedBox(height: 12),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onClose,
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryCoach.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryCoach.withOpacity(0.5), width: 1),
-                  ),
-                  child: const Center(
-                    child: Text('Kapat', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                  ),
+        child: SizedBox(
+          height: maxH - 60,
+          child: hasError
+              ? _buildError(context)
+              : notifications.isEmpty
+              ? _buildEmpty(context)
+              : ListView.separated(
+                  itemCount: notifications.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) =>
+                      _NotificationTile(n: notifications[index]),
                 ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -280,7 +316,10 @@ class _NotificationResultDialog extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.white38),
           const SizedBox(height: 12),
-          const Text('Bildirimler yüklenemedi.', style: TextStyle(color: Colors.white54, fontSize: 15)),
+          const Text(
+            'Bildirimler yüklenemedi.',
+            style: TextStyle(color: Colors.white54, fontSize: 15),
+          ),
         ],
       ),
     );
@@ -293,7 +332,10 @@ class _NotificationResultDialog extends StatelessWidget {
         children: [
           Icon(Icons.notifications_none, size: 48, color: Colors.white38),
           const SizedBox(height: 12),
-          const Text('Henüz bildirim yok.', style: TextStyle(color: Colors.white54, fontSize: 15)),
+          const Text(
+            'Henüz bildirim yok.',
+            style: TextStyle(color: Colors.white54, fontSize: 15),
+          ),
         ],
       ),
     );
@@ -358,11 +400,26 @@ class _NotificationTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(n.title, style: TextStyle(color: titleColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                Text(
+                  n.title,
+                  style: TextStyle(
+                    color: titleColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(n.body, style: TextStyle(color: bodyColor, fontSize: 13, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
+                Text(
+                  n.body,
+                  style: TextStyle(color: bodyColor, fontSize: 13, height: 1.3),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 6),
-                Text(_formatTime(n.createdAt), style: TextStyle(color: bodyColor, fontSize: 11)),
+                Text(
+                  _formatTime(n.createdAt),
+                  style: TextStyle(color: bodyColor, fontSize: 11),
+                ),
               ],
             ),
           ),

@@ -36,7 +36,7 @@ class StudentDetailState {
 
   const StudentDetailState({
     this.student,
-    this.rangeFilter = StudentDetailRangeFilter.lastWeek,
+    this.rangeFilter = StudentDetailRangeFilter.all,
     this.overdueCount = 0,
     this.missingCount = 0,
     this.notDoneCount = 0,

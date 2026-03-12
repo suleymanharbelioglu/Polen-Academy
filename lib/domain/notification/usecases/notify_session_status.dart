@@ -41,13 +41,9 @@ class NotifySessionStatusUseCase implements UseCase<Either<String, void>, Notify
     final title = params.isCompleted ? 'Seans tamamlandı' : 'Seans iptal edildi';
     String body = '${params.studentName} - ${_formatDate(params.date)} ${params.startTime}';
     if (params.statusNote != null && params.statusNote!.trim().isNotEmpty) {
-      final note = params.statusNote!.trim();
-      final trimmed = note.length > 100 ? '${note.substring(0, 97)}...' : note;
-      body += '\nKoç yorumu: $trimmed';
+      body += '\nKoç yorumu: ${params.statusNote!.trim()}';
     } else if (params.sessionNote != null && params.sessionNote!.trim().isNotEmpty) {
-      final note = params.sessionNote!.trim();
-      final trimmed = note.length > 100 ? '${note.substring(0, 97)}...' : note;
-      body += '\nSeans konusu: $trimmed';
+      body += '\nSeans konusu: ${params.sessionNote!.trim()}';
     }
 
     final studentResult = await sl<UserRepository>().getStudentByUid(params.studentId);
