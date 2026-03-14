@@ -25,7 +25,9 @@ class ParentSignInPage extends StatelessWidget {
             LoadingOverlay.hide(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
+                content: Text(
+                  NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -46,7 +48,9 @@ class _ParentSignInContent extends StatefulWidget {
 
 class _ParentSignInContentState extends State<_ParentSignInContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'sadettinsumak@polenacademy.com');
+  final _emailController = TextEditingController(
+    text: 'sadettinsumak@polenacademy.com',
+  );
   final _passwordController = TextEditingController(text: '12345678');
 
   @override
@@ -60,11 +64,11 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
     if (_formKey.currentState?.validate() ?? false) {
       LoadingOverlay.show(context);
       context.read<ParentSigninCubit>().signIn(
-            ParentSigninReq(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
+        ParentSigninReq(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -108,8 +112,9 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: 'E-posta',
-                                labelStyle:
-                                    const TextStyle(color: Colors.white70),
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
+                                ),
                                 hintText: 'E-posta adresiniz',
                                 hintStyle: const TextStyle(color: Colors.grey),
                                 filled: true,
@@ -130,8 +135,9 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 labelText: 'Şifre',
-                                labelStyle:
-                                    const TextStyle(color: Colors.white70),
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
+                                ),
                                 hintText: 'Şifreniz',
                                 hintStyle: const TextStyle(color: Colors.grey),
                                 filled: true,
@@ -141,8 +147,9 @@ class _ParentSignInContentState extends State<_ParentSignInContent> {
                                   borderSide: BorderSide.none,
                                 ),
                               ),
-                              validator: (v) =>
-                                  (v == null || v.isEmpty) ? 'Şifre gerekli' : null,
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Şifre gerekli'
+                                  : null,
                             ),
                             const SizedBox(height: 24),
                             SizedBox(

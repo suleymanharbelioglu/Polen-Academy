@@ -20,12 +20,17 @@ class StudentSignInPage extends StatelessWidget {
         listener: (context, state) {
           if (state is StudentSigninSuccess) {
             LoadingOverlay.hide(context);
-            AppNavigator.pushAndRemove(context, const StudentBottomNavbarPage());
+            AppNavigator.pushAndRemove(
+              context,
+              const StudentBottomNavbarPage(),
+            );
           } else if (state is StudentSigninFailure) {
             LoadingOverlay.hide(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage)),
+                content: Text(
+                  NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -46,7 +51,9 @@ class _StudentSignInContent extends StatefulWidget {
 
 class _StudentSignInContentState extends State<_StudentSignInContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'umutsumak@polenacademy.com');
+  final _emailController = TextEditingController(
+    text: 'umutsumak@polenacademy.com',
+  );
   final _passwordController = TextEditingController(text: '12345678');
 
   @override
@@ -60,11 +67,11 @@ class _StudentSignInContentState extends State<_StudentSignInContent> {
     if (_formKey.currentState?.validate() ?? false) {
       LoadingOverlay.show(context);
       context.read<StudentSigninCubit>().signIn(
-            StudentSigninReq(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
+        StudentSigninReq(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -156,8 +163,9 @@ class _StudentSignInCard extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'E-posta gerekli' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'E-posta gerekli'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -194,7 +202,9 @@ class _StudentSignInCard extends StatelessWidget {
                     child: const Text(
                       'Giriş Yap',
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

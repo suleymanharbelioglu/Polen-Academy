@@ -32,7 +32,9 @@ class _CoachSignInPageContent extends StatefulWidget {
 
 class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'harba.suleyman@gmail.com');
+  final _emailController = TextEditingController(
+    text: 'harba.suleyman@gmail.com',
+  );
   final _passwordController = TextEditingController(text: 'cmylmZ.31');
 
   @override
@@ -74,7 +76,9 @@ class _CoachSignInPageContentState extends State<_CoachSignInPageContent> {
           _navigateToHome();
         } else if (state is CoachSigninFailure) {
           LoadingOverlay.hide(context);
-          _showError(NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage));
+          _showError(
+            NetworkErrorHelper.getUserFriendlyMessage(state.errorMessage),
+          );
         }
       },
       child: Scaffold(
