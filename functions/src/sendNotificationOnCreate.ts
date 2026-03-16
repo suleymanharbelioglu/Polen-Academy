@@ -46,7 +46,7 @@ export const sendNotificationOnCreate = functions
           payload: {
             aps: {
               sound: "default",
-              contentAvailable: 1,
+              contentAvailable: true,
             },
           },
         },
