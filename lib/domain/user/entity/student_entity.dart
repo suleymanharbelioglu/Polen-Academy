@@ -13,6 +13,8 @@ class StudentEntity {
   final DateTime? registeredAt;
   /// Koçun seçtiği odak dersleri (courseId listesi). Hedefler ve ödevde sadece bu dersler gösterilir.
   final List<String> focusCourseIds;
+  /// 11, 12 veya Mezun için alan (Sayısal, Eşit Ağırlık, Sözel, Yabancı Dil). Konuları değiştirmez.
+  final String? academicField;
 
   StudentEntity({
     required this.uid,
@@ -26,6 +28,7 @@ class StudentEntity {
     this.hasParent = false,
     this.registeredAt,
     this.focusCourseIds = const [],
+    this.academicField,
   });
 
   StudentEntity copyWith({
@@ -40,6 +43,7 @@ class StudentEntity {
     bool? hasParent,
     DateTime? registeredAt,
     List<String>? focusCourseIds,
+    String? academicField,
   }) {
     return StudentEntity(
       uid: uid ?? this.uid,
@@ -53,6 +57,7 @@ class StudentEntity {
       hasParent: hasParent ?? this.hasParent,
       registeredAt: registeredAt ?? this.registeredAt,
       focusCourseIds: focusCourseIds ?? this.focusCourseIds,
+      academicField: academicField ?? this.academicField,
     );
   }
 }

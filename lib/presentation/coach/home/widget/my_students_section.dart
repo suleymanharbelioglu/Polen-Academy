@@ -8,6 +8,7 @@ import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/presentation/coach/home/bloc/home_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/student_creation_req_cubit.dart';
+import 'package:polen_academy/presentation/coach/my_all_students/bloc/add_student_form_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/page/my_all_students.dart';
 import 'package:polen_academy/presentation/coach/student_detail/page/student_detail.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
@@ -112,8 +113,11 @@ class StudentsSection extends StatelessWidget {
     final credentials = await showDialog<StudentCredentialsEntity>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => BlocProvider(
-        create: (_) => StudentCreationReqCubit(),
+      builder: (dialogContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => AddStudentFormCubit()),
+          BlocProvider(create: (_) => StudentCreationReqCubit()),
+        ],
         child: const AddStudentDialog(),
       ),
     );
@@ -168,26 +172,42 @@ class _StudentCard extends StatelessWidget {
                 children: [
                   Text(
                     name.isEmpty ? 'Öğrenci' : name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 17),
-                  ),
-                  if (student.studentClass.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      student.studentClass,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 17,
                     ),
-                  ],
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final hasClass = student.studentClass.isNotEmpty;
+                      final hasField = student.academicField != null &&
+                          student.academicField!.isNotEmpty;
+
+                      if (!hasClass && !hasField) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final text = hasClass && hasField
+                          ? '${student.studentClass} · ${student.academicField}'
+                          : (hasClass
+                              ? student.studentClass
+                              : student.academicField!);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
-            ),
-            GeneralProgressCircle(
-              percent: progressPercent,
-              diameter: 58,
-              strokeWidth: 5,
-              showPercent: true,
-              accentColor: AppColors.primaryCoach,
-              backgroundColor: Colors.white,
-              percentFontSize: 20,
             ),
           ],
         ),

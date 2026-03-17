@@ -11,6 +11,8 @@ class GoalsState {
   final bool loading;
   final bool saving;
   final String? errorMessage;
+  /// 11: "11. Sınıf" | "TYT"; 12/Mezun: "TYT" | "AYT" | "YDS". Müfredat bu seviyeye göre yüklenir.
+  final String? selectedExamSection;
 
   const GoalsState({
     this.students = const [],
@@ -21,9 +23,14 @@ class GoalsState {
     this.loading = false,
     this.saving = false,
     this.errorMessage,
+    this.selectedExamSection,
   });
 
   String? get classLevel => selectedStudent?.studentClass;
+
+  /// Yüklenecek müfredat seviyesi: sekme seçiliyse o, değilse öğrencinin sınıfı.
+  String? get effectiveCurriculumLevel =>
+      selectedExamSection ?? selectedStudent?.studentClass;
 
   List<CourseWithUnits> get displayedCourses {
     final tree = curriculumTree;
@@ -45,6 +52,8 @@ class GoalsState {
     bool clearSelectedStudent = false,
     bool clearCurriculum = false,
     bool clearProgress = false,
+    String? selectedExamSection,
+    bool clearSelectedExamSection = false,
   }) {
     return GoalsState(
       students: students ?? this.students,
@@ -55,6 +64,7 @@ class GoalsState {
       loading: loading ?? this.loading,
       saving: saving ?? this.saving,
       errorMessage: errorMessage,
+      selectedExamSection: clearSelectedExamSection ? null : (selectedExamSection ?? this.selectedExamSection),
     );
   }
 }

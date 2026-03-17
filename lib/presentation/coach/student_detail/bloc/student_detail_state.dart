@@ -31,6 +31,10 @@ class StudentDetailState {
   final Map<String, int> courseProgressPercent;
   /// Genel ilerleme: tamamlanan konu sayısı / toplam konu sayısı (0-100).
   final int overallProgressPercent;
+  /// Sınav bölümü bazında genel ilerleme: {"TYT": 40, "AYT": 25} gibi.
+  final Map<String, int> examSectionProgressPercent;
+  /// true olunca Genel İlerleme / Sınav ilerleme / Ders ilerleme widget'ları gösterilir (hesaplandıktan sonra).
+  final bool detailedProgressLoaded;
   final bool loading;
   final String? errorMessage;
 
@@ -52,6 +56,8 @@ class StudentDetailState {
     this.overallProgressPercent = 0,
     this.loading = false,
     this.errorMessage,
+    this.examSectionProgressPercent = const {},
+    this.detailedProgressLoaded = false,
   });
 
   StudentDetailState copyWith({
@@ -72,6 +78,8 @@ class StudentDetailState {
     int? overallProgressPercent,
     bool? loading,
     String? errorMessage,
+    Map<String, int>? examSectionProgressPercent,
+    bool? detailedProgressLoaded,
   }) {
     return StudentDetailState(
       student: student ?? this.student,
@@ -91,6 +99,8 @@ class StudentDetailState {
       overallProgressPercent: overallProgressPercent ?? this.overallProgressPercent,
       loading: loading ?? this.loading,
       errorMessage: errorMessage,
+      examSectionProgressPercent: examSectionProgressPercent ?? this.examSectionProgressPercent,
+      detailedProgressLoaded: detailedProgressLoaded ?? this.detailedProgressLoaded,
     );
   }
 }

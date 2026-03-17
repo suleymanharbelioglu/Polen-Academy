@@ -18,7 +18,12 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
   StudentDetailCubit() : super(const StudentDetailState());
 
   Future<void> load(StudentEntity student, String coachId) async {
-    emit(state.copyWith(student: student, loading: true, errorMessage: null));
+    emit(state.copyWith(
+      student: student,
+      loading: true,
+      errorMessage: null,
+      detailedProgressLoaded: false,
+    ));
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final start = StudentDetailRangeHelper.rangeStart(
@@ -44,7 +49,8 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
         end: endWithFuture,
       ),
     );
-    final futureCourseProgress = _loadCourseProgress(student);
+    // Ayrıntılı müfredat + konu ilerlemesi hesaplamasını arka planda yap.
+    _loadCourseProgress(student);
 
     final homeworkResult = await futureHomeworks;
     final homeworks = homeworkResult.fold(
@@ -97,8 +103,6 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
     }).toList();
     final attended = completedSessions.length;
 
-    final (courseProgress, overallPercent) = await futureCourseProgress;
-
     if (!isClosed) {
       emit(
         state.copyWith(
@@ -111,8 +115,10 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
           completedSessions: completedSessions,
           notDoneSessions: notDoneSessions,
           futureSessions: futureSessionsList,
-          courseProgressPercent: courseProgress,
-          overallProgressPercent: overallPercent,
+          // İlk aşamada hızlı yükleme için, ayrıntılı konu hesabı yerine
+          // doğrudan öğrencinin kendi progress alanını kullan.
+          courseProgressPercent: const {},
+          overallProgressPercent: student.progress.clamp(0, 100),
         ),
       );
     }
@@ -126,49 +132,111 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
     if (student != null && coachId.isNotEmpty) load(student, coachId);
   }
 
-  Future<(Map<String, int>, int)> _loadCourseProgress(
+  Future<void> _loadCourseProgress(
     StudentEntity student,
   ) async {
-    const empty = (<String, int>{}, 0);
     final classLevel = student.studentClass;
-    if (classLevel.isEmpty) return empty;
-    final treeResult = await sl<GetCurriculumTreeUseCase>().call(
-      params: classLevel,
-    );
+    if (classLevel.isEmpty) return;
+
     final progressResult = await sl<GetStudentTopicProgressUseCase>().call(
       params: student.uid,
     );
-    if (treeResult.isLeft() || progressResult.isLeft()) return empty;
-    final tree = treeResult.fold((_) => null, (t) => t)!;
+    if (progressResult.isLeft()) return;
     final progressMap = progressResult.fold(
       (_) => <String, StudentTopicProgressEntity>{},
       (m) => m,
     );
-    final Map<String, int> out = {};
-    int totalTopics = 0;
-    double totalContribution = 0;
-    for (final courseWithUnits in tree.courses) {
-      int total = 0;
-      double courseContribution = 0;
-      for (final unit in courseWithUnits.units) {
-        for (final topic in unit.topics) {
-          total++;
-          totalTopics++;
-          final p = progressMap[topic.id];
-          final c = StudentTopicProgressEntity.progressContribution(p);
-          courseContribution += c;
-          totalContribution += c;
+
+    final Map<String, int> courseOut = {};
+    final Map<String, int> examOut = {};
+    int overallTotalTopics = 0;
+    double overallTotalContribution = 0;
+
+    // Yardımcı: belirli müfredat seviyesi ve isteğe bağlı prefix filtresiyle ilerleme hesapla.
+    Future<void> computeForLevel(String level, {String? courseIdPrefix, String? examKey}) async {
+      final treeResult = await sl<GetCurriculumTreeUseCase>().call(params: level);
+      if (treeResult.isLeft()) return;
+      final tree = treeResult.fold((_) => null, (t) => t)!;
+      int levelTotalTopics = 0;
+      double levelTotalContribution = 0;
+      for (final courseWithUnits in tree.courses) {
+        if (courseIdPrefix != null &&
+            !courseWithUnits.course.id.startsWith(courseIdPrefix)) {
+          continue;
+        }
+        int total = 0;
+        double courseContribution = 0;
+        for (final unit in courseWithUnits.units) {
+          for (final topic in unit.topics) {
+            total++;
+            levelTotalTopics++;
+            overallTotalTopics++;
+            final p = progressMap[topic.id];
+            final c = StudentTopicProgressEntity.progressContribution(p);
+            courseContribution += c;
+            levelTotalContribution += c;
+            overallTotalContribution += c;
+          }
+        }
+        if (total > 0) {
+          final key =
+              examKey != null ? '$examKey - ${courseWithUnits.course.name}' : courseWithUnits.course.name;
+          courseOut[key] = ((courseContribution / total) * 100)
+              .round()
+              .clamp(0, 100);
         }
       }
-      if (total > 0) {
-        out[courseWithUnits.course.name] = ((courseContribution / total) * 100)
+      if (examKey != null && levelTotalTopics > 0) {
+        examOut[examKey] = ((levelTotalContribution / levelTotalTopics) * 100)
             .round()
             .clamp(0, 100);
       }
     }
-    final overallPercent = totalTopics > 0
-        ? ((totalContribution / totalTopics) * 100).round().clamp(0, 100)
+
+    // 11 / 12 / Mezun için sınav bazlı; diğerleri için sadece sınıf seviyesine göre.
+    bool hasPrefix(String prefix) =>
+        student.focusCourseIds.any((id) => id.startsWith(prefix));
+
+    if (classLevel == '11. Sınıf' ||
+        classLevel == '12. Sınıf' ||
+        classLevel == 'Mezun') {
+      // 11. sınıf dersi
+      if (classLevel == '11. Sınıf' && hasPrefix('course_11_')) {
+        await computeForLevel('11. Sınıf', courseIdPrefix: 'course_11_', examKey: '11. Sınıf');
+      }
+      // TYT / AYT / YDS
+      if (hasPrefix('course_tyt_')) {
+        await computeForLevel('TYT', courseIdPrefix: 'course_tyt_', examKey: 'TYT');
+      }
+      if (hasPrefix('course_ayt_')) {
+        await computeForLevel('AYT', courseIdPrefix: 'course_ayt_', examKey: 'AYT');
+      }
+      if (hasPrefix('course_yds_')) {
+        await computeForLevel('YDS', courseIdPrefix: 'course_yds_', examKey: 'YDS');
+      }
+      // Eğer hiçbir sınav bölümü yoksa, sınıf seviyesini genel olarak kullan.
+      if (courseOut.isEmpty) {
+        await computeForLevel(classLevel);
+      }
+    } else {
+      await computeForLevel(classLevel);
+    }
+
+    final overallPercent = overallTotalTopics > 0
+        ? ((overallTotalContribution / overallTotalTopics) * 100)
+            .round()
+            .clamp(0, 100)
         : 0;
-    return (out, overallPercent);
+
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          courseProgressPercent: courseOut,
+          overallProgressPercent: overallPercent,
+          examSectionProgressPercent: examOut,
+          detailedProgressLoaded: true,
+        ),
+      );
+    }
   }
 }

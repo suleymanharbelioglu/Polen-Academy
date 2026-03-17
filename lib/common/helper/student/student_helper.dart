@@ -17,6 +17,26 @@ class StudentHelper {
     ];
   }
 
+  /// 11, 12 veya Mezun için alan seçenekleri. Konuları değiştirmez, sadece kayıt için.
+  static List<String> getAcademicFieldOptions() {
+    return [
+      'Alan Seçilmedi',
+      'Sayısal (MF)',
+      'Eşit Ağırlık (TM)',
+      'Sözel (TS)',
+      'Yabancı Dil',
+    ];
+  }
+
+  static bool isClassWithAcademicField(String classLevel) {
+    return classLevel == '11. Sınıf' || classLevel == '12. Sınıf' || classLevel == 'Mezun';
+  }
+
+  /// 11. sınıf: 11. Sınıf + TYT; 12 / Mezun: TYT + AYT + YDS
+  static bool isClassWithExamSections(String classLevel) {
+    return classLevel == '11. Sınıf' || classLevel == '12. Sınıf' || classLevel == 'Mezun';
+  }
+
   static String generateParentId(String studentName) {
     // Öğrenci adından veli ID'si üret
     final timestamp = DateTime.now().millisecondsSinceEpoch;

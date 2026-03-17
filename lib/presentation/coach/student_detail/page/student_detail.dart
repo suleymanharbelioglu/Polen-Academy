@@ -101,10 +101,12 @@ class StudentDetailView extends StatelessWidget {
                   ProfileSection(student: student),
                   const SizedBox(height: 20),
                   StatusSectionsWithRange(state: state, student: student),
-                  const SizedBox(height: 20),
-                  GeneralProgressSection(state: state),
-                  const SizedBox(height: 20),
-                  ClassProgressSection(state: state),
+                  if (state.detailedProgressLoaded) ...[
+                    const SizedBox(height: 20),
+                    GeneralProgressSection(state: state),
+                    const SizedBox(height: 20),
+                    ClassProgressSection(state: state),
+                  ],
                   const SizedBox(height: 20),
                   SettingsSection(
                     student: student,

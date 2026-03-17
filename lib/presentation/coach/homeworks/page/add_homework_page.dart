@@ -90,6 +90,8 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildTypeDropdown(context, state),
+                  const SizedBox(height: 12),
+                  _buildExamSectionChips(context, state),
                   const SizedBox(height: 16),
                   _buildEndDateDisplay(state.endDate),
                   const SizedBox(height: 16),
@@ -167,6 +169,45 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
     );
   }
 
+  Widget _buildExamSectionChips(BuildContext context, AddHomeworkState state) {
+    final cubit = context.read<AddHomeworkCubit>();
+    final options = cubit.getExamSectionOptions();
+    if (options.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Sınav Türü',
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 4,
+          children: options
+              .map(
+                (o) => FilterChip(
+                  label: Text(
+                    o,
+                    style: TextStyle(
+                      color: state.selectedExamSection == o
+                          ? Colors.black
+                          : Colors.white,
+                    ),
+                  ),
+                  selected: state.selectedExamSection == o,
+                  selectedColor: AppColors.primaryCoach,
+                  backgroundColor: AppColors.secondBackground,
+                  showCheckmark: false,
+                  onSelected: (_) => cubit.selectExamSection(o),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEndDateDisplay(DateTime date) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -210,6 +251,11 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
     if (tree == null || tree.courses.isEmpty) {
       return const SizedBox.shrink();
     }
+    final availableCourseIds =
+        tree.courses.map((c) => c.course.id).toSet();
+    final selectedCourseId = availableCourseIds.contains(state.courseId)
+        ? state.courseId
+        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,7 +273,7 @@ class _AddHomeworkViewState extends State<_AddHomeworkView> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: state.courseId,
+              value: selectedCourseId,
               isExpanded: true,
               dropdownColor: AppColors.background,
               style: const TextStyle(color: Colors.white),

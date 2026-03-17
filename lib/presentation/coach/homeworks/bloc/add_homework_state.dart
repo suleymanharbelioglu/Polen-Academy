@@ -23,6 +23,8 @@ class AddHomeworkState {
   final CurriculumTree? curriculumTree;
   final bool loading;
   final String? errorMessage;
+  /// 11: "11. Sınıf" | "TYT"; 12/Mezun: "TYT" | "AYT" | "YDS". Müfredat bu seviyeye göre yüklenir.
+  final String? selectedExamSection;
 
   const AddHomeworkState({
     this.type = HomeworkType.topicBased,
@@ -43,6 +45,7 @@ class AddHomeworkState {
     this.curriculumTree,
     this.loading = false,
     this.errorMessage,
+    this.selectedExamSection,
   });
 
   AddHomeworkState copyWith({
@@ -64,6 +67,7 @@ class AddHomeworkState {
     CurriculumTree? curriculumTree,
     bool? loading,
     String? errorMessage,
+    String? selectedExamSection,
   }) {
     return AddHomeworkState(
       type: type ?? this.type,
@@ -84,6 +88,7 @@ class AddHomeworkState {
       curriculumTree: curriculumTree ?? this.curriculumTree,
       loading: loading ?? this.loading,
       errorMessage: errorMessage,
+      selectedExamSection: selectedExamSection ?? this.selectedExamSection,
     );
   }
 }

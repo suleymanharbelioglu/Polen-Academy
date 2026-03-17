@@ -96,7 +96,19 @@ class _GoalsViewState extends State<_GoalsView> {
                   ),
                   if (state.selectedStudent != null) ...[
                     const SizedBox(height: 16),
-                    _ClassLevelRow(classLevel: state.classLevel ?? ''),
+                    _ClassLevelRow(
+                      classLevel: state.classLevel ?? '',
+                      academicField: state.selectedStudent!.academicField,
+                    ),
+                    if (state.selectedStudent != null &&
+                        context.read<GoalsCubit>().getExamSectionOptions(state.selectedStudent!).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _ExamSectionChips(
+                        options: context.read<GoalsCubit>().getExamSectionOptions(state.selectedStudent!),
+                        selected: state.selectedExamSection ?? '',
+                        onSelected: (s) => context.read<GoalsCubit>().selectExamSection(s),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     if (state.curriculumTree != null &&
                         state.curriculumTree!.courses.isNotEmpty) ...[
@@ -167,9 +179,10 @@ class _GoalsViewState extends State<_GoalsView> {
 }
 
 class _ClassLevelRow extends StatelessWidget {
-  const _ClassLevelRow({required this.classLevel});
+  const _ClassLevelRow({required this.classLevel, this.academicField});
 
   final String classLevel;
+  final String? academicField;
 
   @override
   Widget build(BuildContext context) {
@@ -193,8 +206,51 @@ class _ClassLevelRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (academicField != null && academicField!.isNotEmpty) ...[
+            Text(
+              '  •  ',
+              style: TextStyle(color: Colors.white54, fontSize: 14),
+            ),
+            Text(
+              academicField!,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _ExamSectionChips extends StatelessWidget {
+  const _ExamSectionChips({
+    required this.options,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<String> options;
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((option) {
+        final isSelected = option == selected;
+        return FilterChip(
+          label: Text(option),
+          selected: isSelected,
+          onSelected: (_) => onSelected(option),
+          selectedColor: AppColors.primaryCoach.withOpacity(0.4),
+          checkmarkColor: AppColors.primaryCoach,
+        );
+      }).toList(),
     );
   }
 }

@@ -13,6 +13,8 @@ class StudentModel {
   final bool hasParent;
   /// Koçun seçtiği odak dersleri (courseId listesi).
   final List<String> focusCourseIds;
+  /// 11, 12 veya Mezun için alan: Sayısal (MF), Eşit Ağırlık (TM), Sözel (TS), Yabancı Dil. Konuları değiştirmez, sadece bilgi.
+  final String? academicField;
 
   StudentModel({
     required this.uid,
@@ -25,6 +27,7 @@ class StudentModel {
     required this.progress,
     this.hasParent = false,
     this.focusCourseIds = const [],
+    this.academicField,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
@@ -40,6 +43,7 @@ class StudentModel {
       progress: map['progress'] ?? 0,
       hasParent: map['hasParent'] as bool? ?? parentId.toString().isNotEmpty,
       focusCourseIds: (map['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
+      academicField: map['academicField'] as String?,
     );
   }
 
@@ -57,6 +61,7 @@ class StudentModel {
       'role': 'student',
     };
     if (focusCourseIds.isNotEmpty) m['focusCourseIds'] = focusCourseIds;
+    if (academicField != null && academicField!.isNotEmpty) m['academicField'] = academicField;
     return m;
   }
 }
@@ -74,6 +79,7 @@ extension StudentModelX on StudentModel {
       progress: progress,
       hasParent: hasParent,
       focusCourseIds: focusCourseIds,
+      academicField: academicField,
     );
   }
 }
@@ -91,6 +97,7 @@ extension StudentEntityX on StudentEntity {
       progress: progress,
       hasParent: hasParent,
       focusCourseIds: focusCourseIds,
+      academicField: academicField,
     );
   }
 }

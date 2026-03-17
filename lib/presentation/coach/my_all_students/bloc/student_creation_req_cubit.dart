@@ -15,6 +15,7 @@ class StudentCreationReqCubit extends Cubit<StudentCreationReqState> {
       return;
     }
     final focusIds = (data['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? <String>[];
+    final academicField = data['academicField'] as String?;
     final student = StudentModel(
       uid: '',
       studentName: data['firstName'] ?? '',
@@ -26,6 +27,7 @@ class StudentCreationReqCubit extends Cubit<StudentCreationReqState> {
       progress: 0,
       hasParent: false,
       focusCourseIds: focusIds,
+      academicField: academicField != null && academicField.isNotEmpty ? academicField : null,
     );
     createStudent(student);
   }

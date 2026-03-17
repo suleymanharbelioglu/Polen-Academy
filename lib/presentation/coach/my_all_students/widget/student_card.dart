@@ -81,27 +81,36 @@ class StudentCard extends StatelessWidget {
                       fontSize: 17,
                     ),
                   ),
-                  if (student.studentClass.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      student.studentClass,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+                  Builder(
+                    builder: (context) {
+                      final hasClass = student.studentClass.isNotEmpty;
+                      final hasField = student.academicField != null &&
+                          student.academicField!.isNotEmpty;
+
+                      if (!hasClass && !hasField) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final text = hasClass && hasField
+                          ? '${student.studentClass} · ${student.academicField}'
+                          : (hasClass
+                              ? student.studentClass
+                              : student.academicField!);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
-            ),
-            GeneralProgressCircle(
-              percent: student.progress,
-              diameter: 58,
-              strokeWidth: 5,
-              showPercent: true,
-              accentColor: AppColors.primaryCoach,
-              backgroundColor: Colors.white,
-              percentFontSize: 20,
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
+import 'package:polen_academy/common/helper/curriculum/curriculum_helper.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polen_academy/common/widget/offline_banner.dart';
 import 'package:polen_academy/core/configs/theme/app_theme.dart';
@@ -30,7 +31,7 @@ Future<void> main() async {
   await initializeDependencies();
   // FCM token kaydı + uygulama öndeyken gelen bildirimi sistem bildirimi olarak gösterme
   await FcmService.init();
-  // await CurriculumHelper.seedCurriculumIfNeeded();
+  //await CurriculumHelper.seedCurriculumIfNeeded();
 
   // Uygulama her zaman dikey (portre) modda
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

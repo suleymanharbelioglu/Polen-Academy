@@ -89,7 +89,7 @@ class _CoachForgotPasswordPageState extends State<CoachForgotPasswordPage> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'E-posta',
-                      hintText: 'ornek@email.com',
+                      hintText: 'E-posta adresiniz',
                       labelStyle: const TextStyle(color: Colors.grey),
                       hintStyle: const TextStyle(color: Colors.grey),
                       filled: true,

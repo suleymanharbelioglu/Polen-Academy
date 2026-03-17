@@ -41,7 +41,7 @@ class ClassProgressSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$classLevel İlerleme Durumu',
+            '$classLevel / Sınavlara Göre İlerleme',
             style: TextStyle(
               color: accentColor ?? AppColors.primaryCoach,
               fontSize: 20,
@@ -49,6 +49,22 @@ class ClassProgressSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          if (state.examSectionProgressPercent.isNotEmpty) ...[
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: state.examSectionProgressPercent.entries
+                  .map(
+                    (e) => _ExamProgressChip(
+                      label: e.key,
+                      percent: e.value,
+                      accentColor: accentColor,
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 20),
+          ],
           ...List.generate(rowCount, (rowIndex) {
             final start = rowIndex * 2;
             final end = (start + 2).clamp(0, entries.length);
@@ -150,6 +166,47 @@ class CircularProgressItem extends StatelessWidget {
           style: const TextStyle(color: Colors.white, fontSize: 15),
         ),
       ],
+    );
+  }
+}
+
+class _ExamProgressChip extends StatelessWidget {
+  const _ExamProgressChip({
+    required this.label,
+    required this.percent,
+    this.accentColor,
+  });
+
+  final String label;
+  final int percent;
+  final Color? accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = accentColor ?? AppColors.primaryCoach;
+    return Chip(
+      backgroundColor: AppColors.background,
+      shape: StadiumBorder(
+        side: BorderSide(color: color.withOpacity(0.6)),
+      ),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$percent%',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -40,6 +40,18 @@ class CurriculumHelper {
     await _seedGrade10(firestore);
     await _seedGrade11(firestore);
     await _seedGrade12(firestore);
+
+    // TYT, AYT, YDS (12. sınıf / Mezun için; 11. sınıf için TYT)
+    final tytExisting = await firestore
+        .collection(_coursesCollection)
+        .where('classLevel', isEqualTo: 'TYT')
+        .limit(1)
+        .get();
+    if (tytExisting.docs.isEmpty) {
+      await _seedTYT(firestore);
+      await _seedAYT(firestore);
+      await _seedYDS(firestore);
+    }
   }
 
   static Future<void> _setCourse(
@@ -6358,5 +6370,619 @@ class CurriculumHelper {
       name: 'Atom modelleri',
       order: 0,
     );
+  }
+
+  // -------------------------
+  // TYT (11, 12, Mezun odak dersleri)
+  // -------------------------
+  static Future<void> _seedTYT(FirebaseFirestore firestore) async {
+    const classLevel = 'TYT';
+    final tytCourses = [
+      ['course_tyt_turkce', 'Türkçe'],
+      ['course_tyt_matematik', 'Matematik'],
+      ['course_tyt_fizik', 'Fizik'],
+      ['course_tyt_kimya', 'Kimya'],
+      ['course_tyt_biyoloji', 'Biyoloji'],
+      ['course_tyt_geometri', 'Geometri'],
+      ['course_tyt_felsefe', 'Felsefe'],
+      ['course_tyt_cografya', 'Coğrafya'],
+      ['course_tyt_tarih', 'Tarih'],
+      ['course_tyt_din', 'Din Kültürü'],
+    ];
+    final Map<String, List<String>> tytTopicsByCourseId = {
+      // 11. sınıf Türk Dili ve Edebiyatı konularının TYT Türkçe için aynen kullanımı
+      'course_tyt_turkce': [
+        'Edebiyat-Toplum İlişkisi',
+        'Edebiyatın Sanat Akımları ile İlişkisi',
+        'Yazım Kuralları',
+        'Noktalama İşaretleri',
+        'Cumhuriyet Döneminde (1923-1940 arası) Hikâye',
+        'Cumhuriyet Döneminde (1940-1960 arası) Hikâye',
+        'Cümlenin Öğeleri',
+        'Tanzimat Dönemi Şiir',
+        'Servetifünun Şiir',
+        'Saf Şiir Anlayışına Bağlı Şiir',
+        'Milli Edebiyat Döneminde Şiir',
+        'Türk Dünyası Edebiyatında Şiir',
+        'Makale',
+        'Sohbet (Söyleşi)',
+        'Fıkra (Köşe Yazısı)',
+        'Roman',
+        'Cumhuriyet Dönemi Roman',
+        'Dünya Edebiyatında Roman',
+        'Anlatım Bozukluğu',
+        'Tiyatro',
+        'Cumhuriyet Döneminde Tiyatro',
+        'Eleştiri',
+        'Mülakat',
+        'Röportaj',
+      ],
+      // 11. sınıf Matematik konuları → TYT Matematik
+      'course_tyt_matematik': [
+        'Derece - Dakika - Saniye',
+        'Birim Çember',
+        'Esas Ölçü',
+        'İlk Üçgende Trigonometrik Oranlar',
+        'Trigonometrik Fonksiyonların Tanımı',
+        'Özel Açılar, İndirgeme',
+        'Trigonometrik Özdeşlikler',
+        'Trigonometrik Fonksiyonlarda Sıralama',
+        'Kosinüs ve Sinüs Teoremi',
+        'Periyot',
+        'Trigonometrik Fonksiyonların Grafikleri',
+        'Ters Trigonometrik Fonksiyonlar',
+        'Noktanın Analitik İncelemesi',
+        'Doğrunun Analitik İncelemesi',
+        'Fonksiyonlarla İlgili Uygulamalar',
+        'İkinci Dereceden Fonksiyonlar ve Grafikleri (Parabol)',
+        'Fonksiyonların Dönüşümleri',
+        'İkinci Dereceden İki Bilinmeyenli Denklem Sistemleri',
+        'Eşitsizlikler',
+        'Çemberin Temel Elemanları',
+        'Çemberde Açı',
+        'Çemberde Teğet',
+        'Dairenin Çevresi ve Alanı',
+        'Silindir',
+        'Koni',
+        'Küre',
+        'Koşullu Olasılık',
+        'Bağımlı-Bağımsız Olaylar Olasılığı',
+        'Deneysel ve Teorik Olasılık',
+      ],
+      // 11. sınıf Fizik konuları → TYT Fizik
+      'course_tyt_fizik': [
+        'Vektörler',
+        'Bağıl Hareket',
+        'Newton\'un Hareket Yasaları',
+        'Bir Boyutta İvmeli Hareket',
+        'Serbest Düşme',
+        'Hava Direnç Kuvveti',
+        'Düşey Atış Hareketi',
+        'Yatay Atış Hareketi',
+        'Eğik Atış Hareketi',
+        'İş ve Enerji',
+        'Esneklik Potansiyel Enerji',
+        'Mekanik Enerji',
+        'Mekanik Enerjinin Korunumu',
+        'İtme ve Çizgisel Momentum',
+        'Çarpışmalar ve Momentum Korunumu',
+        'Tork',
+        'Denge',
+        'Kütle ve Ağırlık Merkezi',
+        'Basit Makineler',
+        'Elektriksel Kuvvet',
+        'Elektrik Alan',
+        'Elektriksel Potansiyel',
+        'Elektriksel Potansiyel ve Elektrik Alan',
+        'Elektriksel Potansiyel, Enerji ve İş',
+        'Düzgün Elektrik Alan',
+        'Kondansatör',
+        'Manyetik Alan',
+        'Manyetik Kuvvet',
+        'İndüksiyon Akımı',
+        'Öz İndüksiyon Akımı',
+        'Lorentz Kuvveti',
+        'Alternatif Akım',
+        'Transformatörler',
+      ],
+      // 11. sınıf Kimya konuları → TYT Kimya
+      'course_tyt_kimya': [
+        'Atomun kuantum modeli ve kuantum sayıları',
+        'Elektron dizilişi, grup ve periyot bulma',
+        'Periyodik tablo ve periyodik değişimler',
+        'Yükseltgenme basamağı',
+        'Gazların özellikleri, gaz kanunları ve ideal gaz denklemi',
+        'Gazların kinetiği',
+        'Gazlarda kısmi basınç',
+        'Gazların karşılaştırılması ve gazların yoğunluğu',
+        'Gazların karıştırılması',
+        'Su üstünde gaz toplanması ve denge buhar basıncı',
+        'Gerçek gazlar',
+        'Çözücü-çözünen etkileşimleri',
+        'Derişim birimleri',
+        'Koligatif özellikler',
+        'Çözünürlük',
+        'Endotermik-ekzotermik tepkimeler ve grafikleri',
+        'Oluşum entalpileri',
+        'Bağ enerjileri ve hess yasası',
+        'Ortalama tepkime hızı, hız ölçümü ve çarpışma teorisi',
+        'Hız bağıntısı',
+        'Hıza etki eden faktörler',
+        'Kademeli tepkimelerde hız ve deneysel verilerle hız',
+        'Denge oluşumu ve şartları',
+        'Denge sabitleri (Kc-Kp) ve hesaplamaları',
+        'Dengede hess prensipleri ve denge kesri',
+        'Dengeye etki eden faktörler',
+        'Asit-baz özellikleri ve Konjuge asit-baz çifti',
+        'Suyun oto iyonizasyonu ve PH-POH kavramı',
+        'Kuvvetli asit ve bazlarda PH-POH',
+        'Zayıf asit ve bazlarda PH-POH',
+        'Tampon çözeltilerde PH-POH ve hidroliz',
+        'Nötrleşme ve titrasyon',
+        'Çözünürlük dengesi ve sabiti (Kçç)',
+        'Çözünürlüğe etki eden faktörler',
+        'Çözünürlüğe ortak iyon etkisi',
+      ],
+      // 11. sınıf Biyoloji konuları → TYT Biyoloji
+      'course_tyt_biyoloji': [
+        'Sinir Dokusu - Nöronların Özellikleri',
+        'İnsanda Sinir Sistemi',
+        'Endokrin Sistem ve Hormonlar',
+        'Duyu Organları',
+        'Destek ve Hareket Sistemi',
+        'Sindirim Sistemi ve Bozuklukları',
+        'Solunum Sistemi ve Bozuklukları',
+        'Dolaşım Sistemi ve Bozuklukları',
+        'Bağışıklık Sistemi',
+        'Boşaltım Sistemi ve Bozuklukları',
+        'Üriner Sistem',
+        'Üreme Sistemi ve Gelişim',
+        'Komünite Ekolojisi',
+        'Popülasyon Ekolojisi',
+      ],
+      // 11. sınıf Coğrafya → TYT Coğrafya
+      'course_tyt_cografya': [
+        'Türkiye\'nin Yer Şekilleri',
+        'Türkiye\'de İklim ve Bitki Örtüsü',
+        'Türkiye\'de Nüfus ve Yerleşme',
+        'Türkiye\'nin Ekonomik Faaliyetleri',
+        'Türkiye\'de Ulaşım ve Ticaret',
+        'Türkiye\'de Çevre ve Toplum',
+      ],
+      // 11. sınıf Tarih → TYT Tarih (özet başlıklar)
+      'course_tyt_tarih': [
+        'XVII. Yüzyıl Siyasi Ortamında Osmanlı Devleti',
+        'XVIII. Yüzyıl Siyasi Ortamında Osmanlı Devleti',
+        'Yeni Çağ Avrupasında Meydana Gelen Gelişmeler',
+        'Osmanlı Sosyo-Ekonomik Yapısında Değişiklikler',
+        'Osmanlı Devletinde Demokratikleşme Süreci',
+        'Avrupa\'da Devrimler ve Değişimler',
+        'Ulus Devlete Geçişte Demografik Değişim',
+        'Modernleşme ve Sosyal Yaşamda Değişim',
+      ],
+    };
+
+    for (var i = 0; i < tytCourses.length; i++) {
+      final courseId = tytCourses[i][0];
+      final name = tytCourses[i][1];
+      await _setCourse(
+        firestore,
+        courseId: courseId,
+        classLevel: classLevel,
+        name: name,
+      );
+      final unitId =
+          'unit_tyt_${courseId.replaceFirst('course_tyt_', '')}_1';
+      await _setUnit(
+        firestore,
+        unitId: unitId,
+        courseId: courseId,
+        name: 'TYT Konuları',
+        order: 0,
+      );
+      final topics = tytTopicsByCourseId[courseId];
+      if (topics == null || topics.isEmpty) {
+        await _setTopic(
+          firestore,
+          topicId: 'topic_tyt_${courseId.replaceFirst('course_tyt_', '')}_1_1',
+          unitId: unitId,
+          name: '$name TYT konuları',
+          order: 0,
+        );
+      } else {
+        for (var t = 0; t < topics.length; t++) {
+          await _setTopic(
+            firestore,
+            topicId:
+                'topic_tyt_${courseId.replaceFirst('course_tyt_', '')}_1_${t + 1}',
+            unitId: unitId,
+            name: topics[t],
+            order: t,
+          );
+        }
+      }
+    }
+  }
+
+  // -------------------------
+  // AYT (12, Mezun odak dersleri)
+  // -------------------------
+  static Future<void> _seedAYT(FirebaseFirestore firestore) async {
+    const classLevel = 'AYT';
+    final aytCourses = [
+      ['course_ayt_sosyoloji', 'Sosyoloji'],
+      ['course_ayt_psikoloji', 'Psikoloji'],
+      ['course_ayt_felsefe', 'Felsefe'],
+      ['course_ayt_tde', 'Türk Dili ve Edebiyatı'],
+      ['course_ayt_cografya', 'Coğrafya'],
+      ['course_ayt_tarih', 'Tarih'],
+      ['course_ayt_kimya', 'Kimya'],
+      ['course_ayt_biyoloji', 'Biyoloji'],
+      ['course_ayt_mantik', 'Mantık'],
+      ['course_ayt_matematik', 'Matematik'],
+      ['course_ayt_fizik', 'Fizik'],
+      ['course_ayt_geometri', 'Geometri'],
+    ];
+    final Map<String, List<String>> aytTopicsByCourseId = {
+      'course_ayt_sosyoloji': [
+        'Sosyoloji Giriş',
+        'Birey Toplum İlişkisi',
+        'Toplum Yapısı',
+        'Toplumda Değişme ve Gelişme',
+        'Toplum ile Kültür',
+        'Toplumun Kurumları',
+      ],
+      'course_ayt_psikoloji': [
+        'Psikoloji Giriş',
+        'Psikoloji Temel Süreçleri',
+        'Öğrenme, Bellek ve Düşünme',
+        'Ruh Sağlığı Temelleri',
+      ],
+      'course_ayt_mantik': [
+        'Mantık Giriş',
+        'Klasik Mantık',
+        'Mantık ile Dil',
+        'Sembolik Mantık',
+      ],
+      'course_ayt_felsefe': [
+        'Felsefeyi Tanıma',
+        'Bilgi Felsefesi',
+        'Varlık Felsefesi',
+        'Ahlak Felsefesi',
+        'Sanat Felsefesi',
+        'Din Felsefesi',
+        'Siyaset Felsefesi',
+        'Bilim Felsefesi',
+        'İlk Çağ Felsefesi',
+        'MÖ 6. Yüzyıl-MS. Yüzyıl Felsefesi',
+        'MS 2. Yüzyıl-MS 25. Yüzyıl Felsefesi',
+        '15. Yüzyıl-17. Yüzyıl Felsefesi',
+        '18. Yüzyıl-19. Yüzyıl Felsefesi',
+        '20. Yüzyıl Felsefesi',
+      ],
+      'course_ayt_tde': [
+        'Güzel Sanatlar ve Edebiyat',
+        'Şiirde Ahenk (Ölçü-Uyak-Redif)',
+        'Şiirde Yapı ve Türleri',
+        'Edebi Sanatlar (Söz Sanatları)',
+        'Düzyazı Türleri',
+        'Edebi Akımlar',
+        'İslamiyet Öncesi Sözlü Edebiyat',
+        'İslamiyet Öncesi Yazılı Edebiyat',
+        'İslamiyet Etkisindeki Geçiş Dönemi',
+        'Halk Edebiyatı',
+        'Divan Edebiyatı',
+        'Tanzimat Dönemi',
+        'Servet-i Fünun Dönemi',
+        'Fecr-i Ati Topluluğu',
+        'Milli Edebiyat Dönemi',
+        'Cumhuriyet Dönemi - Şiir',
+        'Cumhuriyet Dönemi - Hikaye - Roman',
+        'Cumhuriyet Dönemi - Tiyatro',
+        'Cumhuriyet Dönemi - Öğretici Metinler',
+        'Türk Dünyası Edebiyatı - Dünya Edebiyatı',
+      ],
+      'course_ayt_cografya': [
+        'Biyoçeşitlilik',
+        'Ekosistem, Enerji Akışı ve Madde Döngüleri',
+        'Su Ekosistemleri',
+        'Doğadaki Ekstrem Olaylar',
+        'Doğa ve Değişim',
+        'Nüfus Politikaları',
+        'Türkiye\'nin Nüfus Projeksiyonları',
+        'Şehirler ve Etki Alanları',
+        'Ekonomik Faaliyet Türleri',
+        'Ekonomik Faaliyetlerin Sosyal ve Kültürel Etkileri',
+        'Doğal Kaynaklar ve Ekonomi',
+        'Türkiye Ekonomisi ve Ekonomik Politikalar',
+        'Medeniyetler Merkezi Anadolu',
+        'Türkiye\'de Arazi Kullanımı',
+        'Türkiye\'de Tarım',
+        'Türkiye\'de Hayvancılık',
+        'Türkiye\'de Madenler ve Enerji Kaynakları',
+        'Türkiye\'de Sanayi',
+        'Türkiye\'de Ulaşım',
+        'Türkiye\'de Ticaret',
+        'Türkiye\'de Turizm',
+        'Türkiye\'nin Bölgesel Kalkınma Projeleri',
+        'Türkiye\'de Bölge Sınıflandırması',
+        'Türkiye\'nin Coğrafi Konumu ve Jeopolitiği',
+        'Coğrafi Keşifler ve Sömürgecilik',
+        'İlk Kültür Merkezleri',
+        'Kültür Bölgelerinin Oluşumu ve Türk Kültürü',
+        'Küresel Ticaret ve Turizm',
+        'Ülkelerin Gelişmişlik Düzeyi ve Doğal Kaynak Potansiyelleri',
+        'Gelişmiş ve Gelişmekte Olan Ülkeler',
+        'Enerji Taşımacılığı',
+        'Uluslararası Örgütler',
+        'Çatışma Bölgeleri',
+        'Doğal Çevrenin Sınırlılığı',
+        'Doğal Kaynak Kullanımının Çevresel Etkileri',
+        'Arazi Kullanımının Çevresel Etkileri',
+        'Küresel Çevre Sorunları',
+        'Doğal Kaynakların Sürdürülebilir Kullanımı',
+      ],
+      'course_ayt_tarih': [
+        'Tarih ve Zaman',
+        'İnsanlığın İlk Dönemleri',
+        'Orta Çağ\'da Dünya',
+        'İlk ve Orta Çağlarda Türk Dünyası',
+        'İslam Medeniyetinin Doğuşu',
+        'Türklerin İslamiyet\'i Kabulü ve İlk Türk İslam Devletleri',
+        'Yerleşme ve Devletleşme Sürecinde Selçuklu Türkiyesi',
+        'Beylikten Devlete Osmanlı Siyaseti (1302-1453)',
+        'Devletleşme Sürecinde Savaşçılar ve Askerler',
+        'Beylikten Devlete Osmanlı Medeniyeti',
+        'Dünya Gücü Osmanlı (1453-1595)',
+        'Sultan ve Osmanlı Merkez Teşkilatı',
+        'Klasik Çağda Osmanlı Toplum Düzeni',
+        'Değişen Dünya Dengeleri Karşısında Osmanlı Siyaseti (1595-1774)',
+        'Değişim Çağında Avrupa ve Osmanlı',
+        'Devrimler Çağında Değişen Devlet-Toplum İlişkileri',
+        'Uluslararası İlişkilerde Denge Stratejisi (1774-1914)',
+        'XIX. ve XX. Yüzyılda Değişen Sosyo-Ekonomik Hayat',
+        'XX. Yüzyıl Başlarında Osmanlı Devleti ve Dünya',
+        'Milli Mücadele\'ye Hazırlık Dönemi',
+        'Milli Mücadele Dönemi',
+        'Atatürkçülük ve Türk İnkılabı',
+        'İki Savaş Arası Dönemde Türkiye ve Dünya',
+        'II. Dünya Savaşı Sürecinde Türkiye ve Dünya',
+        'II. Dünya Savaşı',
+        'II. Dünya Savaşı Sonrasında Türkiye ve Dünya',
+        'Soğuk Savaş Dönemi',
+        'Yumuşama Dönemi ve Sonrası',
+        'Toplumsal Devrim Çağında Dünya ve Türkiye',
+        'XXI. Yüzyılın Eşiğinde Türkiye ve Dünya',
+        'Küreselleşen Dünya',
+      ],
+      'course_ayt_matematik': [
+        'Polinomlar',
+        'Çarpanlara Ayırma',
+        'İkinci Dereceden Denklemler',
+        'Fonksiyonların Dönüşümleri, Ötelenmeleri, Simetri',
+        'Parabol',
+        'İkinci Dereceden Eşitsizlikler',
+        'Toplama Çarpma Yoluyla Seyma',
+        'Permütasyon',
+        'Kombinasyon',
+        'Binom',
+        'Olasılık',
+        'Trigonometri',
+        'Logaritma',
+        'Diziler',
+        'Limit - Süreklilik',
+        'Türev',
+        'İntegral',
+      ],
+      'course_ayt_geometri': [
+        'Temel Geometrik Kavramlar',
+        'Doğruda Açılar',
+        'Üçgende Açılar',
+        'Açı - Kenar Bağıntıları',
+        'Dik Üçgen',
+        'İkizkenar Üçgen',
+        'Eşkenar Üçgen',
+        'Üçgende Açıortay',
+        'Üçgende Kenarortay',
+        'Üçgende Merkezler',
+        'Üçgenin Eşliği ve Benzerliği',
+        'Üçgende Alan',
+        'Çokgenler',
+        'Genel Dörtgenler',
+        'Deltoid',
+        'Yamuk',
+        'Paralelkenar',
+        'Eşkenar Dörtgen',
+        'Dikdörtgen',
+        'Kare',
+        'Noktanın Analitik İncelemesi',
+        'Doğrunun Analitik İncelemesi',
+        'Çemberde Açı',
+        'Çemberde Uzunluk',
+        'Dairede Alan',
+        'Çemberin Analitik İncelemesi',
+        'Dik Prizmalar',
+        'Dik Piramitler',
+        'Silindir',
+        'Koni',
+        'Küre',
+        'Dönüşüm Geometrisi',
+      ],
+      'course_ayt_fizik': [
+        'Vektör ve Kuvvet',
+        'Bağıl Hareket',
+        'Newton\'un Hareket Yasaları',
+        'Doğrusal Hareket',
+        'Yeryüzünde Hareket',
+        'İş ve Enerji',
+        'İtme ve Momentum',
+        'Kuvvet - Tork - Denge',
+        'Ağırlık Merkezi',
+        'Basit Makineler',
+        'Düzgün Çembersel Hareket',
+        'Dönme Kinetik Enerjisi- Açısal Momentum',
+        'Genel Çekim Kanunu ve Kepler Kanunları',
+        'Basit Harmonik Hareket',
+        'Elektriksel Kuvvet',
+        'Elektriksel Alan',
+        'Elektriksel Potansiyel Enerji',
+        'Elektriksel Potansiyel - Elektriksel İş',
+        'Düzgün Elektrik Alan ve Paralel Levhalar',
+        'Sığaçlar',
+        'Manyetik Alan',
+        'Manyetik Kuvvet',
+        'Elektromanyetik İndüksiyon',
+        'Alternatif Akım ve Transformatörler',
+        'Su Dalgalarında Kırınım - Girişim',
+        'Işık Teorileri',
+        'Elektromanyetik Dalgalar',
+        'Atom Modelleri',
+        'Atomaltı Parçacıklar',
+        'Radyoaktivite',
+        'Özel Görelilik',
+        'Siyah Cisim Işıması - Fotoelektrik Olay',
+        'Modern Fiziğin Uygulamaları - Görüntüleme Teknolojisi',
+      ],
+      'course_ayt_biyoloji': [
+        'Sinir Sistemi',
+        'Endokrin Sistem',
+        'Duyu Organları',
+        'Destek ve Hareket Sistemi',
+        'Sindirim Sistemi',
+        'Dolaşım Sistemleri ve Vücut Savunmaları',
+        'Solunum Sistemi',
+        'Üriner Sistem',
+        'Üreme Sistemi ve Embriyonik Gelişim',
+        'Komünite Ekolojisi',
+        'Popülasyon Ekolojisi',
+        'Nükleik Asitler',
+        'Genetik Şifre ve Protein Sentezi',
+        'Genellik Mühendisliği ve Biyoteknoloji',
+        'Fotosentez ve Kemosentez',
+        'Hücresel Solunum',
+        'Bitkisel Dokular ve Organlar',
+        'Bitkilerde Hormonlar ve Bitkilerde Hareket',
+        'Bitkilerde Beslenme ve Madde Taşınması',
+        'Bitkilerde Eşeyli Üreme ve Çimlenme',
+        'Canlılar ve Çevre',
+      ],
+      'course_ayt_kimya': [
+        'Atomun kuantum modeli ve kuantum sayıları',
+        'Elektron dizilişi, grup ve periyot bulma',
+        'Periyodik tablo ve periyodik değişimler',
+        'Yükseltgenme basamağı',
+        'Gazların özellikleri, gaz kanunları ve ideal gaz denklemi',
+        'Gazların kinetiği',
+        'Gazlarda kısmi basınç',
+        'Gazların karşılaştırılması ve gazların yoğunluğu',
+        'Gazların karıştırılması',
+        'Su üstünde gaz toplanması ve denge buhar basıncı',
+        'Gerçek gazlar',
+        'Çözelti-çözünen etkileşimleri',
+        'Derşim birimleri',
+        'Koligatif özellikler',
+        'Çözünürlük',
+        'Endotermik-ekzotermik tepkimeler ve grafikleri',
+        'Oluşum entalpileri',
+        'Bağ enerjileri ve Hess yasası',
+        'Ortalama tepkime hızı, hız ölçümü ve çarpışma teorisi',
+        'Hız bağıntısı',
+        'Hıza etki eden faktörler',
+        'Kademeli tepkimelerde hız ve deneysel verilerle hız',
+        'Denge oluşumu ve şartları',
+        'Denge sabitleri (Kc-Kp) ve hesaplamaları',
+        'Dengede Hess prensipleri ve denge kesri',
+        'Dengeye etki eden faktörler',
+        'Denge denklemleri',
+        'Asit-baz özellikleri ve konjuge asit-baz çifti',
+        'Suyun otoiyonizasyonu ve pH-pOH kavramı',
+        'Kuvvetli asit ve bazlarda pH-pOH',
+        'Zayıf asit ve bazlarda pH-pOH',
+        'Tampon çözeltilerde pH-pOH ve hidroliz',
+        'Nötrleşme ve titrasyon',
+        'Çözünürlük dengesi ve sabiti (Kçç)',
+        'Çözünürlüğe etki eden faktörler',
+        'Çözünürlüğe ortak iyon etkisi',
+        'İndirgenme-yükseltgenme tepkimeleri (Redoks)',
+        'Aktiflik ve aşınma',
+        'Piller ve pil geriliminin hesaplanması',
+        'Pil potansiyeline etki eden faktörler',
+        'Elektroliz',
+        'Faraday yasaları ve hesaplamalar',
+        'Karbon kimyasına giriş ve Lewis yapıları',
+        'Hibritleşme ve molekül geometrisi (VSEPR)',
+        'Hidrokarbonların genel özellikleri',
+        'Alkanlar',
+        'Alkenler',
+        'Alkinler',
+        'Aromatik bileşikler',
+        'Alkoller',
+        'Eterler',
+        'Aldehitler',
+        'Ketonlar',
+        'Karboksilik asitler',
+        'Esterler',
+        'Enerji kaynakları ve bilimsel gelişmeler',
+      ],
+    };
+    for (var i = 0; i < aytCourses.length; i++) {
+      final courseId = aytCourses[i][0];
+      final name = aytCourses[i][1];
+      await _setCourse(firestore, courseId: courseId, classLevel: classLevel, name: name);
+      final unitId = 'unit_ayt_${courseId.replaceFirst('course_ayt_', '')}_1';
+      await _setUnit(firestore, unitId: unitId, courseId: courseId, name: 'AYT Konuları', order: 0);
+      final topics = aytTopicsByCourseId[courseId];
+      if (topics == null || topics.isEmpty) {
+        await _setTopic(
+          firestore,
+          topicId: 'topic_ayt_${courseId.replaceFirst('course_ayt_', '')}_1_1',
+          unitId: unitId,
+          name: '$name AYT konuları',
+          order: 0,
+        );
+      } else {
+        for (var t = 0; t < topics.length; t++) {
+          await _setTopic(
+            firestore,
+            topicId: 'topic_ayt_${courseId.replaceFirst('course_ayt_', '')}_1_${t + 1}',
+            unitId: unitId,
+            name: topics[t],
+            order: t,
+          );
+        }
+      }
+    }
+  }
+
+  // -------------------------
+  // YDS (12, Mezun odak dersleri - Dil)
+  // -------------------------
+  static Future<void> _seedYDS(FirebaseFirestore firestore) async {
+    const classLevel = 'YDS';
+    const courseId = 'course_yds_dil';
+    await _setCourse(firestore, courseId: courseId, classLevel: classLevel, name: 'Yabancı Dil (YDS)');
+    const unitId = 'unit_yds_dil_1';
+    await _setUnit(firestore, unitId: unitId, courseId: courseId, name: 'YDS Konuları', order: 0);
+    final ydsTopics = [
+      'Kelime - Phrasal Verb',
+      'Tense - Preposition - Dilbilgisi',
+      'Cloze Test',
+      'Cümle Tamamlama',
+      'Çeviri',
+      'Paragraf',
+      'Diyalog Tamamlama',
+      'Yakın Anlamlı Cümle',
+      'Paragraf Tamamlama',
+      'Anlatım Bütünlüğünü Bozan Cümle',
+    ];
+    for (var i = 0; i < ydsTopics.length; i++) {
+      await _setTopic(
+        firestore,
+        topicId: 'topic_yds_dil_1_${i + 1}',
+        unitId: unitId,
+        name: ydsTopics[i],
+        order: i,
+      );
+    }
   }
 }

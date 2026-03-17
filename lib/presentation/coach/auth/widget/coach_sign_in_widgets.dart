@@ -60,7 +60,7 @@ class CoachSignInFormSection extends StatelessWidget {
       children: [
         const CoachSignInInputLabel(text: 'E-posta'),
         CoachSignInInputField(
-          hint: 'ornek@email.com',
+          hint: 'E-posta adresiniz',
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           validator: (value) {

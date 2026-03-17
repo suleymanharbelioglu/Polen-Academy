@@ -16,8 +16,14 @@ class GoalsCourseDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final availableCourseIds = courses.map((c) => c.course.id).toSet();
+    final effectiveSelectedId =
+        selectedCourseId != null &&
+            availableCourseIds.contains(selectedCourseId)
+        ? selectedCourseId
+        : null;
     return DropdownButtonFormField<String?>(
-      value: selectedCourseId,
+      value: effectiveSelectedId,
       decoration: InputDecoration(
         labelText: 'Ders Seçin',
         labelStyle: TextStyle(color: Colors.white70),
@@ -32,10 +38,15 @@ class GoalsCourseDropdown extends StatelessWidget {
           value: null,
           child: Text('Hepsini Gör', style: TextStyle(color: Colors.white)),
         ),
-        ...courses.map((c) => DropdownMenuItem<String?>(
-              value: c.course.id,
-              child: Text(c.course.name, style: const TextStyle(color: Colors.white)),
-            )),
+        ...courses.map(
+          (c) => DropdownMenuItem<String?>(
+            value: c.course.id,
+            child: Text(
+              c.course.name,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
       ],
       onChanged: onChanged,
     );

@@ -93,6 +93,21 @@ class _StudentGoalsView extends StatelessWidget {
                 if (state.selectedStudent != null) ...[
                   _ClassLevelRow(classLevel: state.classLevel ?? ''),
                   const SizedBox(height: 16),
+                  if (context
+                      .read<StudentGoalsCubit>()
+                      .getExamSectionOptions(state.selectedStudent!)
+                      .isNotEmpty) ...[
+                    _ExamSectionChips(
+                      options: context
+                          .read<StudentGoalsCubit>()
+                          .getExamSectionOptions(state.selectedStudent!),
+                      selected: state.selectedExamSection ?? '',
+                      onSelected: (s) =>
+                          context.read<StudentGoalsCubit>().selectExamSection(s),
+                      primaryColor: primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   if (state.curriculumTree != null &&
                       state.curriculumTree!.courses.isNotEmpty) ...[
                     GoalsCourseDropdown(
@@ -179,6 +194,38 @@ class _ClassLevelRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ExamSectionChips extends StatelessWidget {
+  const _ExamSectionChips({
+    required this.options,
+    required this.selected,
+    required this.onSelected,
+    required this.primaryColor,
+  });
+
+  final List<String> options;
+  final String selected;
+  final ValueChanged<String> onSelected;
+  final Color primaryColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((option) {
+        final isSelected = option == selected;
+        return FilterChip(
+          label: Text(option),
+          selected: isSelected,
+          onSelected: (_) => onSelected(option),
+          selectedColor: primaryColor.withOpacity(0.4),
+          checkmarkColor: primaryColor,
+        );
+      }).toList(),
     );
   }
 }

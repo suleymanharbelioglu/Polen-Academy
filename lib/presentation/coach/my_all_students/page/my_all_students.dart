@@ -15,6 +15,7 @@ import 'package:polen_academy/presentation/coach/my_all_students/bloc/open_stude
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/request_add_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/request_add_student_state.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/student_creation_req_cubit.dart';
+import 'package:polen_academy/presentation/coach/my_all_students/bloc/add_student_form_cubit.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/widget/my_all_students_app_bar.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/widget/student_card.dart';
 import 'package:polen_academy/presentation/coach/student_detail/page/student_detail.dart';
@@ -178,8 +179,11 @@ class _MyAllStudentsView extends StatelessWidget {
     final credentials = await showDialog<StudentCredentialsEntity>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => BlocProvider(
-        create: (_) => StudentCreationReqCubit(),
+      builder: (dialogContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => AddStudentFormCubit()),
+          BlocProvider(create: (_) => StudentCreationReqCubit()),
+        ],
         child: const AddStudentDialog(),
       ),
     );

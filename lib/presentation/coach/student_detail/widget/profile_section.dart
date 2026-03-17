@@ -55,6 +55,20 @@ class ProfileSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (student.studentClass.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    student.studentClass,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  if (student.academicField != null && student.academicField!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      student.academicField!,
+                      style: TextStyle(color: Colors.white70.withOpacity(0.85), fontSize: 13),
+                    ),
+                  ],
+                ],
               ],
             ),
           ),

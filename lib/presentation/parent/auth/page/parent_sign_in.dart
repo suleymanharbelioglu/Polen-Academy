@@ -48,10 +48,8 @@ class _ParentSignInContent extends StatefulWidget {
 
 class _ParentSignInContentState extends State<_ParentSignInContent> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(
-    text: 'sadettinsumak@polenacademy.com',
-  );
-  final _passwordController = TextEditingController(text: '12345678');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {

@@ -17,16 +17,83 @@ class AddHomeworkCubit extends Cubit<AddHomeworkState> {
     required DateTime initialDate,
     required this.coachId,
   }) : super(AddHomeworkState(endDate: initialDate, assignedDate: initialDate, optionalTime: '23:59')) {
-    _loadCurriculum();
+    _initExamAndCurriculum();
   }
 
   final StudentEntity student;
   final String coachId;
 
-  void _loadCurriculum() {
-    final classLevel = student.studentClass;
-    if (classLevel.isEmpty) return;
-    sl<GetCurriculumTreeUseCase>().call(params: classLevel).then((result) {
+  void _initExamAndCurriculum() {
+    final defaultSection = _defaultExamSection();
+    if (defaultSection != null) {
+      emit(state.copyWith(selectedExamSection: defaultSection));
+      _loadCurriculumForLevel(defaultSection);
+    } else {
+      final classLevel = student.studentClass;
+      if (classLevel.isEmpty) return;
+      _loadCurriculumForLevel(classLevel);
+    }
+  }
+
+  /// 11 → "11. Sınıf" veya "TYT" (focusCourseIds'e göre); 12/Mezun → "TYT"/"AYT"/"YDS"; diğer → null
+  String? _defaultExamSection() {
+    if (student.studentClass == '11. Sınıf') {
+      if (_hasFocusInSection('11. Sınıf')) return '11. Sınıf';
+      if (_hasFocusInSection('TYT')) return 'TYT';
+      return null;
+    }
+    if (student.studentClass == '12. Sınıf' || student.studentClass == 'Mezun') {
+      if (_hasFocusInSection('TYT')) return 'TYT';
+      if (_hasFocusInSection('AYT')) return 'AYT';
+      if (_hasFocusInSection('YDS')) return 'YDS';
+      return null;
+    }
+    return null;
+  }
+
+  /// 11: ["11. Sınıf", "TYT"]; 12/Mezun: ["TYT", "AYT", "YDS"]
+  List<String> getExamSectionOptions() {
+    if (student.studentClass == '11. Sınıf') {
+      final base = ['11. Sınıf', 'TYT'];
+      return base.where(_hasFocusInSection).toList();
+    }
+    if (student.studentClass == '12. Sınıf' || student.studentClass == 'Mezun') {
+      final base = ['TYT', 'AYT', 'YDS'];
+      return base.where(_hasFocusInSection).toList();
+    }
+    return [];
+  }
+
+  bool _hasFocusInSection(String section) {
+    final ids = student.focusCourseIds;
+    if (ids.isEmpty) return false;
+    bool hasPrefix(String prefix) => ids.any((id) => id.startsWith(prefix));
+    switch (section) {
+      case '11. Sınıf':
+        return hasPrefix('course_11_');
+      case 'TYT':
+        return hasPrefix('course_tyt_');
+      case 'AYT':
+        return hasPrefix('course_ayt_');
+      case 'YDS':
+        return hasPrefix('course_yds_');
+      default:
+        return false;
+    }
+  }
+
+  void selectExamSection(String section) {
+    emit(state.copyWith(
+      selectedExamSection: section,
+      courseId: null,
+      topicIds: const [],
+    ));
+    _loadCurriculumForLevel(section);
+  }
+
+  void _loadCurriculumForLevel(String level) {
+    if (level.isEmpty) return;
+    sl<GetCurriculumTreeUseCase>().call(params: level).then((result) {
       result.fold(
         (_) => null,
         (tree) {
