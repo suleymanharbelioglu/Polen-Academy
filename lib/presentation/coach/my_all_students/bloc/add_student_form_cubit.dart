@@ -22,6 +22,7 @@ class AddStudentFormState {
     this.enabledExamSections = const {},
     this.selectedCourseIds = const {},
     this.loadingCourses = false,
+    this.targetSessionCountText = '',
   });
 
   final String firstName;
@@ -32,6 +33,7 @@ class AddStudentFormState {
   final Set<String> enabledExamSections;
   final Set<String> selectedCourseIds;
   final bool loadingCourses;
+  final String targetSessionCountText;
 
   AddStudentFormState copyWith({
     String? firstName,
@@ -42,6 +44,7 @@ class AddStudentFormState {
     Set<String>? enabledExamSections,
     Set<String>? selectedCourseIds,
     bool? loadingCourses,
+    String? targetSessionCountText,
   }) {
     return AddStudentFormState(
       firstName: firstName ?? this.firstName,
@@ -52,6 +55,7 @@ class AddStudentFormState {
       enabledExamSections: enabledExamSections ?? this.enabledExamSections,
       selectedCourseIds: selectedCourseIds ?? this.selectedCourseIds,
       loadingCourses: loadingCourses ?? this.loadingCourses,
+      targetSessionCountText: targetSessionCountText ?? this.targetSessionCountText,
     );
   }
 }
@@ -66,6 +70,9 @@ class AddStudentFormCubit extends Cubit<AddStudentFormState> {
 
   void setLastName(String value) =>
       emit(state.copyWith(lastName: value));
+
+  void setTargetSessionCountText(String value) =>
+      emit(state.copyWith(targetSessionCountText: value));
 
   void setClass(String value) {
     if (value == state.selectedClass) return;

@@ -79,4 +79,9 @@ class SessionRepositoryImpl extends SessionRepository {
   Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status, [String? statusNote]) async {
     return sl<SessionFirebaseService>().updateStatus(sessionId, status.name, statusNote);
   }
+
+  @override
+  Future<Either<String, int>> getCompletedCountByStudent(String studentId) async {
+    return sl<SessionFirebaseService>().getCompletedCountByStudent(studentId);
+  }
 }

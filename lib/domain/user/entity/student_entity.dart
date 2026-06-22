@@ -15,6 +15,8 @@ class StudentEntity {
   final List<String> focusCourseIds;
   /// 11, 12 veya Mezun için alan (Sayısal, Eşit Ağırlık, Sözel, Yabancı Dil). Konuları değiştirmez.
   final String? academicField;
+  /// Koçun bu öğrenciyle yapmayı hedeflediği toplam seans sayısı.
+  final int? targetSessionCount;
 
   StudentEntity({
     required this.uid,
@@ -29,6 +31,7 @@ class StudentEntity {
     this.registeredAt,
     this.focusCourseIds = const [],
     this.academicField,
+    this.targetSessionCount,
   });
 
   StudentEntity copyWith({
@@ -44,6 +47,7 @@ class StudentEntity {
     DateTime? registeredAt,
     List<String>? focusCourseIds,
     String? academicField,
+    int? targetSessionCount,
   }) {
     return StudentEntity(
       uid: uid ?? this.uid,
@@ -58,6 +62,7 @@ class StudentEntity {
       registeredAt: registeredAt ?? this.registeredAt,
       focusCourseIds: focusCourseIds ?? this.focusCourseIds,
       academicField: academicField ?? this.academicField,
+      targetSessionCount: targetSessionCount ?? this.targetSessionCount,
     );
   }
 }

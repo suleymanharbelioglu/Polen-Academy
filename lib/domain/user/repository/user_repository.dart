@@ -10,4 +10,5 @@ abstract class UserRepository {
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
   Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip);
+  Future<Either<String, void>> updateTargetSessionCount(String studentId, int targetSessionCount);
 }

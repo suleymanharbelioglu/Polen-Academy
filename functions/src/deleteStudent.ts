@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
 const FIRESTORE_BATCH_SIZE = 500;
-const STORAGE_BUCKET = "polen-academy.firebasestorage.app";
+const STORAGE_BUCKET = "polen-akademi.firebasestorage.app";
 
 /**
  * Firebase Storage download URL'den dosya path'ini çıkarır.

@@ -89,6 +89,8 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
                           ),
                           const SizedBox(height: 16),
                           _buildClassDropdown(),
+                          const SizedBox(height: 16),
+                          _buildTargetSessionField(context),
                           const _AcademicFieldSection(),
                           const SizedBox(height: 20),
                           const Text(
@@ -162,9 +164,44 @@ class _AddStudentDialogState extends State<AddStudentDialog> {
       'lastName': formState.lastName,
       'classLevel': formState.selectedClass,
       'focusCourseIds': formState.selectedCourseIds.toList(),
+      'targetSessionCount': int.parse(formState.targetSessionCountText.trim()),
       if (academicField != null) 'academicField': academicField,
     };
     context.read<StudentCreationReqCubit>().createStudentFromFormData(data);
+  }
+
+  Widget _buildTargetSessionField(BuildContext context) {
+    return BlocBuilder<AddStudentFormCubit, AddStudentFormState>(
+      builder: (context, state) {
+        return TextFormField(
+          initialValue: state.targetSessionCountText,
+          onChanged: context.read<AddStudentFormCubit>().setTargetSessionCountText,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Hedef Seans Sayısı',
+            labelStyle: TextStyle(color: Colors.white70),
+            hintText: 'Örn: 12',
+            hintStyle: TextStyle(color: Colors.white38),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white30),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primaryCoach),
+            ),
+          ),
+          validator: (value) {
+            final text = value?.trim() ?? '';
+            if (text.isEmpty) return 'Hedef seans sayısı gerekli';
+            final count = int.tryParse(text);
+            if (count == null) return 'Geçerli bir sayı girin';
+            if (count < 1) return 'En az 1 seans olmalı';
+            if (count > 999) return 'En fazla 999 seans olabilir';
+            return null;
+          },
+        );
+      },
+    );
   }
 
   Widget _buildTextField({

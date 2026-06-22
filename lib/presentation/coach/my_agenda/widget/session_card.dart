@@ -5,7 +5,10 @@ import 'package:polen_academy/domain/session/entity/session_entity.dart';
 import 'package:polen_academy/service_locator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/domain/session/usecases/delete_session.dart';
+import 'package:polen_academy/domain/session/usecases/get_completed_session_count.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
+import 'package:polen_academy/domain/user/usecases/get_student_by_uid.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/session_goal_section.dart';
 
 String _combinedSessionNote(SessionEntity session) {
   final parts = <String>[];
@@ -238,6 +241,24 @@ class SessionCard extends StatelessWidget {
       },
     );
     if (result == null || !result.confirmed || !context.mounted) return;
+
+    int? oldCompletedCount;
+    int? targetSessionCount;
+    if (isCompleted) {
+      final countResult = await sl<GetCompletedSessionCountUseCase>().call(
+        params: session.studentId,
+      );
+      oldCompletedCount = countResult.fold((_) => null, (count) => count);
+
+      final studentResult = await sl<GetStudentByUidUseCase>().call(
+        params: session.studentId,
+      );
+      targetSessionCount = studentResult.fold(
+        (_) => null,
+        (student) => student?.targetSessionCount,
+      );
+    }
+
     final updateResult = await LoadingOverlay.run(
       context,
       sl<UpdateSessionStatusUseCase>().call(
@@ -251,7 +272,26 @@ class SessionCard extends StatelessWidget {
     if (context.mounted) {
       updateResult.fold(
         (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NetworkErrorHelper.getUserFriendlyMessage(e)), backgroundColor: Colors.red)),
-        (_) => onRefresh(),
+        (_) async {
+          onRefresh();
+          if (!isCompleted || !context.mounted) return;
+          final target = targetSessionCount;
+          final oldCount = oldCompletedCount;
+          if (target == null || oldCount == null) return;
+
+          final newCountResult = await sl<GetCompletedSessionCountUseCase>().call(
+            params: session.studentId,
+          );
+          if (!context.mounted) return;
+          final newCount = newCountResult.fold((_) => null, (count) => count);
+          if (newCount != null && oldCount < target && newCount >= target) {
+            await showSessionGoalReachedDialog(
+              context,
+              studentName: session.studentName,
+              targetSessionCount: target,
+            );
+          }
+        },
       );
     }
   }

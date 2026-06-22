@@ -1,4 +1,4 @@
-package com.example.polen_academy
+package com.polenolcer.polenacademy
 
 import io.flutter.embedding.android.FlutterActivity
 

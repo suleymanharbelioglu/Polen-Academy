@@ -47,11 +47,18 @@ exports.createStudent = functions
     const rawProgress = data.progress;
     const rawFocusCourseIds = data.focusCourseIds;
     const rawAcademicField = data.academicField;
+    const rawTargetSessionCount = data.targetSessionCount;
     const studentName = rawStudentName.trim();
     const studentSurname = rawStudentSurname.trim();
     const studentClass = rawStudentClass.trim();
     if (!studentName || !studentSurname || !studentClass) {
         throw new functions.https.HttpsError("invalid-argument", "studentName, studentSurname and studentClass are required.");
+    }
+    const targetSessionCount = typeof rawTargetSessionCount === "number"
+        ? Math.floor(rawTargetSessionCount)
+        : NaN;
+    if (!Number.isFinite(targetSessionCount) || targetSessionCount < 1 || targetSessionCount > 999) {
+        throw new functions.https.HttpsError("invalid-argument", "targetSessionCount must be an integer between 1 and 999.");
     }
     const db = admin.firestore();
     const auth = admin.auth();
@@ -106,6 +113,7 @@ exports.createStudent = functions
         progress: typeof rawProgress === "number" ? rawProgress : 0,
         hasParent: !!finalParentId,
         focusCourseIds: focusIds,
+        targetSessionCount,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
     const academicField = typeof rawAcademicField === "string" ? rawAcademicField.trim() : "";

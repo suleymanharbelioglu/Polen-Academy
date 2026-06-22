@@ -12,6 +12,8 @@ import 'package:polen_academy/data/notification/fcm_service.dart';
 import 'package:polen_academy/firebase_options.dart';
 import 'package:polen_academy/presentation/splash/bloc/splash_cubit.dart';
 import 'package:polen_academy/core/configs/screen_design_size.dart';
+import 'package:polen_academy/core/debug/app_debug_log.dart';
+import 'package:polen_academy/core/debug/auth_debug.dart';
 import 'package:polen_academy/presentation/splash/page/splash.dart';
 import 'package:polen_academy/service_locator.dart';
 
@@ -25,10 +27,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppDebugLog.line('APP', 'main() başladı — log sistemi aktif (debug build)');
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  AppDebugLog.line('APP', 'Firebase initializeApp tamam');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await initializeDependencies();
+  AuthDebug.init();
   // FCM token kaydı + uygulama öndeyken gelen bildirimi sistem bildirimi olarak gösterme
   await FcmService.init();
   //await CurriculumHelper.seedCurriculumIfNeeded();
@@ -58,6 +64,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.appTheme,
           title: 'Polen Academy',
+          navigatorObservers: [AuthDebugNavigatorObserver()],
           home: child ?? const SplashPage(),
           builder: (context, child) => Stack(
             alignment: Alignment.topCenter,

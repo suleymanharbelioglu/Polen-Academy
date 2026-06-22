@@ -9,6 +9,7 @@ import 'package:polen_academy/presentation/coach/student_detail/bloc/student_det
 import 'package:polen_academy/presentation/coach/student_detail/widget/class_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/profile_section.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/session_goal_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/status_sections_with_range.dart';
 import 'package:polen_academy/presentation/homework_detail/page/homework_detail_page.dart';
 import 'package:polen_academy/presentation/session_detail/page/session_detail_page.dart';
@@ -132,6 +133,7 @@ class _StProfilePageState extends State<StProfilePage> {
         ),
         body: BlocBuilder<StudentDetailCubit, StudentDetailState>(
           builder: (context, state) {
+            final displayedStudent = state.student ?? student;
             if (state.loading &&
                 state.overdueCount == 0 &&
                 state.completedHomeworkCount == 0 &&
@@ -142,7 +144,10 @@ class _StProfilePageState extends State<StProfilePage> {
             }
             return RefreshIndicator(
               onRefresh: () async {
-                await context.read<StudentDetailCubit>().load(student, student.coachId);
+                await context.read<StudentDetailCubit>().load(
+                  displayedStudent,
+                  displayedStudent.coachId,
+                );
               },
               color: AppColors.primaryStudent,
               child: SingleChildScrollView(
@@ -152,19 +157,29 @@ class _StProfilePageState extends State<StProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ProfileSection(
-                      student: student,
+                      student: displayedStudent,
+                      accentColor: AppColors.primaryStudent,
+                    ),
+                    const SizedBox(height: 20),
+                    SessionGoalSection(
+                      targetSessionCount: displayedStudent.targetSessionCount,
+                      completedCount: state.totalCompletedSessionCount,
+                      studentName:
+                          '${displayedStudent.studentName} ${displayedStudent.studentSurname}',
+                      canEdit: false,
+                      forCoach: false,
                       accentColor: AppColors.primaryStudent,
                     ),
                     const SizedBox(height: 20),
                     StatusSectionsWithRange(
                       state: state,
-                      student: student,
+                      student: displayedStudent,
                       accentColor: AppColors.primaryStudent,
                       onHomeworkDetailsTap: () => Navigator.push(
                         context,
                         MaterialPageRoute<void>(
                           builder: (_) => HomeworkDetailPage(
-                            student: student,
+                            student: displayedStudent,
                             useStudentDetailSheet: true,
                             showMarkAsDone: true,
                           ),
@@ -173,7 +188,7 @@ class _StProfilePageState extends State<StProfilePage> {
                       onSessionDetailsTap: () => Navigator.push(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (_) => SessionDetailPage(student: student),
+                          builder: (_) => SessionDetailPage(student: displayedStudent),
                         ),
                       ),
                     ),

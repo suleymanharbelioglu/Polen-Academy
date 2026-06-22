@@ -41,50 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCUTUM4pO74Q-8VjEi7QKPvns5zscNRdeM',
-    appId: '1:325336282488:web:d44fc2ca8bed265e96c48d',
-    messagingSenderId: '325336282488',
-    projectId: 'polen-academy',
-    authDomain: 'polen-academy.firebaseapp.com',
-    storageBucket: 'polen-academy.firebasestorage.app',
-    measurementId: 'G-NSYZS7C49D',
+    apiKey: 'AIzaSyAWUiik2cDiher1jW8KAZ2Rl0-88znUpro',
+    appId: '1:639274232378:web:43b783446f0274044b2303',
+    messagingSenderId: '639274232378',
+    projectId: 'polen-akademi',
+    authDomain: 'polen-akademi.firebaseapp.com',
+    storageBucket: 'polen-akademi.firebasestorage.app',
+    measurementId: 'G-9P36TYPSFQ',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCeF7DP0pqImzLA9ZmfdIxvsgr1ZtdmRS0',
-    appId: '1:325336282488:android:c912f9f6b1d1f8f896c48d',
-    messagingSenderId: '325336282488',
-    projectId: 'polen-academy',
-    storageBucket: 'polen-academy.firebasestorage.app',
+    apiKey: 'AIzaSyAo1aG9v_MSRIxc8aPsYqVcvQmpWLaADpI',
+    appId: '1:639274232378:android:127eb5af48fea4c74b2303',
+    messagingSenderId: '639274232378',
+    projectId: 'polen-akademi',
+    storageBucket: 'polen-akademi.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBWJhjPDZHhS-z8NHd78tiMhxsJLHhy5Lc',
-    appId: '1:325336282488:ios:6930aedd80a018fd96c48d',
-    messagingSenderId: '325336282488',
-    projectId: 'polen-academy',
-    storageBucket: 'polen-academy.firebasestorage.app',
-    iosClientId: '325336282488-5r7jqhul6tls098fghi64goledav0lea.apps.googleusercontent.com',
-    iosBundleId: 'com.example.polenAcademy',
+    apiKey: 'AIzaSyBDROGuCk-5T9Xs45EzjhAaB-b6OEZuZmI',
+    appId: '1:639274232378:ios:e31177b35f71f3a24b2303',
+    messagingSenderId: '639274232378',
+    projectId: 'polen-akademi',
+    storageBucket: 'polen-akademi.firebasestorage.app',
+    iosBundleId: 'com.polenolcer.polenacademy',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBWJhjPDZHhS-z8NHd78tiMhxsJLHhy5Lc',
-    appId: '1:325336282488:ios:6930aedd80a018fd96c48d',
-    messagingSenderId: '325336282488',
-    projectId: 'polen-academy',
-    storageBucket: 'polen-academy.firebasestorage.app',
-    iosClientId: '325336282488-5r7jqhul6tls098fghi64goledav0lea.apps.googleusercontent.com',
-    iosBundleId: 'com.example.polenAcademy',
+    apiKey: 'AIzaSyBDROGuCk-5T9Xs45EzjhAaB-b6OEZuZmI',
+    appId: '1:639274232378:ios:e31177b35f71f3a24b2303',
+    messagingSenderId: '639274232378',
+    projectId: 'polen-akademi',
+    storageBucket: 'polen-akademi.firebasestorage.app',
+    iosBundleId: 'com.polenolcer.polenacademy',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCUTUM4pO74Q-8VjEi7QKPvns5zscNRdeM',
-    appId: '1:325336282488:web:01b6b0a5872a3d6796c48d',
-    messagingSenderId: '325336282488',
-    projectId: 'polen-academy',
-    authDomain: 'polen-academy.firebaseapp.com',
-    storageBucket: 'polen-academy.firebasestorage.app',
-    measurementId: 'G-SHF6Y5X4VB',
+    apiKey: 'AIzaSyAWUiik2cDiher1jW8KAZ2Rl0-88znUpro',
+    appId: '1:639274232378:web:7966db45180290a04b2303',
+    messagingSenderId: '639274232378',
+    projectId: 'polen-akademi',
+    authDomain: 'polen-akademi.firebaseapp.com',
+    storageBucket: 'polen-akademi.firebasestorage.app',
+    measurementId: 'G-KSCFXQV5EM',
   );
 }

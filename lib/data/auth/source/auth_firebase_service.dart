@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:polen_academy/core/debug/auth_debug.dart';
+import 'package:polen_academy/core/debug/create_student_debug.dart';
 import 'package:polen_academy/data/auth/model/coach.dart';
 import 'package:polen_academy/data/auth/model/coach_signin_req.dart';
 import 'package:polen_academy/data/auth/model/parent.dart';
@@ -43,6 +45,36 @@ abstract class AuthFirebaseService {
 }
 
 class AuthFirebaseServiceImpl extends AuthFirebaseService {
+  Future<void> _refreshAuthSessionForCallable() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await user.reload();
+    } catch (_) {
+      // reload bazı durumlarda transient hata verebilir; token yenilemeye devam et.
+    }
+
+    await FirebaseAuth.instance.currentUser?.getIdToken(true);
+  }
+
+  Future<HttpsCallableResult<Map<String, dynamic>>> _callWithAuthRetry({
+    required HttpsCallable callable,
+    required Map<String, dynamic> payload,
+  }) async {
+    try {
+      return await callable.call<Map<String, dynamic>>(payload);
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code != 'unauthenticated') rethrow;
+
+      CreateStudentDebug.log(
+        'Callable unauthenticated döndü, auth token yenilenip 1 kez daha denenecek...',
+      );
+      await _refreshAuthSessionForCallable();
+      return callable.call<Map<String, dynamic>>(payload);
+    }
+  }
+
   @override
   Future<Either> coachSignup(CoachModel coach) async {
     try {
@@ -74,6 +106,7 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
             ).toMap(),
           );
 
+      await AuthDebug.log(context: 'Koç kaydı başarılı', extra: coach.email);
       return Right(userCredential.user);
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Kayıt sırasında bir hata oluştu';
@@ -105,6 +138,7 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: req.email, password: req.password);
 
+      await AuthDebug.log(context: 'Koç girişi başarılı', extra: req.email);
       return Right(userCredential.user);
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Giriş sırasında bir hata oluştu';
@@ -137,6 +171,7 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
   Future<Either> signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
+      await AuthDebug.log(context: 'Çıkış yapıldı');
       return const Right('Çıkış başarılı');
     } catch (e) {
       return Left('Çıkış yapılırken bir hata oluştu: ${e.toString()}');
@@ -276,21 +311,52 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
 
   @override
   Future<Either> studentSignup(StudentModel student) async {
+    const functionName = 'createStudent';
+    CreateStudentDebug.section('studentSignup — auth_firebase_service');
+    await CreateStudentDebug.logAuthSnapshot('studentSignup — başlangıç');
+    CreateStudentDebug.logCallableConfig(
+      region: _functionsRegion,
+      functionName: functionName,
+    );
+
+    final payload = student.toMap();
+    CreateStudentDebug.logPayload(payload);
+
     try {
-      // Use the same region as your deployed Cloud Function.
+      await _refreshAuthSessionForCallable();
       final functions = FirebaseFunctions.instanceFor(region: _functionsRegion);
+      CreateStudentDebug.log(
+        'FirebaseFunctions.instanceFor(region: $_functionsRegion) OK',
+      );
+
       final callable = functions.httpsCallable(
-        'createStudent',
+        functionName,
         options: HttpsCallableOptions(timeout: const Duration(seconds: 60)),
       );
-      final result = await callable.call<Map<String, dynamic>>(student.toMap());
+      CreateStudentDebug.log('httpsCallable oluşturuldu, çağrı gönderiliyor...');
+
+      final sw = Stopwatch()..start();
+      final result = await _callWithAuthRetry(
+        callable: callable,
+        payload: payload,
+      );
+      sw.stop();
+
+      CreateStudentDebug.log(
+        'Callable yanıt aldı (${sw.elapsedMilliseconds}ms)',
+      );
+      CreateStudentDebug.log('result.data keys: ${result.data.keys.toList()}');
 
       final data = result.data;
       final email = data['email'] as String? ?? '';
       final password = data['password'] as String? ?? '';
 
+      CreateStudentDebug.log('SONUÇ → başarılı, öğrenci email=$email');
       return Right(StudentCreationResult(email: email, password: password));
-    } on FirebaseFunctionsException catch (e) {
+    } on FirebaseFunctionsException catch (e, st) {
+      CreateStudentDebug.logFunctionsException(e);
+      CreateStudentDebug.log('Stack: $st');
+
       String message = e.message ?? 'Öğrenci kaydı sırasında bir hata oluştu';
       switch (e.code) {
         case 'unauthenticated':
@@ -310,8 +376,10 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
               'createStudent fonksiyonu bulunamadı. Cloud Function bölgesi: $_functionsRegion.';
           break;
       }
+      CreateStudentDebug.log('Kullanıcıya gösterilecek mesaj: $message');
       return Left(message);
-    } catch (e) {
+    } catch (e, st) {
+      CreateStudentDebug.logGenericError(e, st);
       return Left('Bağlantı hatası: ${e.toString()}');
     }
   }
@@ -322,6 +390,7 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: req.email, password: req.password);
 
+      await AuthDebug.log(context: 'Öğrenci girişi başarılı', extra: req.email);
       return Right(userCredential.user);
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Giriş sırasında bir hata oluştu';
@@ -353,12 +422,16 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
   @override
   Future<Either> parentSignup(ParentModel parent) async {
     try {
+      await _refreshAuthSessionForCallable();
       final functions = FirebaseFunctions.instanceFor(region: _functionsRegion);
       final callable = functions.httpsCallable(
         'createParent',
         options: HttpsCallableOptions(timeout: const Duration(seconds: 60)),
       );
-      final result = await callable.call<Map<String, dynamic>>(parent.toMap());
+      final result = await _callWithAuthRetry(
+        callable: callable,
+        payload: parent.toMap(),
+      );
 
       final data = result.data;
       final email = data['email'] as String? ?? '';
@@ -400,6 +473,7 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: req.email, password: req.password);
 
+      await AuthDebug.log(context: 'Veli girişi başarılı', extra: req.email);
       return Right(userCredential.user);
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Giriş sırasında bir hata oluştu';

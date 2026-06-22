@@ -63,6 +63,7 @@ import 'package:polen_academy/domain/notification/usecases/notify_overdue_to_par
 import 'package:polen_academy/domain/notification/usecases/notify_session_planned.dart';
 import 'package:polen_academy/domain/notification/usecases/notify_session_status.dart';
 import 'package:polen_academy/domain/notification/usecases/schedule_session_reminder.dart';
+import 'package:polen_academy/domain/session/usecases/get_completed_session_count.dart';
 import 'package:polen_academy/domain/session/usecases/update_session.dart';
 import 'package:polen_academy/domain/session/usecases/update_session_status.dart';
 import 'package:polen_academy/domain/user/repository/user_repository.dart';
@@ -70,6 +71,7 @@ import 'package:polen_academy/domain/user/usecases/delete_student.dart';
 import 'package:polen_academy/domain/user/usecases/get_my_students.dart';
 import 'package:polen_academy/domain/user/usecases/get_student_by_parent_id.dart';
 import 'package:polen_academy/domain/user/usecases/get_student_by_uid.dart';
+import 'package:polen_academy/domain/user/usecases/update_student_target_session_count.dart';
 import 'package:polen_academy/domain/user/usecases/update_user_password.dart';
 
 final sl = GetIt.instance;
@@ -111,6 +113,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetStudentByParentIdUseCase>(GetStudentByParentIdUseCase());
   sl.registerSingleton<DeleteStudentUseCase>(DeleteStudentUseCase());
   sl.registerSingleton<UpdateUserPasswordUseCase>(UpdateUserPasswordUseCase());
+  sl.registerSingleton<UpdateStudentTargetSessionCountUseCase>(
+    UpdateStudentTargetSessionCountUseCase(),
+  );
 
   // Session Usecases
   sl.registerSingleton<GetSessionsByDateRangeUseCase>(GetSessionsByDateRangeUseCase());
@@ -121,6 +126,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UpdateSessionUseCase>(UpdateSessionUseCase());
   sl.registerSingleton<DeleteSessionUseCase>(DeleteSessionUseCase());
   sl.registerSingleton<UpdateSessionStatusUseCase>(UpdateSessionStatusUseCase());
+  sl.registerSingleton<GetCompletedSessionCountUseCase>(
+    GetCompletedSessionCountUseCase(),
+  );
 
   // Curriculum & Goals Usecases
   sl.registerSingleton<GetCurriculumTreeUseCase>(GetCurriculumTreeUseCase());

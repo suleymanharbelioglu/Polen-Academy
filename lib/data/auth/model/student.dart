@@ -15,6 +15,8 @@ class StudentModel {
   final List<String> focusCourseIds;
   /// 11, 12 veya Mezun için alan: Sayısal (MF), Eşit Ağırlık (TM), Sözel (TS), Yabancı Dil. Konuları değiştirmez, sadece bilgi.
   final String? academicField;
+  /// Koçun bu öğrenciyle yapmayı hedeflediği toplam seans sayısı.
+  final int? targetSessionCount;
 
   StudentModel({
     required this.uid,
@@ -28,6 +30,7 @@ class StudentModel {
     this.hasParent = false,
     this.focusCourseIds = const [],
     this.academicField,
+    this.targetSessionCount,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
@@ -44,6 +47,11 @@ class StudentModel {
       hasParent: map['hasParent'] as bool? ?? parentId.toString().isNotEmpty,
       focusCourseIds: (map['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       academicField: map['academicField'] as String?,
+      targetSessionCount: map['targetSessionCount'] is int
+          ? (map['targetSessionCount'] as int) > 0
+              ? map['targetSessionCount'] as int
+              : null
+          : null,
     );
   }
 
@@ -62,6 +70,9 @@ class StudentModel {
     };
     if (focusCourseIds.isNotEmpty) m['focusCourseIds'] = focusCourseIds;
     if (academicField != null && academicField!.isNotEmpty) m['academicField'] = academicField;
+    if (targetSessionCount != null && targetSessionCount! > 0) {
+      m['targetSessionCount'] = targetSessionCount;
+    }
     return m;
   }
 }
@@ -80,6 +91,7 @@ extension StudentModelX on StudentModel {
       hasParent: hasParent,
       focusCourseIds: focusCourseIds,
       academicField: academicField,
+      targetSessionCount: targetSessionCount,
     );
   }
 }
@@ -98,6 +110,7 @@ extension StudentEntityX on StudentEntity {
       hasParent: hasParent,
       focusCourseIds: focusCourseIds,
       academicField: academicField,
+      targetSessionCount: targetSessionCount,
     );
   }
 }

@@ -16,6 +16,8 @@ class StudentModel {
   final List<String> focusCourseIds;
   /// 11, 12 veya Mezun için alan: Sayısal (MF), Eşit Ağırlık (TM), Sözel (TS), Yabancı Dil.
   final String? academicField;
+  /// Koçun bu öğrenciyle yapmayı hedeflediği toplam seans sayısı.
+  final int? targetSessionCount;
 
   StudentModel({
     required this.uid,
@@ -30,6 +32,7 @@ class StudentModel {
     this.registeredAt,
     this.focusCourseIds = const [],
     this.academicField,
+    this.targetSessionCount,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> map) {
@@ -54,7 +57,18 @@ class StudentModel {
       registeredAt: registeredAt,
       focusCourseIds: (map['focusCourseIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
       academicField: map['academicField'] as String?,
+      targetSessionCount: _parseTargetSessionCount(map['targetSessionCount']),
     );
+  }
+
+  static int? _parseTargetSessionCount(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value > 0 ? value : null;
+    if (value is num) {
+      final n = value.toInt();
+      return n > 0 ? n : null;
+    }
+    return null;
   }
 
   Map<String, dynamic> toMap() {
@@ -75,6 +89,9 @@ class StudentModel {
     if (academicField != null && academicField!.isNotEmpty) {
       m['academicField'] = academicField;
     }
+    if (targetSessionCount != null && targetSessionCount! > 0) {
+      m['targetSessionCount'] = targetSessionCount;
+    }
     return m;
   }
 }
@@ -94,6 +111,7 @@ extension StudentModelX on StudentModel {
       registeredAt: registeredAt,
       focusCourseIds: focusCourseIds,
       academicField: academicField,
+      targetSessionCount: targetSessionCount,
     );
   }
 }
@@ -113,6 +131,7 @@ extension StudentEntityX on StudentEntity {
       registeredAt: registeredAt,
       focusCourseIds: focusCourseIds,
       academicField: academicField,
+      targetSessionCount: targetSessionCount,
     );
   }
 }

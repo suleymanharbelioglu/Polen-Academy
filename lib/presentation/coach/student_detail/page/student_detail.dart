@@ -8,6 +8,7 @@ import 'package:polen_academy/core/network/network_error_helper.dart';
 import 'package:polen_academy/domain/auth/entity/parent_credentials_entity.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/user/usecases/delete_student.dart';
+import 'package:polen_academy/domain/user/usecases/update_student_target_session_count.dart';
 import 'package:polen_academy/domain/user/usecases/update_user_password.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/bloc/current_student_cubit.dart';
 import 'package:polen_academy/presentation/coach/student_detail/bloc/parent_signup_cubit.dart';
@@ -17,6 +18,7 @@ import 'package:polen_academy/presentation/coach/student_detail/widget/class_pro
 import 'package:polen_academy/presentation/coach/student_detail/widget/general_progress_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/profile_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/status_sections_with_range.dart';
+import 'package:polen_academy/presentation/coach/student_detail/widget/session_goal_section.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/set_password_dialog.dart';
 import 'package:polen_academy/presentation/coach/student_detail/widget/settings_section.dart';
 import 'package:polen_academy/service_locator.dart';
@@ -81,6 +83,7 @@ class StudentDetailView extends StatelessWidget {
       ),
       body: BlocBuilder<StudentDetailCubit, StudentDetailState>(
         builder: (context, state) {
+          final displayedStudent = state.student ?? student;
           if (_isInitialLoading(state)) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryCoach),
@@ -88,8 +91,8 @@ class StudentDetailView extends StatelessWidget {
           }
           return RefreshIndicator(
             onRefresh: () => context.read<StudentDetailCubit>().load(
-              student,
-              student.coachId,
+              displayedStudent,
+              displayedStudent.coachId,
             ),
             color: AppColors.primaryCoach,
             child: SingleChildScrollView(
@@ -98,9 +101,22 @@ class StudentDetailView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ProfileSection(student: student),
+                  ProfileSection(student: displayedStudent),
                   const SizedBox(height: 20),
-                  StatusSectionsWithRange(state: state, student: student),
+                  SessionGoalSection(
+                    targetSessionCount: displayedStudent.targetSessionCount,
+                    completedCount: state.totalCompletedSessionCount,
+                    studentName:
+                        '${displayedStudent.studentName} ${displayedStudent.studentSurname}',
+                    canEdit: true,
+                    onEditTarget: (newTarget) => _updateTargetSessionCount(
+                      context,
+                      displayedStudent,
+                      newTarget,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  StatusSectionsWithRange(state: state, student: displayedStudent),
                   if (state.detailedProgressLoaded) ...[
                     const SizedBox(height: 20),
                     GeneralProgressSection(state: state),
@@ -109,7 +125,7 @@ class StudentDetailView extends StatelessWidget {
                   ],
                   const SizedBox(height: 20),
                   SettingsSection(
-                    student: student,
+                    student: displayedStudent,
                     onSetPassword: (userId, label) =>
                         _openSetPassword(context, userId, label),
                     onAddParent: () => _openAddParentDialog(context),
@@ -129,6 +145,42 @@ class StudentDetailView extends StatelessWidget {
         state.overdueCount == 0 &&
         state.completedHomeworkCount == 0 &&
         state.courseProgressPercent.isEmpty;
+  }
+
+  Future<void> _updateTargetSessionCount(
+    BuildContext context,
+    StudentEntity student,
+    int newTarget,
+  ) async {
+    final result = await LoadingOverlay.run(
+      context,
+      sl<UpdateStudentTargetSessionCountUseCase>().call(
+        params: UpdateStudentTargetSessionCountParams(
+          studentId: student.uid,
+          targetSessionCount: newTarget,
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    await result.fold(
+      (error) async {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(NetworkErrorHelper.getUserFriendlyMessage(error)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+      (_) async {
+        final updated = student.copyWith(targetSessionCount: newTarget);
+        context.read<CurrentStudentCubit>().setStudent(updated);
+        await context.read<StudentDetailCubit>().load(updated, updated.coachId);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Hedef seans sayısı güncellendi.')),
+        );
+      },
+    );
   }
 
   Future<void> _openSetPassword(

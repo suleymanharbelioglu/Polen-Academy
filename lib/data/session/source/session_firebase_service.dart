@@ -25,6 +25,7 @@ abstract class SessionFirebaseService {
   Future<Either<String, void>> update(SessionModel session);
   Future<Either<String, void>> delete(String sessionId);
   Future<Either<String, void>> updateStatus(String sessionId, String status, [String? statusNote]);
+  Future<Either<String, int>> getCompletedCountByStudent(String studentId);
 }
 
 class SessionFirebaseServiceImpl extends SessionFirebaseService {
@@ -182,6 +183,22 @@ class SessionFirebaseServiceImpl extends SessionFirebaseService {
       return const Right(null);
     } catch (e) {
       return Left('Durum güncellenirken hata: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, int>> getCompletedCountByStudent(String studentId) async {
+    try {
+      if (studentId.isEmpty) return const Left('Öğrenci id gerekli');
+      final snapshot = await FirebaseFirestore.instance
+          .collection(_collection)
+          .where('studentId', isEqualTo: studentId)
+          .where('status', isEqualTo: 'completed')
+          .count()
+          .get();
+      return Right(snapshot.count ?? 0);
+    } catch (e) {
+      return Left('Tamamlanan seans sayısı alınırken hata: ${e.toString()}');
     }
   }
 }

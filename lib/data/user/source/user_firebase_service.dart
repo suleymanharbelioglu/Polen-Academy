@@ -14,6 +14,7 @@ abstract class UserFirebaseService {
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
   Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip);
+  Future<Either<String, void>> updateTargetSessionCount(String studentId, int targetSessionCount);
 }
 
 class UserFirebaseServiceImpl extends UserFirebaseService {
@@ -133,6 +134,28 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       return const Right(null);
     } catch (e) {
       return Left('VIP durumu güncellenemedi: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> updateTargetSessionCount(
+    String studentId,
+    int targetSessionCount,
+  ) async {
+    try {
+      if (studentId.isEmpty) return const Left('Öğrenci id gerekli');
+      if (targetSessionCount < 1 || targetSessionCount > 999) {
+        return const Left('Hedef seans sayısı 1 ile 999 arasında olmalıdır.');
+      }
+      final ref = FirebaseFirestore.instance.collection('Users').doc(studentId);
+      final doc = await ref.get();
+      if (!doc.exists || (doc.data()?['role'] ?? '') != 'student') {
+        return const Left('Öğrenci bulunamadı.');
+      }
+      await ref.update({'targetSessionCount': targetSessionCount});
+      return const Right(null);
+    } catch (e) {
+      return Left('Hedef seans sayısı güncellenemedi: ${e.toString()}');
     }
   }
 }

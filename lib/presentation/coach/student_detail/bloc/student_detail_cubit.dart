@@ -7,6 +7,7 @@ import 'package:polen_academy/domain/homework/entity/homework_submission_entity.
 import 'package:polen_academy/domain/homework/repository/homework_submission_repository.dart';
 import 'package:polen_academy/domain/homework/usecases/get_homeworks_by_student_and_date_range.dart';
 import 'package:polen_academy/domain/session/entity/session_entity.dart';
+import 'package:polen_academy/domain/session/usecases/get_completed_session_count.dart';
 import 'package:polen_academy/domain/session/usecases/get_sessions_by_date_range.dart';
 import 'package:polen_academy/domain/user/entity/student_entity.dart';
 import 'package:polen_academy/domain/curriculum/usecases/get_curriculum_tree.dart';
@@ -49,6 +50,9 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
         end: endWithFuture,
       ),
     );
+    final futureCompletedCount = sl<GetCompletedSessionCountUseCase>().call(
+      params: student.uid,
+    );
     // Ayrıntılı müfredat + konu ilerlemesi hesaplamasını arka planda yap.
     _loadCourseProgress(student);
 
@@ -84,6 +88,7 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
     final completed = HomeworkUiHelper.filterCompleted(homeworks, submissionByHomeworkId).length;
 
     final sessionResult = await futureSessions;
+    final completedCountResult = await futureCompletedCount;
     final sessions = sessionResult.fold(
       (_) => <SessionEntity>[],
       (list) => list,
@@ -102,6 +107,7 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
       return d.isAfter(today) && s.status == SessionStatus.scheduled;
     }).toList();
     final attended = completedSessions.length;
+    final totalCompleted = completedCountResult.fold((_) => attended, (c) => c);
 
     if (!isClosed) {
       emit(
@@ -112,6 +118,7 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
           notDoneCount: notDone,
           completedHomeworkCount: completed,
           attendedSessionCount: attended,
+          totalCompletedSessionCount: totalCompleted,
           completedSessions: completedSessions,
           notDoneSessions: notDoneSessions,
           futureSessions: futureSessionsList,

@@ -18,6 +18,8 @@ class StudentDetailState {
   final int notDoneCount;
   final int completedHomeworkCount;
   final int attendedSessionCount;
+  /// Tüm zamanlar boyunca tamamlanan seans sayısı (hedef takibi için).
+  final int totalCompletedSessionCount;
   /// Bu öğrenciyle yapılan (tamamlandı işaretli) seanslar
   final List<SessionEntity> completedSessions;
   /// Bu öğrenciyle yapılmayan (gerçekleşmedi işaretli) seanslar
@@ -46,6 +48,7 @@ class StudentDetailState {
     this.notDoneCount = 0,
     this.completedHomeworkCount = 0,
     this.attendedSessionCount = 0,
+    this.totalCompletedSessionCount = 0,
     this.completedSessions = const [],
     this.notDoneSessions = const [],
     this.futureSessions = const [],
@@ -68,6 +71,7 @@ class StudentDetailState {
     int? notDoneCount,
     int? completedHomeworkCount,
     int? attendedSessionCount,
+    int? totalCompletedSessionCount,
     List<SessionEntity>? completedSessions,
     List<SessionEntity>? notDoneSessions,
     List<SessionEntity>? futureSessions,
@@ -89,6 +93,8 @@ class StudentDetailState {
       notDoneCount: notDoneCount ?? this.notDoneCount,
       completedHomeworkCount: completedHomeworkCount ?? this.completedHomeworkCount,
       attendedSessionCount: attendedSessionCount ?? this.attendedSessionCount,
+      totalCompletedSessionCount:
+          totalCompletedSessionCount ?? this.totalCompletedSessionCount,
       completedSessions: completedSessions ?? this.completedSessions,
       notDoneSessions: notDoneSessions ?? this.notDoneSessions,
       futureSessions: futureSessions ?? this.futureSessions,

@@ -4,7 +4,7 @@ exports.deleteStudent = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const FIRESTORE_BATCH_SIZE = 500;
-const STORAGE_BUCKET = "polen-academy.firebasestorage.app";
+const STORAGE_BUCKET = "polen-akademi.firebasestorage.app";
 /**
  * Firebase Storage download URL'den dosya path'ini çıkarır.
  * Format: https://firebasestorage.googleapis.com/v0/b/BUCKET/o/ENCODED_PATH?...

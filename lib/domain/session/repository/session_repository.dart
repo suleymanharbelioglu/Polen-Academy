@@ -24,4 +24,5 @@ abstract class SessionRepository {
   Future<Either<String, void>> update(SessionEntity session);
   Future<Either<String, void>> delete(String sessionId);
   Future<Either<String, void>> updateStatus(String sessionId, SessionStatus status, [String? statusNote]);
+  Future<Either<String, int>> getCompletedCountByStudent(String studentId);
 }
