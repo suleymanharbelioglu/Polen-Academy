@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/helper/subscription/add_student_subscription_gate.dart';
 import 'package:polen_academy/common/widget/add_student_dialog.dart';
 import 'package:polen_academy/common/widget/student_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
@@ -47,7 +48,7 @@ class StudentsSection extends StatelessWidget {
               ),
               const Spacer(),
               TextButton(
-                onPressed: () => _showAddStudentDialog(context),
+                onPressed: () => _showAddStudentDialog(context, students.length),
                 child: const Text(
                   '+ Ekle',
                   style: TextStyle(color: AppColors.primaryCoach),
@@ -109,7 +110,13 @@ class StudentsSection extends StatelessWidget {
     );
   }
 
-  static Future<void> _showAddStudentDialog(BuildContext context) async {
+  static Future<void> _showAddStudentDialog(BuildContext context, int currentStudentCount) async {
+    final canAdd = await AddStudentSubscriptionGate.ensureCanAddStudent(
+      context,
+      currentStudentCount: currentStudentCount,
+    );
+    if (!canAdd || !context.mounted) return;
+
     final credentials = await showDialog<StudentCredentialsEntity>(
       context: context,
       barrierDismissible: false,

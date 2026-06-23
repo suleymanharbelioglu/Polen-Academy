@@ -88,6 +88,29 @@ export const createStudent = functions
       );
     }
 
+    const coachData = coachDoc.data() ?? {};
+    const rawStudentLimit = coachData.studentLimit;
+    const isVip = coachData.isVip === true;
+    let studentLimit = 1;
+    if (typeof rawStudentLimit === "number" && rawStudentLimit > 0) {
+      studentLimit = Math.floor(rawStudentLimit);
+    } else if (isVip) {
+      studentLimit = 20;
+    }
+
+    const existingStudentsSnap = await db
+      .collection("Users")
+      .where("role", "==", "student")
+      .where("coachId", "==", coachUid)
+      .get();
+
+    if (existingStudentsSnap.size >= studentLimit) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Öğrenci limitinize ulaştınız. Daha fazla öğrenci eklemek için planınızı yükseltin.",
+      );
+    }
+
     // E-posta üretimi
     const baseLocal = toEmailLocalPart(studentName, studentSurname);
     let localPart = baseLocal;

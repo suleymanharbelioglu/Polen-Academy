@@ -12,6 +12,7 @@ import 'package:polen_academy/data/homework/source/homework_storage_service.dart
 import 'package:polen_academy/data/homework/source/homework_submission_firebase_service.dart';
 import 'package:polen_academy/data/notification/repository/notification_repository_impl.dart';
 import 'package:polen_academy/data/notification/source/notification_firebase_service.dart';
+import 'package:polen_academy/data/revenuecat/revenuecat_service.dart';
 import 'package:polen_academy/data/session/repository/session_repository_impl.dart';
 import 'package:polen_academy/data/session/source/session_firebase_service.dart';
 import 'package:polen_academy/data/user/repository/user_repository_impl.dart';
@@ -96,6 +97,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<HomeworkSubmissionRepository>(HomeworkSubmissionRepositoryImpl(sl()));
   sl.registerSingleton<NotificationFirebaseService>(NotificationFirebaseServiceImpl());
   sl.registerSingleton<NotificationRepository>(NotificationRepositoryImpl());
+  sl.registerSingleton<RevenueCatService>(RevenueCatService());
 
   // Auth Usecases
   sl.registerSingleton<CoachSignupUseCase>(CoachSignupUseCase());

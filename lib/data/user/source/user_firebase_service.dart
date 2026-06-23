@@ -14,6 +14,12 @@ abstract class UserFirebaseService {
   Future<Either<String, void>> deleteStudent(String studentId);
   Future<Either<String, void>> updateUserPassword(String userId, String newPassword);
   Future<Either<String, void>> updateCoachVip(String coachUid, bool isVip);
+  Future<Either<String, void>> updateCoachSubscription({
+    required String coachUid,
+    required int studentLimit,
+    required bool isVip,
+    String? subscriptionProductId,
+  });
   Future<Either<String, void>> updateTargetSessionCount(String studentId, int targetSessionCount);
 }
 
@@ -134,6 +140,35 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       return const Right(null);
     } catch (e) {
       return Left('VIP durumu güncellenemedi: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Either<String, void>> updateCoachSubscription({
+    required String coachUid,
+    required int studentLimit,
+    required bool isVip,
+    String? subscriptionProductId,
+  }) async {
+    try {
+      final ref = FirebaseFirestore.instance.collection('Users').doc(coachUid);
+      final doc = await ref.get();
+      if (!doc.exists || (doc.data()?['role'] ?? '') != 'coach') {
+        return const Left('Koç bulunamadı.');
+      }
+      final data = <String, dynamic>{
+        'isVip': isVip,
+        'studentLimit': studentLimit,
+      };
+      if (subscriptionProductId != null) {
+        data['subscriptionProductId'] = subscriptionProductId;
+      } else {
+        data['subscriptionProductId'] = FieldValue.delete();
+      }
+      await ref.update(data);
+      return const Right(null);
+    } catch (e) {
+      return Left('Abonelik durumu güncellenemedi: ${e.toString()}');
     }
   }
 

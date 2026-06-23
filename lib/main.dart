@@ -3,7 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
+import 'package:polen_academy/common/bloc/coach_subscription_cubit.dart';
 import 'package:polen_academy/common/helper/curriculum/curriculum_helper.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:polen_academy/common/widget/offline_banner.dart';
@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
       builder: (_, child) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => SplashCubit()..appStarted()),
-          BlocProvider(create: (context) => IsPremiumCubit()),
+          BlocProvider(create: (context) => CoachSubscriptionCubit()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

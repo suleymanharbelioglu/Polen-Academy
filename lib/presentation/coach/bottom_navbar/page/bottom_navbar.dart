@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/coach_subscription_cubit.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
 import 'package:polen_academy/data/auth/source/auth_firebase_service.dart';
 import 'package:polen_academy/presentation/coach/bottom_navbar/bloc/bottom_navbar_index_cubit.dart';
@@ -22,6 +23,19 @@ class BottomNavbarPage extends StatefulWidget {
 
 class _BottomNavbarPageState extends State<BottomNavbarPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadSubscription());
+  }
+
+  Future<void> _loadSubscription() async {
+    if (!mounted) return;
+    final coachUid = sl<AuthFirebaseService>().getCurrentUserUid();
+    if (coachUid == null) return;
+    await context.read<CoachSubscriptionCubit>().initializeForCoach(coachUid);
+  }
 
   @override
   Widget build(BuildContext context) {

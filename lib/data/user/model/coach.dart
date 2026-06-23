@@ -7,6 +7,8 @@ class CoachModel {
   final String email;
   final String role;
   final bool isVip;
+  final int? studentLimit;
+  final String? subscriptionProductId;
 
   CoachModel({
     required this.uid,
@@ -15,6 +17,8 @@ class CoachModel {
     required this.email,
     required this.role,
     this.isVip = false,
+    this.studentLimit,
+    this.subscriptionProductId,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,10 +29,13 @@ class CoachModel {
       'email': email,
       'role': role,
       'isVip': isVip,
+      if (studentLimit != null) 'studentLimit': studentLimit,
+      if (subscriptionProductId != null) 'subscriptionProductId': subscriptionProductId,
     };
   }
 
   factory CoachModel.fromMap(Map<String, dynamic> map) {
+    final rawLimit = map['studentLimit'];
     return CoachModel(
       uid: map['uid'] ?? '',
       firstName: map['firstName'] ?? '',
@@ -36,6 +43,8 @@ class CoachModel {
       email: map['email'] ?? '',
       role: map['role'] ?? 'coach',
       isVip: map['isVip'] == true,
+      studentLimit: rawLimit is int ? rawLimit : int.tryParse('$rawLimit'),
+      subscriptionProductId: map['subscriptionProductId'] as String?,
     );
   }
 }
@@ -49,6 +58,8 @@ extension CoachModelX on CoachModel {
       email: email,
       role: role,
       isVip: isVip,
+      studentLimit: studentLimit,
+      subscriptionProductId: subscriptionProductId,
     );
   }
 }
@@ -62,6 +73,8 @@ extension CoachEntityX on CoachEntity {
       email: email,
       role: role,
       isVip: isVip,
+      studentLimit: studentLimit,
+      subscriptionProductId: subscriptionProductId,
     );
   }
 }

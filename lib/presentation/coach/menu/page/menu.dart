@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:polen_academy/common/bloc/coach_subscription_cubit.dart';
 import 'package:polen_academy/common/bloc/logout_cubit.dart';
 import 'package:polen_academy/common/bloc/logout_state.dart';
+import 'package:polen_academy/data/revenuecat/revenuecat_service.dart';
 import 'package:polen_academy/common/helper/navigator/app_navigator.dart';
 import 'package:polen_academy/common/widget/loading_overlay.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
@@ -10,6 +12,7 @@ import 'package:polen_academy/presentation/auth/page/welcome.dart';
 import 'package:polen_academy/presentation/coach/menu/widget/logout_menu_item.dart';
 import 'package:polen_academy/presentation/coach/menu/widget/students_menu_item.dart';
 import 'package:polen_academy/presentation/coach/menu/widget/vip_card.dart';
+import 'package:polen_academy/service_locator.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -31,6 +34,8 @@ class _MenuPageContent extends StatelessWidget {
     return BlocListener<LogoutCubit, LogoutState>(
       listener: (context, state) {
         if (state is LogoutSuccess) {
+          context.read<CoachSubscriptionCubit>().reset();
+          sl<RevenueCatService>().logOut();
           LoadingOverlay.hide(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             AppNavigator.pushAndRemove(context, const WelcomePage());

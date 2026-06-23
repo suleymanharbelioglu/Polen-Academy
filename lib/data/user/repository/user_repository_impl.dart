@@ -65,6 +65,21 @@ class UserRepositoryImpl extends UserRepository {
   }
 
   @override
+  Future<Either<String, void>> updateCoachSubscription({
+    required String coachUid,
+    required int studentLimit,
+    required bool isVip,
+    String? subscriptionProductId,
+  }) async {
+    return sl<UserFirebaseService>().updateCoachSubscription(
+      coachUid: coachUid,
+      studentLimit: studentLimit,
+      isVip: isVip,
+      subscriptionProductId: subscriptionProductId,
+    );
+  }
+
+  @override
   Future<Either<String, void>> updateTargetSessionCount(
     String studentId,
     int targetSessionCount,

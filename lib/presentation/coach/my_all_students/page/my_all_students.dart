@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:polen_academy/common/bloc/is_premium_cubit.dart';
+import 'package:polen_academy/common/helper/subscription/add_student_subscription_gate.dart';
 import 'package:polen_academy/common/widget/add_student_dialog.dart';
 import 'package:polen_academy/common/widget/student_credentials_dialog.dart';
 import 'package:polen_academy/core/configs/theme/app_colors.dart';
@@ -19,7 +19,6 @@ import 'package:polen_academy/presentation/coach/my_all_students/bloc/add_studen
 import 'package:polen_academy/presentation/coach/my_all_students/widget/my_all_students_app_bar.dart';
 import 'package:polen_academy/presentation/coach/my_all_students/widget/student_card.dart';
 import 'package:polen_academy/presentation/coach/student_detail/page/student_detail.dart';
-import 'package:polen_academy/presentation/coach/vip/page/vip_page.dart';
 import 'package:polen_academy/service_locator.dart';
 
 class MyAllStudentsPage extends StatelessWidget {
@@ -130,49 +129,14 @@ class _MyAllStudentsView extends StatelessWidget {
   }
 
   Future<void> _onRequestAddStudent(BuildContext context) async {
-    final coachUid = sl<AuthFirebaseService>().getCurrentUserUid();
-    if (coachUid == null) return;
-    final isPremium = context.read<IsPremiumCubit>().state;
     final displayState = context.read<DisplayMyAllStudentsCubit>().state;
     final studentCount = displayState is DisplayMyAllStudentsSuccess ? displayState.students.length : 0;
-    if (!isPremium && studentCount >= 1) {
-      final shouldOpenVip = await _showPremiumRequiredDialog(context);
-      if (!context.mounted) return;
-      if (shouldOpenVip) {
-        final activated = await Navigator.of(context).push<bool>(
-          MaterialPageRoute(builder: (_) => const VipPage()),
-        );
-        if (activated == true && context.mounted) {
-          context.read<IsPremiumCubit>().activatePremium();
-        }
-      }
-      return;
-    }
-    _showAddStudentDialog(context);
-  }
-
-  Future<bool> _showPremiumRequiredDialog(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Premium Gerekli'),
-        content: const Text(
-          'Premium üyeliğiniz olmadığı için en fazla 1 öğrenci ekleyebilirsiniz. Daha fazla öğrenci eklemek için Premium sayfasına gidin.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Vazgeç'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primaryCoach),
-            child: const Text('Premiuma Git'),
-          ),
-        ],
-      ),
+    final canAdd = await AddStudentSubscriptionGate.ensureCanAddStudent(
+      context,
+      currentStudentCount: studentCount,
     );
-    return result ?? false;
+    if (!canAdd || !context.mounted) return;
+    _showAddStudentDialog(context);
   }
 
   Future<void> _showAddStudentDialog(BuildContext context) async {
