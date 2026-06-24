@@ -18,7 +18,7 @@ class RevenueCatConfig {
   static const freeStudentLimit = 1;
 
   /// Satın alınabilir öğrenci kotası seçenekleri.
-  static const studentTiers = [5, 10, 20];
+  static const studentTiers = [5, 10, 20, 50];
 
   /// Yıllık planda gösterilen indirim yüzdesi (UI).
   static const yearlyDiscountPercent = 20;
